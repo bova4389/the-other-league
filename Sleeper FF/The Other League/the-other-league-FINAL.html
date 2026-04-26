@@ -1139,23 +1139,49 @@ function renderHistoricalScores(container,matchups,week){
 async function buildDraft2026(){
   const tbody=document.getElementById('d26-tbody');
   if(!tbody)return;
-  // Fetch traded picks to show which 1st round slots changed hands
-  let tradedFrom={};  // currentOwnerId (roster) → originalOwnerId (roster)
+  // Fetch ALL 2026 traded picks across all rounds
+  let tradedFrom={};  // "round.origRid" → currentRid
   try{
     const tp=await api(`/league/${LID}/traded_picks`);
-    (tp||[]).filter(p=>String(p.season)==='2026'&&p.round===1&&p.roster_id!==p.owner_id)
-      .forEach(p=>{tradedFrom[p.owner_id]=p.roster_id;});
+    (tp||[]).filter(p=>String(p.season)==='2026'&&p.roster_id!==p.owner_id)
+      .forEach(p=>{tradedFrom[`${p.round}.${p.owner_id}`]=p.roster_id;});
   }catch(e){}
-  tbody.innerHTML=DRAFT_ORDER_2026.map(row=>{
-    const td=t(row.uid);
-    const currentRid=RMR[row.uid];
-    const origRid=tradedFrom[currentRid];
-    const tradedCol=origRid
-      ?`<span style="color:var(--accent2);font-family:'DM Mono',monospace;font-size:10px;">From ${rToTeam(origRid).name}</span>`
+
+  // Base 12-team order (indices 0-11); pick 1.13 is consolation-only extra
+  const base12=DRAFT_ORDER_2026.slice(0,12);
+
+  const allRows=[];
+  // Round 1: full 13 picks (includes consolation 1.13)
+  DRAFT_ORDER_2026.forEach(row=>{
+    const origRid=RMR[row.uid];
+    const currentRid=tradedFrom[`1.${origRid}`]||origRid;
+    allRows.push({rd:1,pick:row.pick,currentUid:RM[currentRid],origUid:row.uid,traded:currentRid!==origRid,how:row.how});
+  });
+  // Rounds 2-4: 12 picks each, snake format
+  for(let rd=2;rd<=4;rd++){
+    const baseOrder=rd%2===0?[...base12].reverse():base12;
+    baseOrder.forEach((row,i)=>{
+      const origRid=RMR[row.uid];
+      const currentRid=tradedFrom[`${rd}.${origRid}`]||origRid;
+      allRows.push({rd,pick:`${rd}.${String(i+1).padStart(2,'0')}`,currentUid:RM[currentRid],origUid:row.uid,traded:currentRid!==origRid,how:''});
+    });
+  }
+  window._draft2026Rows=allRows;
+
+  let curRd=0;
+  tbody.innerHTML=allRows.map(row=>{
+    const td_=t(row.currentUid);
+    const tradedCol=row.traded
+      ?`<span style="color:var(--accent2);font-family:'DM Mono',monospace;font-size:10px;">From ${t(row.origUid).name}</span>`
       :`<span style="color:var(--muted)">—</span>`;
-    return`<tr>
+    let rdHdr='';
+    if(row.rd!==curRd){
+      curRd=row.rd;
+      rdHdr=`<tr><td colspan="4" style="background:var(--surface);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:8px 11px;border-bottom:1px solid var(--border);">Round ${row.rd}</td></tr>`;
+    }
+    return rdHdr+`<tr>
       <td class="pk-r">${row.pick}</td>
-      <td>${td.name}<span style="color:var(--muted);margin-left:6px;font-size:10px">${td.team}</span></td>
+      <td>${td_.name}<span style="color:var(--muted);margin-left:6px;font-size:10px">${td_.team}</span></td>
       <td>${tradedCol}</td>
       <td>${row.how}</td>
     </tr>`;
@@ -1163,41 +1189,45 @@ async function buildDraft2026(){
 }
 
 function renderDraft2026Board(){
-  // Render 2026 draft as team columns (board view)
   const container=document.getElementById('d26-board-view');
-  // Group picks per team
+  const rows=window._draft2026Rows;
+  if(!rows||!rows.length){container.innerHTML='<div class="note">Load draft order first.</div>';return;}
+
+  // Unique teams in round-1 order (deduplicated — nick merkel appears twice in rd1)
+  const teamUids=[...new Set(DRAFT_ORDER_2026.slice(0,12).map(r=>r.uid))];
+  const n=teamUids.length;
+
+  // Group picks by current owner
   const byTeam={};
-  DRAFT_ORDER_2026.forEach(row=>{
-    if(!byTeam[row.uid])byTeam[row.uid]={td:t(row.uid),picks:[]};
-    byTeam[row.uid].picks.push(row.pick);
+  teamUids.forEach(uid=>{byTeam[uid]=[];});
+  rows.forEach(row=>{
+    const uid=row.currentUid;
+    if(!byTeam[uid])byTeam[uid]=[];
+    byTeam[uid].push(row);
   });
-  // Get unique teams in pick order (preserving first appearance)
-  const teamOrder=[];
-  DRAFT_ORDER_2026.forEach(row=>{if(!teamOrder.includes(row.uid))teamOrder.push(row.uid);});
-  const n=teamOrder.length;
-  let html=`<div class="draft-board" style="display:grid;grid-template-columns:repeat(${n},minmax(90px,1fr));gap:2px;overflow-x:auto;">`;
-  // Header row
-  teamOrder.forEach(uid=>{
-    const td=t(uid);
-    html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:6px 7px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:center;">${abbrev(td.name)}</div>`;
+  teamUids.forEach(uid=>{byTeam[uid].sort((a,b)=>a.rd-b.rd||a.pick.localeCompare(b.pick));});
+
+  const maxPicks=Math.max(...teamUids.map(uid=>byTeam[uid].length));
+
+  let html=`<div style="overflow-x:auto"><div class="draft-board" style="display:grid;grid-template-columns:repeat(${n},minmax(90px,1fr));gap:2px;">`;
+  teamUids.forEach(uid=>{
+    const td_=t(uid);
+    html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:6px 7px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:${td_.you?'var(--accent2)':'var(--muted)'};text-align:center;">${abbrev(td_.name)}</div>`;
   });
-  // Find max picks any one team has
-  const maxPicks=Math.max(...Object.values(byTeam).map(v=>v.picks.length));
-  // Pick rows
   for(let i=0;i<maxPicks;i++){
-    teamOrder.forEach(uid=>{
-      const entry=byTeam[uid];
-      const pick=entry?.picks[i];
+    teamUids.forEach(uid=>{
+      const pick=byTeam[uid][i];
       if(pick){
         html+=`<div style="background:var(--card);border:1px solid var(--border);padding:7px 8px;text-align:center;">
-          <div class="pk-r" style="font-size:16px">${pick}</div>
+          <div class="pk-r" style="font-size:14px">${pick.pick}</div>
+          ${pick.traded?`<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent2);margin-top:2px">from ${t(pick.origUid).name.split(' ')[0]}</div>`:''}
         </div>`;
       }else{
         html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:7px 8px;"></div>`;
       }
     });
   }
-  html+='</div>';
+  html+='</div></div>';
   container.innerHTML=html;
 }
 
@@ -1711,17 +1741,17 @@ function renderDraftPicks(container,picks,year){
   const rows=sorted.map(pick=>{
     const team=rToTeam(pick.roster_id);
     const name=`${pick.metadata?.first_name||''} ${pick.metadata?.last_name||''}`.trim()||`Player #${pick.player_id}`;
-    const pos=pick.metadata?.position||'?';
+    const pos=(pick.metadata?.position||'').toUpperCase();
+    const posClass=pos?`pos-${pos.toLowerCase()}`:'';
     return`<tr>
       <td class="dh-pick">${pick.pick_no}</td>
       <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Rd ${pick.round}</td>
       <td style="font-size:11px;color:var(--text2)">${team.name}</td>
-      <td style="font-size:12px;font-weight:500;color:var(--text)">${name}</td>
-      <td><span class="chip">${pos}</span></td>
+      <td><span class="chip ${posClass}" style="font-size:11px">${pos?`<span class="cp">${pos} </span>`:''}${name}</span></td>
     </tr>`;
   }).join('');
   container.innerHTML=`<div class="note" style="margin-bottom:12px"><strong>${year} Rookie Draft</strong> · ${picks.length} picks · Snake format</div>
-  <table class="dtbl"><thead><tr><th>Pick</th><th>Round</th><th>Owner</th><th>Player</th><th>Pos</th></tr></thead><tbody>${rows}</tbody></table>`;
+  <table class="dtbl"><thead><tr><th>Pick</th><th>Round</th><th>Owner</th><th>Player</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function renderDraftBoard(picks,year){
@@ -1747,12 +1777,12 @@ function renderDraftBoard(picks,year){
       const pick=byTeam[rid][i];
       if(pick){
         const name=`${pick.metadata?.first_name||''} ${pick.metadata?.last_name||''}`.trim()||`#${pick.player_id}`;
-        const pos=pick.metadata?.position||'?';
+        const pos=(pick.metadata?.position||'').toUpperCase();
+        const posClass=pos?`pos-${pos.toLowerCase()}`:'';
         const tm=rToTeam(rid);
         html+=`<td style="padding:7px 8px;text-align:center;${tm.you?'background:rgba(255,208,0,.03)':''}">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:2px">Rd${pick.round}·P${pick.pick_no}</div>
-          <div style="font-size:11px;color:var(--text);font-weight:500;line-height:1.3">${name}</div>
-          <div><span class="chip" style="font-size:9px;padding:1px 5px">${pos}</span></div>
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:3px">Rd${pick.round}·P${pick.pick_no}</div>
+          <div><span class="chip ${posClass}" style="font-size:10px;padding:2px 6px;display:inline-block">${pos?`<span class="cp">${pos} </span>`:''}${name}</span></div>
         </td>`;
       }else{
         html+=`<td style="background:var(--surface)"></td>`;
