@@ -74,7 +74,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 
 /* STATUS PILLS */
 .status{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--surface);}
-.s-pill{flex:1;min-width:80px;padding:10px 12px;border-right:1px solid var(--border);text-align:center;}
+.s-pill{flex:1;min-width:80px;padding:10px 12px;border-right:1px solid var(--border);text-align:center;display:flex;flex-direction:column;}
 .s-pill .sl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:2px;}
 .s-pill .sv{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;color:var(--accent);}
 
@@ -305,7 +305,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .ai-clear:hover{border-color:var(--accent3);color:var(--accent3);}
 .ai-context-note{background:var(--ai-bg);border:1px solid var(--ai-border);padding:10px 14px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);line-height:1.6;}
 
-@media(max-width:680px){.sidebar{display:none;}.content{padding:14px;}.status{display:none;}.cache-bar{padding:6px 14px;}}
+@media(max-width:680px){.sidebar{display:none;}.content{padding:14px;}.status{overflow-x:auto;-webkit-overflow-scrolling:touch;}.s-pill{padding:8px 10px;}.cache-bar{padding:6px 14px;}}
 </style>
 </head>
 <body>
@@ -394,6 +394,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
       <button class="tab" onclick="showTab('transactions',this)">Transactions</button>
       <button class="tab" onclick="showTab('careers',this)">Careers</button>
       <button class="tab ai-tab" onclick="showTab('ai',this)">⚡ Ask Claude</button>
+      <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="tab" style="margin-left:auto;color:var(--accent2);text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;">Sleeper ↗</a>
     </div>
 
     <!-- SCORES -->
@@ -1162,6 +1163,9 @@ async function buildRosters(rostersData,playersData){
       const bench=all.filter(id=>!sSet.has(id)&&!txSet.has(id)&&!irSet.has(id));
       const taxi=all.filter(id=>txSet.has(id));
       const ir=all.filter(id=>irSet.has(id));
+      const ageIds=[...starters,...bench,...ir];
+      const ages=ageIds.map(id=>players[id]?.age).filter(Boolean);
+      const avgAge=ages.length?(ages.reduce((a,b)=>a+b,0)/ages.length).toFixed(1):'—';
       // Chip renders player name + position label + age, colored by position
       const chip=(id)=>{
         const p=players[id];if(!p)return`<span class="chip">#${id}</span>`;
@@ -1177,7 +1181,7 @@ async function buildRosters(rostersData,playersData){
       g.innerHTML+=`<div class="r-card" id="roster-card-${uid}">
         <div class="rch">
           <div><div class="rch-team">${td_.team}</div><div class="rch-own">${td_.name}${td_.co?` + ${td_.co}`:''}${td_.note?` · ${td_.note}`:''}</div></div>
-          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;">${tags}</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">${tags}<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAge}</span></div>
         </div>
         <div class="rcb">
           <div class="pg"><div class="pl">Starters (${starters.length})</div><div class="pchips">${starters.map(id=>chip(id)).join('')||'<span style="color:var(--muted);font-size:11px;">Not set</span>'}</div></div>
