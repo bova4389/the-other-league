@@ -437,7 +437,32 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
           <div class="ir-row"><span class="ik">5th — Chris Jacobs</span><span class="iv">$60</span></div>
           <div class="ir-row"><span class="ik">Manager of Year — Chris Bova</span><span class="iv">$55</span></div>
           <div class="ir-row"><span class="ik">Top Rookie Score — Chris Merkel</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Rivalry Win — Bova + N. Merkel</span><span class="iv">$10 ea</span></div>
+          <div class="ir-row"><span class="ik">Rivalry Win — Matt Bova + Nick Merkel</span><span class="iv">$10 ea</span></div>
+        </div>
+        <div class="ic">
+          <div class="ict">2024 Payouts — Final</div>
+          <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$100/team</span></div>
+          <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$1,200</span></div>
+          <div class="ir-row"><span class="ik">🏆 1st — Chris Bova</span><span class="iv" style="color:var(--win)">$440</span></div>
+          <div class="ir-row"><span class="ik">🥈 2nd — Nick Merkel</span><span class="iv" style="color:var(--accent2)">$430</span></div>
+          <div class="ir-row"><span class="ik">🥉 3rd — Jake Bogardus</span><span class="iv">$160</span></div>
+          <div class="ir-row"><span class="ik">Reg Season — Nick Merkel</span><span class="iv">$100</span></div>
+          <div class="ir-row"><span class="ik">Best Week (232.4 pts) — Jake Blackwell</span><span class="iv">$25</span></div>
+          <div class="ir-row"><span class="ik">Most PF — Nick Merkel</span><span class="iv">$20</span></div>
+          <div class="ir-row"><span class="ik">Most PA — Jared Hayes</span><span class="iv">$15</span></div>
+          <div class="ir-row"><span class="ik">Best QB (Lamar Jackson) — Duane Gillenwater</span><span class="iv">$15</span></div>
+          <div class="ir-row"><span class="ik">Best RB (Saquon Barkley) — Nick Merkel</span><span class="iv">$15</span></div>
+          <div class="ir-row"><span class="ik">Best WR (Ja'Marr Chase) — Nick Merkel</span><span class="iv">$15</span></div>
+          <div class="ir-row"><span class="ik">Best TE (Brock Bowers) — Jake Blackwell</span><span class="iv">$15</span></div>
+          <div class="ir-row"><span class="ik">Weekly High Score (14 wks × $20)</span><span class="iv">$280</span></div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0;line-height:1.8;">Nick Merkel $80 · Chris Jacobs $60 · Jake Bogardus $60 · Chris Bova $40 · Nick Bova $20 · Jake Blackwell $20</div>
+        </div>
+        <div class="ic">
+          <div class="ict">2023 Payouts — Final</div>
+          <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$50/team</span></div>
+          <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$600</span></div>
+          <div class="ir-row"><span class="ik">🏆 1st — Mitch Blackwell</span><span class="iv" style="color:var(--win)">$400</span></div>
+          <div class="ir-row"><span class="ik">🥈 2nd — Duane Gillenwater</span><span class="iv" style="color:var(--accent2)">$200</span></div>
         </div>
       </div>
 
@@ -788,6 +813,7 @@ function pname(pid){ if(cachedPlayers&&cachedPlayers[pid]){const p=cachedPlayers
 function ppos(pid){ return(cachedPlayers&&cachedPlayers[pid])?(cachedPlayers[pid].position||''):''; }
 function fmtDate(ms){ return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
 function fmtDateShort(ms){ return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function abbrev(name){ const p=name.split(' '); return p.length>1?`${p[0][0]}. ${p.slice(1).join(' ')}`:name; }
 
 // ── THEME ──
 function toggleTheme(){
@@ -995,7 +1021,7 @@ async function renderScoresWeek(container,week){
           <div class="match-tm"><div class="match-name">${tb.name}</div><div class="match-own">${tb.team}</div></div>
           <div class="match-pts ${!aWin?'leading':''}">${(b.points||0).toFixed(2)}</div>
         </div>
-        <div class="match-h2h">All-time: ${ta.name.split(' ')[0]} ${aW}–${aL} ${tb.name.split(' ')[0]}</div>
+        <div class="match-h2h">All-time: ${abbrev(ta.name)} ${aW}–${aL} ${abbrev(tb.name)}</div>
       </div>`;
     });
     if(!Object.keys(groups).length) grid.innerHTML='<div class="note">No matchup data for this week.</div>';
@@ -1055,7 +1081,7 @@ function renderDraft2026Board(){
   // Header row
   teamOrder.forEach(uid=>{
     const td=t(uid);
-    html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:6px 7px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:center;">${td.name.split(' ')[0]}</div>`;
+    html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:6px 7px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:center;">${abbrev(td.name)}</div>`;
   });
   // Find max picks any one team has
   const maxPicks=Math.max(...Object.values(byTeam).map(v=>v.picks.length));
@@ -1224,10 +1250,10 @@ function buildRivalries(){
       const rec=yh2h[ridA]&&yh2h[ridA][ridB]?yh2h[ridA][ridB]:null;
       if(!rec||rec.w+rec.l===0)continue;
       atW+=rec.w;atL+=rec.l;
-      yearRows.push(`<div class="riv-rec-yr">${year}: ${a.name.split(' ')[0]} ${rec.w}–${rec.l} ${b.name.split(' ')[0]}</div>`);
+      yearRows.push(`<div class="riv-rec-yr">${year}: ${abbrev(a.name)} ${rec.w}–${rec.l} ${abbrev(b.name)}</div>`);
     }
     const hasData=atW+atL>0;
-    const atStr=hasData?`${a.name.split(' ')[0]} ${atW}–${atL} ${b.name.split(' ')[0]}`:'Loading...';
+    const atStr=hasData?`${abbrev(a.name)} ${atW}–${atL} ${abbrev(b.name)}`:'Loading...';
     g.innerHTML+=`<div class="riv-card">
       <div class="riv-names">
         <div class="rv-nm"><div class="rv-n">${a.name}</div><div class="rv-t">${a.team}</div></div>
@@ -1460,7 +1486,7 @@ function renderTxnTrade(tx,date){
       sides[pick.owner_id].picks.push(`${pick.season} Rd ${pick.round} (via ${orig.name.split(' ')[0]})`);
     }
   });
-  const teamNames=rids.map(rid=>rToTeam(rid).name.split(' ')[0]).join(' ↔ ');
+  const teamNames=rids.map(rid=>abbrev(rToTeam(rid).name)).join(' ↔ ');
   const sidesHtml=rids.map(rid=>{
     const team=rToTeam(rid);
     const s=sides[rid];
@@ -1563,7 +1589,7 @@ function renderDraftBoard(picks,year){
   const n=teamOrder.length;
   let html=`<div class="note" style="margin-bottom:12px"><strong>${year} Rookie Draft — Board View</strong></div>
   <div style="overflow-x:auto"><table class="dtbl draft-board-tbl" style="min-width:${n*110}px">
-    <thead><tr>${teamOrder.map(rid=>{const tm=rToTeam(rid);return`<th style="text-align:center;${tm.you?'color:var(--accent2)':''}">${tm.name.split(' ')[0]}</th>`;}).join('')}</tr></thead>
+    <thead><tr>${teamOrder.map(rid=>{const tm=rToTeam(rid);return`<th style="text-align:center;${tm.you?'color:var(--accent2)':''}">${abbrev(tm.name)}</th>`;}).join('')}</tr></thead>
     <tbody>`;
   for(let i=0;i<maxRounds;i++){
     html+=`<tr>`;
