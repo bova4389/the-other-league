@@ -141,8 +141,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 /* Clickable chips (Player Stats link) */
 .chip[onclick]{cursor:pointer;transition:opacity .15s;}
 .chip[onclick]:hover{opacity:.7;}
-/* Player Stats tab row highlight for your team */
-.stats-you>td:first-child{border-left:2px solid var(--accent2);}
+
 
 /* TAGS */
 .tag{font-family:'DM Mono',monospace;font-size:8px;padding:2px 5px;text-transform:uppercase;letter-spacing:.07em;border-radius:2px;}
@@ -188,7 +187,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .riv-rec-yr{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);}
 
 /* TABLE */
-.dtbl{width:100%;border-collapse:collapse;font-size:12px;}
+.dtbl{width:auto;border-collapse:collapse;font-size:12px;}
 .dtbl th{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:8px 11px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);}
 .dtbl td{padding:8px 11px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
 .dtbl tr:hover td{background:var(--surface);}
@@ -433,6 +432,28 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
           <button class="f-pill" onclick="setStatsPos('RB',this)">RB</button>
           <button class="f-pill" onclick="setStatsPos('WR',this)">WR</button>
           <button class="f-pill" onclick="setStatsPos('TE',this)">TE</button>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="filter-bar" id="stats-wk-filter" style="overflow-x:auto;flex-wrap:nowrap;max-width:100%;">
+          <button class="f-pill active" onclick="setStatsWeek('season',this)">Season</button>
+          <button class="f-pill" onclick="setStatsWeek(1,this)">W1</button>
+          <button class="f-pill" onclick="setStatsWeek(2,this)">W2</button>
+          <button class="f-pill" onclick="setStatsWeek(3,this)">W3</button>
+          <button class="f-pill" onclick="setStatsWeek(4,this)">W4</button>
+          <button class="f-pill" onclick="setStatsWeek(5,this)">W5</button>
+          <button class="f-pill" onclick="setStatsWeek(6,this)">W6</button>
+          <button class="f-pill" onclick="setStatsWeek(7,this)">W7</button>
+          <button class="f-pill" onclick="setStatsWeek(8,this)">W8</button>
+          <button class="f-pill" onclick="setStatsWeek(9,this)">W9</button>
+          <button class="f-pill" onclick="setStatsWeek(10,this)">W10</button>
+          <button class="f-pill" onclick="setStatsWeek(11,this)">W11</button>
+          <button class="f-pill" onclick="setStatsWeek(12,this)">W12</button>
+          <button class="f-pill" onclick="setStatsWeek(13,this)">W13</button>
+          <button class="f-pill" onclick="setStatsWeek(14,this)">W14</button>
+          <button class="f-pill" onclick="setStatsWeek(15,this)">W15</button>
+          <button class="f-pill" onclick="setStatsWeek(16,this)">W16</button>
+          <button class="f-pill" onclick="setStatsWeek(17,this)">W17</button>
         </div>
       </div>
       <div id="stats-container"><div class="ld"><div class="spin"></div><div class="lt">Loading stats...</div></div></div>
@@ -835,6 +856,7 @@ let currentTxnFilter = 'all';
 let currentTxnTeam = null; // roster_id (number) or null for all teams
 let currentStatsYear = 2025;
 let currentStatsPos = 'all';
+let currentStatsWeek = 'season';
 
 // ── HELPERS ──
 function t(uid){ return TEAMS[uid]||{name:uid,team:'Unknown',you:false,tier:'mid'}; }
@@ -1881,6 +1903,29 @@ async function fetchPlayerStats(year){
   return agg;
 }
 
+async function fetchWeekStats(year,week){
+  const key=`tol_stats_wk_${year}_${week}`;
+  const cached=loadPerm(key);
+  if(cached)return cached;
+  const rosterPlayerIds=new Set();
+  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
+  if(!rosterPlayerIds.size)return{};
+  const STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt','pass_td_40p',
+    'rush_att','rush_yd','rush_td','rush_2pt','rush_40p',
+    'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
+    'kr_yd','pr_yd','fum_lost','bonus_pass_yd_400','bonus_rush_yd_200','bonus_rec_yd_200'];
+  const weekData=await api(`/stats/nfl/regular/${year}/${week}`).catch(()=>({}));
+  const result={};
+  Object.entries(weekData).forEach(([pid,stats])=>{
+    if(!rosterPlayerIds.has(String(pid)))return;
+    const filtered={};
+    STAT_KEYS.forEach(k=>{if(stats[k])filtered[k]=stats[k];});
+    if(Object.keys(filtered).length)result[pid]=filtered;
+  });
+  savePerm(key,result);
+  return result;
+}
+
 function calcPts(stats,pos){
   if(!stats)return 0;
   let pts=0;
@@ -1918,7 +1963,9 @@ async function buildPlayerStats(year,posFilter){
   c.dataset.loaded='1';
   c.innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Fetching stats...</div></div>';
   try{
-    const statsData=await fetchPlayerStats(year||currentStatsYear);
+    const statsData=currentStatsWeek==='season'
+      ? await fetchPlayerStats(year||currentStatsYear)
+      : await fetchWeekStats(year||currentStatsYear,currentStatsWeek);
     const pos=posFilter||currentStatsPos;
     // Build a player-owner map from cachedRosters
     const pidToRoster={};
@@ -1949,9 +1996,9 @@ async function buildPlayerStats(year,posFilter){
     const pct=(a,b)=>(a&&b)?(a/b*100).toFixed(1)+'%':'—';
     if(pos==='QB'){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Cmp%</th><th>Pass Yds</th><th>Pass TDs</th><th>INTs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-qb" style="cursor:default"><span class="cp">QB</span>${abbrev(r.name)}</span></td>
+        <td><span class="chip pos-qb" style="cursor:default"><span class="cp">QB</span>${r.name}</span></td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
         <td>${fmt(r.stats.gp)}</td>
         <td>${fmt(r.stats.pass_att)}</td>
@@ -1965,9 +2012,9 @@ async function buildPlayerStats(year,posFilter){
       </tr>`;
     }else if(pos==='RB'){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Rush Yds</th><th>Rush TDs</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-rb" style="cursor:default"><span class="cp">RB</span>${abbrev(r.name)}</span></td>
+        <td><span class="chip pos-rb" style="cursor:default"><span class="cp">RB</span>${r.name}</span></td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
         <td>${fmt(r.stats.gp)}</td>
         <td>${fmt(r.stats.rush_att)}</td>
@@ -1980,9 +2027,9 @@ async function buildPlayerStats(year,posFilter){
       </tr>`;
     }else if(pos==='WR'){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-wr" style="cursor:default"><span class="cp">WR</span>${abbrev(r.name)}</span></td>
+        <td><span class="chip pos-wr" style="cursor:default"><span class="cp">WR</span>${r.name}</span></td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
         <td>${fmt(r.stats.gp)}</td>
         <td>${fmt(r.stats.rec)}</td>
@@ -1996,9 +2043,9 @@ async function buildPlayerStats(year,posFilter){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>TE Prem Pts</th><th>Est. Pts</th></tr>`;
       rowFn=(r,i)=>{
         const tePrem=Math.round((r.stats.rec||0)*(SDATA.bonus_rec_te||0)*10)/10;
-        return`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+        return`<tr id="stats-player-${r.pid}">
           <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-          <td><span class="chip pos-te" style="cursor:default"><span class="cp">TE</span>${abbrev(r.name)}</span></td>
+          <td><span class="chip pos-te" style="cursor:default"><span class="cp">TE</span>${r.name}</span></td>
           <td style="color:var(--text2)">${abbrev(r.owner)}</td>
           <td>${fmt(r.stats.gp)}</td>
           <td>${fmt(r.stats.rec)}</td>
@@ -2010,11 +2057,10 @@ async function buildPlayerStats(year,posFilter){
       };
     }else{
       // All positions
-      thead=`<tr><th>#</th><th>Player</th><th>Pos</th><th>NFL Team</th><th>Owner</th><th>Gms</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+      thead=`<tr><th>#</th><th>Player</th><th>NFL Team</th><th>Owner</th><th>Gms</th><th>Est. Pts</th></tr>`;
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td style="color:var(--text);font-weight:500">${abbrev(r.name)}</td>
-        <td><span class="chip pos-${r.position.toLowerCase()}" style="font-size:10px;cursor:default">${r.position}</span></td>
+        <td><span class="chip pos-${r.position.toLowerCase()}" style="cursor:default"><span class="cp">${r.position}</span>${r.name}</span></td>
         <td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
         <td>${fmt(r.stats.gp)}</td>
@@ -2022,7 +2068,7 @@ async function buildPlayerStats(year,posFilter){
       </tr>`;
     }
     c.innerHTML=`
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players · ${year} season · sorted by est. pts</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players · ${year} ${currentStatsWeek==='season'?'season':`week ${currentStatsWeek}`} · sorted by est. pts</div>
       <div style="overflow-x:auto">
         <table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table>
       </div>
@@ -2036,10 +2082,22 @@ function setStatsYear(year,el){
   document.querySelectorAll('#stats-yr-toggle .yr-btn').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
   currentStatsYear=year;
-  // Reset loaded flag so table re-renders for new year
+  currentStatsWeek='season';
+  document.querySelectorAll('#stats-wk-filter .f-pill').forEach(b=>b.classList.remove('active'));
+  const seasonBtn=document.querySelector('#stats-wk-filter .f-pill');
+  if(seasonBtn)seasonBtn.classList.add('active');
   const c=document.getElementById('stats-container');
   if(c)delete c.dataset.loaded;
   buildPlayerStats(year,currentStatsPos);
+}
+
+function setStatsWeek(week,el){
+  document.querySelectorAll('#stats-wk-filter .f-pill').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  currentStatsWeek=week;
+  const c=document.getElementById('stats-container');
+  if(c)delete c.dataset.loaded;
+  buildPlayerStats(currentStatsYear,currentStatsPos);
 }
 
 function setStatsPos(pos,el){
