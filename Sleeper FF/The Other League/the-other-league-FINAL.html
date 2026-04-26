@@ -518,23 +518,30 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
           <div class="ict">2025 Payouts — Final</div>
           <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$100/team</span></div>
           <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$1,200</span></div>
-          <div class="ir-row"><span class="ik">🏆 1st — Jake Blackwell</span><span class="iv" style="color:var(--win)">$490</span></div>
-          <div class="ir-row"><span class="ik">🥈 2nd — Nick Bova</span><span class="iv" style="color:var(--accent2)">$390</span></div>
-          <div class="ir-row"><span class="ik">🥉 3rd — Jared Hayes</span><span class="iv">$70</span></div>
-          <div class="ir-row"><span class="ik">4th — Jake Bogardus</span><span class="iv">$65</span></div>
-          <div class="ir-row"><span class="ik">5th — Chris Jacobs</span><span class="iv">$60</span></div>
+          <div class="ir-row"><span class="ik">🏆 1st — Jake Blackwell</span><span class="iv" style="color:var(--win)">$455</span></div>
+          <div class="ir-row"><span class="ik">🥈 2nd — Nick Bova</span><span class="iv" style="color:var(--accent2)">$205</span></div>
+          <div class="ir-row"><span class="ik">Reg Season Pts Leader — Nick Bova</span><span class="iv">$115</span></div>
+          <div class="ir-row"><span class="ik">Best Reg Season Record — Jake Bogardus</span><span class="iv">$55</span></div>
           <div class="ir-row"><span class="ik">Manager of Year — Chris Bova</span><span class="iv">$55</span></div>
-          <div class="ir-row"><span class="ik">Top Rookie Score — Chris Merkel</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Rivalry Win — Matt Bova + Nick Merkel</span><span class="iv">$10 ea</span></div>
+          <div class="ir-row"><span class="ik">Most Improved Record — J. Hayes (6-22 → 16-12)</span><span class="iv">$35</span></div>
+          <div class="ir-row"><span class="ik">Most Improved Points — N. Bova (1,196 → 2,291)</span><span class="iv">$35</span></div>
+          <div class="ir-row"><span class="ik">Most Improved Standings — J. Hayes (12th → 5th)</span><span class="iv">$35</span></div>
+          <div class="ir-row"><span class="ik">Top Scoring Rookie — C. Merkel (Jaxson Dart)</span><span class="iv">$25</span></div>
+          <div class="ir-row"><span class="ik">Top Scoring RB — N. Bova (C. McCaffrey)</span><span class="iv">$25</span></div>
+          <div class="ir-row"><span class="ik">Top Scoring WR — J. Blackwell (JXN)</span><span class="iv">$25</span></div>
+          <div class="ir-row"><span class="ik">Top Scoring QB — C. Jacobs (Josh Allen)</span><span class="iv">$25</span></div>
+          <div class="ir-row"><span class="ik">Worst Beat — C. Jacobs (W11, lost 183 to N. Bova 194)</span><span class="iv">$25</span></div>
+          <div class="ir-row"><span class="ik">Rivalry Winners ($10 ea)</span><span class="iv">$60 total</span></div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0;line-height:1.8;">M. Bova · Bogardus · J. Blackwell · C. Jacobs · N. Bova · N. Merkel</div>
         </div>
         <div class="ic">
           <div class="ict">2024 Payouts — Final</div>
           <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$100/team</span></div>
           <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$1,200</span></div>
-          <div class="ir-row"><span class="ik">🏆 1st — Chris Bova</span><span class="iv" style="color:var(--win)">$440</span></div>
-          <div class="ir-row"><span class="ik">🥈 2nd — Nick Merkel</span><span class="iv" style="color:var(--accent2)">$430</span></div>
-          <div class="ir-row"><span class="ik">🥉 3rd — Jake Bogardus</span><span class="iv">$160</span></div>
-          <div class="ir-row"><span class="ik">Reg Season — Nick Merkel</span><span class="iv">$100</span></div>
+          <div class="ir-row"><span class="ik">🏆 1st — Chris Bova</span><span class="iv" style="color:var(--win)">$400</span></div>
+          <div class="ir-row"><span class="ik">🥈 2nd — Nick Merkel</span><span class="iv" style="color:var(--accent2)">$200</span></div>
+          <div class="ir-row"><span class="ik">🥉 3rd — Jake Bogardus</span><span class="iv">$100</span></div>
+          <div class="ir-row"><span class="ik">Reg Season Winner — Nick Merkel</span><span class="iv">$100</span></div>
           <div class="ir-row"><span class="ik">Best Week (232.4 pts) — Jake Blackwell</span><span class="iv">$25</span></div>
           <div class="ir-row"><span class="ik">Most PF — Nick Merkel</span><span class="iv">$20</span></div>
           <div class="ir-row"><span class="ik">Most PA — Jared Hayes</span><span class="iv">$15</span></div>
@@ -1342,7 +1349,7 @@ function buildScoring(){
 
 // ── RIVALRIES ──
 // Builds a per-year H2H map from cached matchup data for a single season
-function buildH2HForYear(year){
+function buildH2HForYear(year,maxWeek=17){
   const data=loadPerm(`tol_matchups_${year}`);
   if(!data)return null;
   const h2h={};
@@ -1353,6 +1360,7 @@ function buildH2HForYear(year){
     if(!h2h[b][a])h2h[b][a]={w:0,l:0,pf:0,pa:0};
   };
   Object.entries(data).forEach(([_wk,weekData])=>{
+    if(Number(_wk)>maxWeek)return;
     if(!weekData||!weekData.length)return;
     const groups={};
     weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
@@ -1372,11 +1380,12 @@ function buildH2HForYear(year){
 }
 
 // Returns sorted list of week numbers where ridA and ridB faced each other
-function findRivalWeeks(year,ridA,ridB){
+function findRivalWeeks(year,ridA,ridB,maxWeek=14){
   const data=loadPerm(`tol_matchups_${year}`);
   if(!data)return[];
   const weeks=[];
   Object.entries(data).forEach(([wk,weekData])=>{
+    if(Number(wk)>maxWeek)return;
     if(!weekData||!weekData.length)return;
     const groups={};
     weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
@@ -1396,7 +1405,7 @@ function buildRivalries(){
   const rivalYears=[2025,2026];
   const h2hByYear={};
   for(const year of rivalYears){
-    const h=buildH2HForYear(year);
+    const h=buildH2HForYear(year,14);
     if(h)h2hByYear[year]=h;
   }
   RIVALS.forEach(p=>{
@@ -1410,15 +1419,15 @@ function buildRivalries(){
       const rec=yh2h[ridA]&&yh2h[ridA][ridB]?yh2h[ridA][ridB]:null;
       if(!rec||rec.w+rec.l===0)continue;
       atW+=rec.w;atL+=rec.l;atPF+=rec.pf||0;atPB+=rec.pa||0;
-      // Determine year winner (more wins; tie-break on points)
-      let yrWinner;
-      if(rec.w>rec.l)yrWinner=abbrev(a.name);
-      else if(rec.l>rec.w)yrWinner=abbrev(b.name);
-      else yrWinner=(rec.pf||0)>=(rec.pa||0)?abbrev(a.name):abbrev(b.name);
+      // Determine year winner (more wins; tie-break on points); record always shown from winner's perspective
+      let yrWinner,wrW,wrL;
+      if(rec.w>rec.l){yrWinner=abbrev(a.name);wrW=rec.w;wrL=rec.l;}
+      else if(rec.l>rec.w){yrWinner=abbrev(b.name);wrW=rec.l;wrL=rec.w;}
+      else{const aWon=(rec.pf||0)>=(rec.pa||0);yrWinner=aWon?abbrev(a.name):abbrev(b.name);wrW=aWon?rec.w:rec.l;wrL=aWon?rec.l:rec.w;}
       // Week links back to Scores tab
       const wks=findRivalWeeks(year,ridA,ridB);
       const wkLinks=wks.map(w=>`<a href="#" onclick="goToScoresWeek(${year},${w});return false;" class="riv-wk-link">W${w}</a>`).join(' ');
-      yearRows.push(`<div class="riv-rec-yr">${year}: <strong>${yrWinner}</strong> (W) ${rec.w}–${rec.l} ${wkLinks?'· '+wkLinks:''}</div>`);
+      yearRows.push(`<div class="riv-rec-yr">${year}: <strong>${yrWinner}</strong> (W) ${wrW}–${wrL} ${wkLinks?'· '+wkLinks:''}</div>`);
     }
     const hasData=atW+atL>0;
     // All-time columnar record
@@ -2355,8 +2364,8 @@ ALL 12 TEAMS:
 
 HISTORY:
 2023 ($50 buy-in): 1st Mitch Blackwell $400, 2nd Jake Bogardus $200
-2024 ($100 buy-in): 1st Chris Bova $440, 2nd Nick Merkel $430, 3rd Jake Bogardus $175
-2025 ($100 buy-in): 1st Jake Blackwell $490, 2nd Nick Bova $390, 3rd Jared Hayes $70
+2024 ($100 buy-in): 1st Chris Bova $400, 2nd Nick Merkel $200, 3rd Jake Bogardus $100
+2025 ($100 buy-in): 1st Jake Blackwell $455, 2nd Nick Bova $205, no 3rd place payout
 
 RIVALRY MATCHUPS (play twice, H2H only — no median win):
 Matt Bova vs Duane Gillenwater | Jake Blackwell vs Mitch Blackwell | Erin vs Chris Jacobs | Chris Bova vs Nick Bova | Chris Merkel vs Nick Merkel | Jared Hayes vs Jake Bogardus
