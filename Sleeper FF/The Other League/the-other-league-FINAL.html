@@ -138,6 +138,11 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .chip.pos-te .cp{color:var(--pos-te);opacity:.85;}
 .chip.pos-k .cp{color:var(--pos-k);opacity:.85;}
 .chip.pos-def .cp{color:var(--pos-def);opacity:.85;}
+/* Clickable chips (Player Stats link) */
+.chip[onclick]{cursor:pointer;transition:opacity .15s;}
+.chip[onclick]:hover{opacity:.7;}
+/* Player Stats tab row highlight for your team */
+.stats-you>td:first-child{border-left:2px solid var(--accent2);}
 
 /* TAGS */
 .tag{font-family:'DM Mono',monospace;font-size:8px;padding:2px 5px;text-transform:uppercase;letter-spacing:.07em;border-radius:2px;}
@@ -387,6 +392,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
     <div class="tabs">
       <button class="tab active" onclick="showTab('scores',this)">Scores</button>
       <button class="tab" onclick="showTab('rosters',this)">Rosters</button>
+      <button class="tab" onclick="showTab('stats',this)">Player Stats</button>
       <button class="tab" onclick="showTab('league',this)">League Info</button>
       <button class="tab" onclick="showTab('scoring',this)">Scoring</button>
       <button class="tab" onclick="showTab('rivalries',this)">Rivalries</button>
@@ -409,6 +415,27 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
       <div class="sec-title">LEAGUE ROSTERS</div>
       <div class="sec-sub">Live from Sleeper · Green = Starters · Blue = Taxi · Orange = IR</div>
       <div id="rosters-container"><div class="ld"><div class="spin"></div><div class="lt">Connecting to Sleeper...</div></div></div>
+    </div>
+
+    <!-- PLAYER STATS -->
+    <div class="panel" id="panel-stats">
+      <div class="sec-title">PLAYER STATS</div>
+      <div class="sec-sub">NFL Season Stats · Dynasty Roster Players · Raw Stats + Est. Fantasy Pts</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+        <div class="yr-toggle" id="stats-yr-toggle">
+          <button class="yr-btn active" onclick="setStatsYear(2025,this)">2025</button>
+          <button class="yr-btn" onclick="setStatsYear(2024,this)">2024</button>
+          <button class="yr-btn" onclick="setStatsYear(2023,this)">2023</button>
+        </div>
+        <div class="filter-bar" id="stats-pos-filter">
+          <button class="f-pill active" onclick="setStatsPos('all',this)">All</button>
+          <button class="f-pill" onclick="setStatsPos('QB',this)">QB</button>
+          <button class="f-pill" onclick="setStatsPos('RB',this)">RB</button>
+          <button class="f-pill" onclick="setStatsPos('WR',this)">WR</button>
+          <button class="f-pill" onclick="setStatsPos('TE',this)">TE</button>
+        </div>
+      </div>
+      <div id="stats-container"><div class="ld"><div class="spin"></div><div class="lt">Loading stats...</div></div></div>
     </div>
 
     <!-- LEAGUE INFO -->
@@ -806,6 +833,8 @@ let cachedLeagueIds = null;    // { 2025: id, 2024: id, 2023: id }
 let currentTxnYear = 2025;
 let currentTxnFilter = 'all';
 let currentTxnTeam = null; // roster_id (number) or null for all teams
+let currentStatsYear = 2025;
+let currentStatsPos = 'all';
 
 // ── HELPERS ──
 function t(uid){ return TEAMS[uid]||{name:uid,team:'Unknown',you:false,tier:'mid'}; }
@@ -1173,7 +1202,7 @@ async function buildRosters(rostersData,playersData){
         const pos=p.position||'';
         const age=p.age?` (${p.age})`:'';
         const posClass=pos?`pos-${pos.toLowerCase()}`:'';
-        return`<span class="chip ${posClass}">${pos?`<span class="cp">${pos}</span>`:''}${name}${age}</span>`;
+        return`<span class="chip ${posClass}" onclick="showPlayerStats('${id}')" title="${abbrev(name)} stats">${pos?`<span class="cp">${pos}</span>`:''}${name}${age}</span>`;
       };
       const tags=[
         td_.tier==='champion'?'<span class="tag tg-s">🏆 Champ</span>':'',
@@ -1200,7 +1229,14 @@ async function buildRosters(rostersData,playersData){
 // ── SCORING ──
 function buildScoring(){
   const g=document.getElementById('score-grid');
-  Object.entries(SDATA).filter(([,v])=>v!==0).forEach(([k,v])=>{
+  const SCORING_EXCLUDE=new Set([
+    'sack','int','def_td','ff','def_st_td','def_st_ff','def_st_fum_rec','blk_kick','safe',
+    'pts_allow_0','pts_allow_1_6','pts_allow_7_13','pts_allow_14_20',
+    'pts_allow_21_27','pts_allow_28_34','pts_allow_35p',
+    'st_td','st_ff','st_fum_rec',
+    'fgm_0_19','fgm_20_29','fgm_30_39','fgm_40_49','fgm_50p','fgmiss','xpm','xpmiss'
+  ]);
+  Object.entries(SDATA).filter(([k,v])=>v!==0&&!SCORING_EXCLUDE.has(k)).forEach(([k,v])=>{
     const lbl=SLABELS[k]||k.replace(/_/g,' ');
     g.innerHTML+=`<div class="sci"><span class="sk">${lbl}</span><span class="svv ${v<0?'neg-c':'pos-c'}">${v>0?'+':''}${v}</span></div>`;
   });
@@ -1817,6 +1853,219 @@ function buildCareers(){
   </table>`;
 }
 
+// ── PLAYER STATS ──
+
+async function fetchPlayerStats(year){
+  const key=`tol_stats_${year}`;
+  const cached=loadPerm(key);
+  if(cached)return cached;
+  const rosterPlayerIds=new Set();
+  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
+  if(!rosterPlayerIds.size)return{};
+  const STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt','pass_td_40p',
+    'rush_att','rush_yd','rush_td','rush_2pt','rush_40p',
+    'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
+    'kr_yd','pr_yd','fum_lost','bonus_pass_yd_400','bonus_rush_yd_200','bonus_rec_yd_200'];
+  const weeks=Array.from({length:17},(_,i)=>i+1);
+  const results=await Promise.all(weeks.map(w=>api(`/stats/nfl/regular/${year}/${w}`).catch(()=>({}))));
+  const agg={};
+  results.forEach(weekData=>{
+    if(!weekData)return;
+    Object.entries(weekData).forEach(([pid,stats])=>{
+      if(!rosterPlayerIds.has(String(pid)))return;
+      if(!agg[pid])agg[pid]={};
+      STAT_KEYS.forEach(k=>{if(stats[k])agg[pid][k]=(agg[pid][k]||0)+stats[k];});
+    });
+  });
+  savePerm(key,agg);
+  return agg;
+}
+
+function calcPts(stats,pos){
+  if(!stats)return 0;
+  let pts=0;
+  pts+=(stats.pass_yd||0)*(SDATA.pass_yd||0);
+  pts+=(stats.pass_td||0)*(SDATA.pass_td||0);
+  pts+=(stats.pass_int||0)*(SDATA.pass_int||0);
+  pts+=(stats.pass_2pt||0)*(SDATA.pass_2pt||0);
+  pts+=(stats.pass_td_40p||0)*(SDATA.pass_td_40p||0);
+  pts+=(stats.bonus_pass_yd_400||0)*(SDATA.bonus_pass_yd_400||0);
+  pts+=(stats.rush_yd||0)*(SDATA.rush_yd||0);
+  pts+=(stats.rush_td||0)*(SDATA.rush_td||0);
+  pts+=(stats.rush_2pt||0)*(SDATA.rush_2pt||0);
+  pts+=(stats.rush_40p||0)*(SDATA.rush_40p||0);
+  pts+=(stats.bonus_rush_yd_200||0)*(SDATA.bonus_rush_yd_200||0);
+  pts+=(stats.rec||0)*(SDATA.rec||0);
+  pts+=(stats.rec_yd||0)*(SDATA.rec_yd||0);
+  pts+=(stats.rec_td||0)*(SDATA.rec_td||0);
+  pts+=(stats.rec_2pt||0)*(SDATA.rec_2pt||0);
+  pts+=(stats.rec_0_4||0)*(SDATA.rec_0_4||0);
+  pts+=(stats.rec_5_9||0)*(SDATA.rec_5_9||0);
+  pts+=(stats.rec_10_19||0)*(SDATA.rec_10_19||0);
+  pts+=(stats.rec_20_29||0)*(SDATA.rec_20_29||0);
+  pts+=(stats.rec_30_39||0)*(SDATA.rec_30_39||0);
+  pts+=(stats.rec_40p||0)*(SDATA.rec_40p||0);
+  pts+=(stats.bonus_rec_yd_200||0)*(SDATA.bonus_rec_yd_200||0);
+  if(pos==='TE')pts+=(stats.rec||0)*(SDATA.bonus_rec_te||0);
+  pts+=(stats.kr_yd||0)*(SDATA.kr_yd||0);
+  pts+=(stats.pr_yd||0)*(SDATA.pr_yd||0);
+  pts+=(stats.fum_lost||0)*(SDATA.fum_lost||0);
+  return Math.round(pts*10)/10;
+}
+
+async function buildPlayerStats(year,posFilter){
+  const c=document.getElementById('stats-container');
+  c.dataset.loaded='1';
+  c.innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Fetching stats...</div></div>';
+  try{
+    const statsData=await fetchPlayerStats(year||currentStatsYear);
+    const pos=posFilter||currentStatsPos;
+    // Build a player-owner map from cachedRosters
+    const pidToRoster={};
+    (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>pidToRoster[String(id)]=r.roster_id));
+    // Build rows
+    const rows=[];
+    Object.entries(statsData).forEach(([pid,stats])=>{
+      const p=cachedPlayers?cachedPlayers[pid]:null;
+      const name=p?(p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim()):`#${pid}`;
+      const position=p?.position||'';
+      const nflTeam=p?.team||'—';
+      const rid=pidToRoster[String(pid)];
+      const teamData=rid?rToTeam(rid):{name:'—',you:false};
+      const pts=calcPts(stats,position);
+      rows.push({pid,name,position,nflTeam,owner:teamData.name,you:teamData.you,stats,pts});
+    });
+    // Filter by position
+    const filtered=pos==='all'?rows.filter(r=>['QB','RB','WR','TE'].includes(r.position)):rows.filter(r=>r.position===pos);
+    // Sort by est pts descending
+    filtered.sort((a,b)=>b.pts-a.pts);
+    if(!filtered.length){
+      c.innerHTML=`<div class="note">No stats found for ${year} — data may not be available yet.</div>`;
+      return;
+    }
+    // Build adaptive columns
+    let thead='',rowFn;
+    const fmt=(n,dec=0)=>n?(dec?n.toFixed(dec):Math.round(n)).toString():'—';
+    const pct=(a,b)=>(a&&b)?(a/b*100).toFixed(1)+'%':'—';
+    if(pos==='QB'){
+      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Cmp%</th><th>Pass Yds</th><th>Pass TDs</th><th>INTs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
+        <td><span class="chip pos-qb" style="cursor:default"><span class="cp">QB</span>${abbrev(r.name)}</span></td>
+        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
+        <td>${fmt(r.stats.gp)}</td>
+        <td>${fmt(r.stats.pass_att)}</td>
+        <td>${pct(r.stats.pass_cmp,r.stats.pass_att)}</td>
+        <td style="color:var(--text)">${fmt(r.stats.pass_yd)}</td>
+        <td style="color:var(--accent)">${fmt(r.stats.pass_td)}</td>
+        <td style="color:var(--accent3)">${fmt(r.stats.pass_int)}</td>
+        <td>${fmt(r.stats.rush_yd)}</td>
+        <td>${fmt(r.stats.rush_td)}</td>
+        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
+      </tr>`;
+    }else if(pos==='RB'){
+      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Rush Yds</th><th>Rush TDs</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Est. Pts</th></tr>`;
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
+        <td><span class="chip pos-rb" style="cursor:default"><span class="cp">RB</span>${abbrev(r.name)}</span></td>
+        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
+        <td>${fmt(r.stats.gp)}</td>
+        <td>${fmt(r.stats.rush_att)}</td>
+        <td style="color:var(--text)">${fmt(r.stats.rush_yd)}</td>
+        <td style="color:var(--accent)">${fmt(r.stats.rush_td)}</td>
+        <td>${fmt(r.stats.rec)}</td>
+        <td>${fmt(r.stats.rec_yd)}</td>
+        <td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>
+        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
+      </tr>`;
+    }else if(pos==='WR'){
+      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
+        <td><span class="chip pos-wr" style="cursor:default"><span class="cp">WR</span>${abbrev(r.name)}</span></td>
+        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
+        <td>${fmt(r.stats.gp)}</td>
+        <td>${fmt(r.stats.rec)}</td>
+        <td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td>
+        <td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>
+        <td>${fmt(r.stats.rush_yd)}</td>
+        <td>${fmt(r.stats.rush_td)}</td>
+        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
+      </tr>`;
+    }else if(pos==='TE'){
+      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>TE Prem Pts</th><th>Est. Pts</th></tr>`;
+      rowFn=(r,i)=>{
+        const tePrem=Math.round((r.stats.rec||0)*(SDATA.bonus_rec_te||0)*10)/10;
+        return`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+          <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
+          <td><span class="chip pos-te" style="cursor:default"><span class="cp">TE</span>${abbrev(r.name)}</span></td>
+          <td style="color:var(--text2)">${abbrev(r.owner)}</td>
+          <td>${fmt(r.stats.gp)}</td>
+          <td>${fmt(r.stats.rec)}</td>
+          <td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td>
+          <td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>
+          <td style="color:var(--pos-te)">${tePrem||'—'}</td>
+          <td style="color:var(--accent);font-weight:500">${r.pts}</td>
+        </tr>`;
+      };
+    }else{
+      // All positions
+      thead=`<tr><th>#</th><th>Player</th><th>Pos</th><th>NFL Team</th><th>Owner</th><th>Gms</th><th>Est. Pts</th></tr>`;
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" class="${r.you?'stats-you':''}">
+        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
+        <td style="color:var(--text);font-weight:500">${abbrev(r.name)}</td>
+        <td><span class="chip pos-${r.position.toLowerCase()}" style="font-size:10px;cursor:default">${r.position}</span></td>
+        <td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>
+        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
+        <td>${fmt(r.stats.gp)}</td>
+        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
+      </tr>`;
+    }
+    c.innerHTML=`
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players · ${year} season · sorted by est. pts</div>
+      <div style="overflow-x:auto">
+        <table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table>
+      </div>
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>`;
+  }catch(e){
+    c.innerHTML=`<div class="err">⚠ Could not load player stats.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function setStatsYear(year,el){
+  document.querySelectorAll('#stats-yr-toggle .yr-btn').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  currentStatsYear=year;
+  // Reset loaded flag so table re-renders for new year
+  const c=document.getElementById('stats-container');
+  if(c)delete c.dataset.loaded;
+  buildPlayerStats(year,currentStatsPos);
+}
+
+function setStatsPos(pos,el){
+  document.querySelectorAll('#stats-pos-filter .f-pill').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  currentStatsPos=pos;
+  const c=document.getElementById('stats-container');
+  if(c)delete c.dataset.loaded;
+  buildPlayerStats(currentStatsYear,pos);
+}
+
+function showPlayerStats(playerId){
+  const tabs=document.querySelectorAll('.tabs .tab');
+  let statsTab;
+  tabs.forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'stats'"))statsTab=t;});
+  if(statsTab)showTab('stats',statsTab);
+  setTimeout(()=>{
+    const row=document.getElementById(`stats-player-${playerId}`);
+    if(row){
+      row.scrollIntoView({behavior:'smooth',block:'center'});
+      row.style.outline='2px solid var(--accent)';
+      setTimeout(()=>row.style.outline='',1800);
+    }
+  },250);
+}
+
 // ── TAB SWITCHER ──
 function showTab(tab,el){
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -1826,6 +2075,7 @@ function showTab(tab,el){
   if(tab==='scores'&&!document.getElementById('scores-container').dataset.loaded)buildScores();
   if(tab==='transactions'&&!document.getElementById('txn-container').dataset.loaded){document.getElementById('txn-container').dataset.loaded='1';buildTransactions('all',2025);}
   if(tab==='careers'&&!document.getElementById('careers-container').dataset.loaded)buildCareers();
+  if(tab==='stats'&&!document.getElementById('stats-container').dataset.loaded)buildPlayerStats(currentStatsYear,currentStatsPos);
   if(tab==='rivalries')buildRivalries(); // re-render each visit so H2H records reflect latest cached data
 }
 
@@ -1881,6 +2131,10 @@ async function init(){
       }
     });
   }).catch(()=>{});
+  // Prefetch 2025 player stats in background after rosters are ready
+  if(cachedRosters&&!loadPerm('tol_stats_2025')){
+    fetchPlayerStats(2025).catch(()=>{});
+  }
   // Build scores tab (it's the default active tab)
   buildScores();
   // Populate the 2026 draft order table immediately on load
