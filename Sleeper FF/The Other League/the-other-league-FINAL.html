@@ -273,7 +273,9 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 
 /* ── CAREERS ── */
 .career-tbl{width:auto;border-collapse:collapse;font-size:12px;margin-bottom:24px;}
-.career-tbl th{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);white-space:nowrap;}
+.career-tbl th{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);white-space:nowrap;cursor:pointer;user-select:none;}
+.career-tbl th:hover{color:var(--text);}
+.sort-arrow{font-size:8px;opacity:.6;}
 .career-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
 .career-tbl tr:hover td{background:var(--surface);}
 .earn{font-family:'DM Mono',monospace;color:var(--win);font-weight:500;}
@@ -778,14 +780,14 @@ const SEASON_HISTORY = {
     placements: [
       '722920890647515136', // 1 - Mitch Blackwell
       '728292202471604224', // 2 - Duane Gillenwater (Bustersx8)
-      '728292169563099136', // 3 - Erin Jacobs
-      '722612742522994688', // 4 - Chris Merkel
+      '722612742522994688', // 3 - Chris Merkel
+      '728292169563099136', // 4 - Erin Jacobs
       '728293730280427520', // 5 - Chris Jacobs
       '722827711751487488', // 6 - Nick Bova
-      '728290759668797440', // 7 - Chris Bova
+      '722615938792382464', // 7 - Jake Bogardus
       '723731618132504576', // 8 - Nick Merkel
-      '722615938792382464', // 9 - Jake Bogardus
-      '470747640758267904', // 10 - Jake Blackwell
+      '470747640758267904', // 9 - Jake Blackwell
+      '728290759668797440', // 10 - Chris Bova
       '721908735856967680', // 11 - Matt Bova
       '722927129620197376', // 12 - Jared Hayes
     ]
@@ -807,8 +809,8 @@ const SEASON_HISTORY = {
       '723731618132504576', // 2 - Nick Merkel
       '722615938792382464', // 3 - Jake Bogardus
       '728293730280427520', // 4 - Chris Jacobs
-      '470747640758267904', // 5 - Jake Blackwell
-      '728292202471604224', // 6 - Duane Gillenwater
+      '728292202471604224', // 5 - Duane Gillenwater
+      '470747640758267904', // 6 - Jake Blackwell
       '722827711751487488', // 7 - Nick Bova
       '722612742522994688', // 8 - Chris Merkel (consolation winner)
       '721908735856967680', // 9 - Matt Bova
@@ -838,11 +840,11 @@ const SEASON_HISTORY = {
       '722615938792382464', // 4 - Jake Bogardus
       '722927129620197376', // 5 - Jared Hayes
       '722612742522994688', // 6 - Chris Merkel
-      '723731618132504576', // 7 - Nick Merkel (consolation winner)
-      '722920890647515136', // 8 - Mitch Blackwell
-      '721908735856967680', // 9 - Matt Bova
-      '728292202471604224', // 10 - Duane Gillenwater
-      '728293730280427520', // 11 - Chris Jacobs
+      '728292202471604224', // 7 - Duane Gillenwater
+      '728293730280427520', // 8 - Chris Jacobs
+      '723731618132504576', // 9 - Nick Merkel (consolation winner)
+      '721908735856967680', // 10 - Matt Bova
+      '722920890647515136', // 11 - Mitch Blackwell
       '728292169563099136', // 12 - Erin Jacobs
     ]
   }
@@ -1870,7 +1872,7 @@ function buildLeaderStats(){
     earnings[uid]=years.reduce((s,yr)=>s+(SEASON_HISTORY[yr].payouts[uid]||0),0);
     place[uid]={};
     years.forEach(yr=>{
-      const idx=SEASON_HISTORY[yr].placements.indexOf(uid);
+      const idx=computeFullPlacements(yr).indexOf(uid);
       place[uid][yr]=idx>=0?idx+1:null;
     });
   });
@@ -1980,6 +1982,73 @@ function buildLeaderStats(){
 
 // ── CAREERS TAB ──
 // Per-season summary: total H2H W/L, median W/L, PF, PA for weeks 1–maxWeek
+const standingsRowData={};
+const standingsSort={};
+
+// Returns full 12-team placement array. If SEASON_HISTORY has only top-6,
+// spots 7-12 are computed from reg-season standings (H2H+median wins, PF tiebreaker).
+function computeFullPlacements(year){
+  const p=SEASON_HISTORY[year].placements;
+  if(p.length>=12)return p;
+  const stats=buildSeasonStandingsData(year,14);
+  const remaining=Object.keys(TEAMS).filter(uid=>!p.includes(uid));
+  if(stats){
+    remaining.sort((a,b)=>{
+      const sa=stats[RMR[a]]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0};
+      const sb=stats[RMR[b]]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0};
+      const twDiff=(sb.h2hW+sb.medW)-(sa.h2hW+sa.medW);
+      return twDiff!==0?twDiff:sb.pf-sa.pf;
+    });
+  }
+  return[...p,...remaining];
+}
+
+function renderStandingsTbody(year,rowData){
+  const{col,dir}=standingsSort[year]||{col:'place',dir:1};
+  const sorted=[...rowData].sort((a,b)=>{
+    const av=a[col],bv=b[col];
+    if(typeof av==='string')return dir*av.localeCompare(bv);
+    return dir*((av??999)-(bv??999));
+  });
+  const placeLabel=p=>p===1?'🏆 1st':p===2?'🥈 2nd':p===3?'🥉 3rd':p+'th';
+  return sorted.map(r=>{
+    const plCls=r.place===1?'p1':r.place===2?'p2':r.place===3?'p3':r.place>=10?'p-low':'p-mid';
+    return`<tr>
+      <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${placeLabel(r.place)}</td>
+      <td style="font-weight:500;color:var(--text)">${r.name}</td>
+      <td style="color:var(--muted);font-size:10px">${r.team}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${r.totalW}-${r.totalL}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:center">${r.h2hW}-${r.h2hL}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:center">${r.medW}-${r.medL}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:center">${r.pf.toFixed(1)}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:center">${r.pa.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateStandingsHeaders(year){
+  const{col,dir}=standingsSort[year]||{col:'place',dir:1};
+  const thead=document.getElementById(`standings-thead-${year}`);
+  if(!thead)return;
+  thead.querySelectorAll('th[data-col]').forEach(th=>{
+    const arrow=th.querySelector('.sort-arrow');
+    if(arrow)arrow.textContent=th.dataset.col===col?(dir===1?' ↑':' ↓'):' ↕';
+  });
+}
+
+function sortStandingsByCol(year,col){
+  if(!standingsSort[year])standingsSort[year]={col:'place',dir:1};
+  if(standingsSort[year].col===col){
+    standingsSort[year].dir*=-1;
+  }else{
+    standingsSort[year].col=col;
+    standingsSort[year].dir=(col==='place'||col==='name'||col==='team')?1:-1;
+  }
+  const tbody=document.getElementById(`standings-tbody-${year}`);
+  if(tbody&&standingsRowData[year])tbody.innerHTML=renderStandingsTbody(year,standingsRowData[year]);
+  updateStandingsHeaders(year);
+}
+
 function buildSeasonStandingsData(year,maxWeek=14){
   const h2h=buildH2HForYear(year,maxWeek);
   if(!h2h)return null;
@@ -2017,10 +2086,10 @@ function buildSeasonStandingsData(year,maxWeek=14){
 function buildSeasonStandings(container){
   const wrap=document.createElement('div');
   wrap.style.cssText='margin-top:32px;';
-  wrap.innerHTML='<div class="sec-title">SEASON STANDINGS</div><div class="sec-sub">Regular-season records (wks 1–14) · Places 1–6 by playoff result · 7–12 by reg-season record</div>';
+  wrap.innerHTML='<div class="sec-title">SEASON STANDINGS</div><div class="sec-sub">Regular-season records (wks 1–14) · Places 1–6 by playoff result · 7–12 by reg-season record · Click any column to sort</div>';
   for(const year of[2025,2024,2023]){
     const stats=buildSeasonStandingsData(year,14);
-    const placements=SEASON_HISTORY[year].placements;
+    const placements=computeFullPlacements(year);
     const secDiv=document.createElement('div');
     secDiv.style.cssText='margin-bottom:28px;';
     const lbl=document.createElement('div');
@@ -2036,31 +2105,81 @@ function buildSeasonStandings(container){
       wrap.appendChild(secDiv);
       continue;
     }
-    const placeLabel=p=>p===1?'🏆 1st':p===2?'🥈 2nd':p===3?'🥉 3rd':p+'th';
-    const rows=placements.map((uid,i)=>{
+    const rowData=placements.map((uid,i)=>{
       const place=i+1;
       const td=t(uid);
       const rid=RMR[uid];
       const s=stats[rid]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
-      const totalW=s.h2hW+s.medW,totalL=s.h2hL+s.medL;
-      const plCls=place===1?'p1':place===2?'p2':place===3?'p3':place>=10?'p-low':'p-mid';
-      return`<tr>
-        <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${placeLabel(place)}</td>
-        <td style="font-weight:500;color:var(--text)">${td.name}</td>
-        <td style="color:var(--muted);font-size:10px">${td.team}</td>
-        <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${totalW}-${totalL}</td>
-        <td style="font-family:'DM Mono',monospace;text-align:center">${s.h2hW}-${s.h2hL}</td>
-        <td style="font-family:'DM Mono',monospace;text-align:center">${s.medW}-${s.medL}</td>
-        <td style="font-family:'DM Mono',monospace;text-align:center">${s.pf.toFixed(1)}</td>
-        <td style="font-family:'DM Mono',monospace;text-align:center">${s.pa.toFixed(1)}</td>
-      </tr>`;
-    }).join('');
+      return{place,uid,name:td.name,team:td.team,
+        totalW:s.h2hW+s.medW,totalL:s.h2hL+s.medL,
+        h2hW:s.h2hW,h2hL:s.h2hL,medW:s.medW,medL:s.medL,pf:s.pf,pa:s.pa};
+    });
+    standingsRowData[year]=rowData;
+    if(!standingsSort[year])standingsSort[year]={col:'place',dir:1};
+    const cols=[
+      {col:'place',label:'Place'},{col:'name',label:'Owner'},{col:'team',label:'Team'},
+      {col:'totalW',label:'Total'},{col:'h2hW',label:'H2H'},{col:'medW',label:'Median'},
+      {col:'pf',label:'PF'},{col:'pa',label:'PA'}
+    ];
+    const theadHtml=`<thead id="standings-thead-${year}"><tr>${cols.map(c=>
+      `<th data-col="${c.col}" onclick="sortStandingsByCol(${year},'${c.col}')">${c.label}<span class="sort-arrow">${c.col==='place'?' ↑':' ↕'}</span></th>`
+    ).join('')}</tr></thead>`;
     const tblWrap=document.createElement('div');
-    tblWrap.innerHTML=`<table class="career-tbl"><thead><tr><th>Place</th><th>Owner</th><th>Team</th><th>Total</th><th>H2H</th><th>Median</th><th>PF</th><th>PA</th></tr></thead><tbody>${rows}</tbody></table>`;
+    tblWrap.innerHTML=`<table class="career-tbl">${theadHtml}<tbody id="standings-tbody-${year}">${renderStandingsTbody(year,rowData)}</tbody></table>`;
     secDiv.appendChild(tblWrap);
     wrap.appendChild(secDiv);
   }
   container.appendChild(wrap);
+}
+
+let careerRowArr=null;
+let careerSort={col:'earn',dir:-1};
+
+function careerPCell(p){
+  if(!p)return`<td class="p-low" style="text-align:center">—</td>`;
+  const cls=p===1?'p1':p===2?'p2':p===3?'p3':p>=10?'p-low':'p-mid';
+  const suffix=p===1?'🏆':p===2?'🥈':p===3?'🥉':'';
+  return`<td class="${cls}" style="text-align:center;font-family:'DM Mono',monospace">${p}${suffix}</td>`;
+}
+function careerWLCell(w,l){return`<td style="text-align:center;font-family:'DM Mono',monospace;color:var(--text2)">${w}-${l}</td>`;}
+function careerDashCell(){return`<td style="text-align:center;color:var(--muted)">—</td>`;}
+
+function renderCareerTbody(){
+  if(!careerRowArr)return'';
+  const{col,dir}=careerSort;
+  const sorted=[...careerRowArr].sort((a,b)=>{
+    const av=a[col],bv=b[col];
+    if(typeof av==='string')return dir*av.localeCompare(bv);
+    return dir*((av??999)-(bv??999));
+  });
+  return sorted.map(r=>`<tr>
+    <td style="font-weight:500;color:var(--text)">${r.name}</td>
+    <td style="color:var(--muted);font-size:10px">${r.team}</td>
+    <td class="${r.earn>0?'earn':'earn-zero'}">${r.earn>0?'$'+r.earn:'$0'}</td>
+    ${careerPCell(r.p2023)}${careerPCell(r.p2024)}${careerPCell(r.p2025)}
+    <td style="font-family:'DM Mono',monospace;color:var(--text2);text-align:center">${r.avgF.toFixed(1)}</td>
+    ${r.hasData?careerWLCell(r.totalW,r.totalL):careerDashCell()}
+    ${r.hasData?careerWLCell(r.h2hW,r.h2hL):careerDashCell()}
+    ${r.hasData?careerWLCell(r.medW,r.medL):careerDashCell()}
+  </tr>`).join('');
+}
+
+function updateCareerHeaders(){
+  const{col,dir}=careerSort;
+  const thead=document.getElementById('career-thead');
+  if(!thead)return;
+  thead.querySelectorAll('th[data-col]').forEach(th=>{
+    const arrow=th.querySelector('.sort-arrow');
+    if(arrow)arrow.textContent=th.dataset.col===col?(dir===1?' ↑':' ↓'):' ↕';
+  });
+}
+
+function sortCareerByCol(col){
+  if(careerSort.col===col){careerSort.dir*=-1;}
+  else{careerSort.col=col;careerSort.dir=(col==='name'||col==='team')?1:-1;}
+  const tbody=document.getElementById('career-tbody');
+  if(tbody)tbody.innerHTML=renderCareerTbody();
+  updateCareerHeaders();
 }
 
 function buildCareers(){
@@ -2068,25 +2187,21 @@ function buildCareers(){
   c.dataset.loaded='1';
   const years=[2023,2024,2025];
   const owners=Object.keys(TEAMS);
-  // Career earnings per owner
   const earnings={};
   owners.forEach(uid=>{earnings[uid]=years.reduce((s,yr)=>s+(SEASON_HISTORY[yr].payouts[uid]||0),0);});
-  // Placements per owner per year
   const place={};
   owners.forEach(uid=>{
     place[uid]={};
     years.forEach(yr=>{
-      const idx=SEASON_HISTORY[yr].placements.indexOf(uid);
+      const idx=computeFullPlacements(yr).indexOf(uid);
       place[uid][yr]=idx>=0?idx+1:null;
     });
   });
-  // Average finish
   const avgF={};
   owners.forEach(uid=>{
     const ps=years.map(yr=>place[uid][yr]).filter(Boolean);
     avgF[uid]=ps.length?(ps.reduce((a,b)=>a+b,0)/ps.length):12;
   });
-  // H2H career W/L (all seasons, all weeks)
   const h2hFull=buildH2HMap();
   const h2hWL={};
   owners.forEach(uid=>{
@@ -2095,45 +2210,27 @@ function buildCareers(){
     if(h2hFull[rid])Object.values(h2hFull[rid]).forEach(rec=>{w+=rec.w;l+=rec.l;});
     h2hWL[uid]={w,l};
   });
-  // Median career W/L (all seasons, all weeks)
   const medFull=buildMedianMap();
-  // Sort by career earnings
-  const sorted=[...owners].sort((a,b)=>earnings[b]-earnings[a]);
-  // Placement cell helper
-  const pCell=(p)=>{
-    if(!p)return`<td class="p-low" style="text-align:center">—</td>`;
-    const cls=p===1?'p1':p===2?'p2':p===3?'p3':p>=10?'p-low':'p-mid';
-    const suffix=p===1?'🏆':p===2?'🥈':p===3?'🥉':'';
-    return`<td class="${cls}" style="text-align:center;font-family:'DM Mono',monospace">${p}${suffix}</td>`;
-  };
-  const wlCell=(w,l)=>`<td style="text-align:center;font-family:'DM Mono',monospace;color:var(--text2)">${w}-${l}</td>`;
-  const dashCell=()=>`<td style="text-align:center;color:var(--muted)">—</td>`;
-  // Build table rows
-  const rows=sorted.map(uid=>{
+  careerRowArr=owners.map(uid=>{
     const td=t(uid);
-    const earn=earnings[uid];
     const h=h2hWL[uid];
     const m=medFull[uid]||{medW:0,medL:0};
-    const totalW=h.w+m.medW,totalL=h.l+m.medL;
-    const hasData=h.w>0||h.l>0||m.medW>0||m.medL>0;
-    return`<tr>
-      <td style="font-weight:500;color:var(--text)">${td.name}</td>
-      <td style="color:var(--muted);font-size:10px">${td.team}</td>
-      <td class="${earn>0?'earn':'earn-zero'}">${earn>0?'$'+earn:'$0'}</td>
-      ${pCell(place[uid][2023])}
-      ${pCell(place[uid][2024])}
-      ${pCell(place[uid][2025])}
-      <td style="font-family:'DM Mono',monospace;color:var(--text2);text-align:center">${avgF[uid].toFixed(1)}</td>
-      ${hasData?wlCell(totalW,totalL):dashCell()}
-      ${hasData?wlCell(h.w,h.l):dashCell()}
-      ${hasData?wlCell(m.medW,m.medL):dashCell()}
-    </tr>`;
-  }).join('');
-  c.innerHTML=`
-  <table class="career-tbl">
-    <thead><tr><th>Owner</th><th>Team</th><th>Career Earnings</th><th>2023</th><th>2024</th><th>2025</th><th>Avg Finish</th><th>Total W-L</th><th>H2H W-L</th><th>Median W-L</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
+    return{uid,name:td.name,team:td.team,earn:earnings[uid],
+      p2023:place[uid][2023],p2024:place[uid][2024],p2025:place[uid][2025],
+      avgF:avgF[uid],totalW:h.w+m.medW,totalL:h.l+m.medL,
+      h2hW:h.w,h2hL:h.l,medW:m.medW,medL:m.medL,
+      hasData:h.w>0||h.l>0||m.medW>0||m.medL>0};
+  });
+  const careerCols=[
+    {col:'name',label:'Owner'},{col:'team',label:'Team'},{col:'earn',label:'Career Earnings'},
+    {col:'p2023',label:'2023'},{col:'p2024',label:'2024'},{col:'p2025',label:'2025'},
+    {col:'avgF',label:'Avg Finish'},{col:'totalW',label:'Total W-L'},
+    {col:'h2hW',label:'H2H W-L'},{col:'medW',label:'Median W-L'}
+  ];
+  const theadHtml=`<thead id="career-thead"><tr>${careerCols.map(c=>
+    `<th data-col="${c.col}" onclick="sortCareerByCol('${c.col}')">${c.label}<span class="sort-arrow">${c.col==='earn'?' ↓':' ↕'}</span></th>`
+  ).join('')}</tr></thead>`;
+  c.innerHTML=`<table class="career-tbl">${theadHtml}<tbody id="career-tbody">${renderCareerTbody()}</tbody></table>`;
   buildSeasonStandings(c);
 }
 
