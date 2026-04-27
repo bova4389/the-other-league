@@ -399,7 +399,8 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
   </div>
   <div class="content">
     <div class="tabs">
-      <button class="tab active" onclick="showTab('scores',this)">Scores</button>
+      <button class="tab active" onclick="showTab('careers',this)">Careers</button>
+      <button class="tab" onclick="showTab('scores',this)">Scores</button>
       <button class="tab" onclick="showTab('rosters',this)">Rosters</button>
       <button class="tab" onclick="showTab('stats',this)">Player Stats</button>
       <button class="tab" onclick="showTab('league',this)">League Info</button>
@@ -407,13 +408,12 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
       <button class="tab" onclick="showTab('rivalries',this)">Rivalries</button>
       <button class="tab" onclick="showTab('draft',this)">Draft</button>
       <button class="tab" onclick="showTab('transactions',this)">Transactions</button>
-      <button class="tab" onclick="showTab('careers',this)">Careers</button>
       <button class="tab ai-tab" onclick="showTab('ai',this)">⚡ Ask Claude</button>
       <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="tab" style="margin-left:auto;color:var(--accent2);text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;">Sleeper ↗</a>
     </div>
 
     <!-- SCORES -->
-    <div class="panel active" id="panel-scores">
+    <div class="panel" id="panel-scores">
       <div class="sec-title">WEEKLY SCORES</div>
       <div class="sec-sub">Head-to-Head Records · All-Time · 2023–2025</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
@@ -687,7 +687,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
     </div>
 
     <!-- CAREERS -->
-    <div class="panel" id="panel-careers">
+    <div class="panel active" id="panel-careers">
       <div class="sec-title">CAREER STATS</div>
       <div class="sec-sub">2023–2025 · Earnings · Placements · Records</div>
       <div id="careers-container"><div class="ld"><div class="spin"></div><div class="lt">Building career stats...</div></div></div>
@@ -1057,6 +1057,30 @@ function buildH2HMap(){
     });
   }
   return h2h;
+}
+
+// All-time median W/L per owner across all seasons (all weeks)
+function buildMedianMap(){
+  const med={};
+  for(const year of[2023,2024,2025]){
+    const data=loadPerm(`tol_matchups_${year}`);
+    if(!data)continue;
+    Object.values(data).forEach(weekData=>{
+      if(!weekData||!weekData.length)return;
+      const scores=weekData.filter(e=>e.matchup_id&&e.points!=null);
+      if(!scores.length)return;
+      const vals=scores.map(e=>e.points||0).sort((a,b)=>a-b);
+      const mid=vals.length/2;
+      const median=vals.length%2===0?(vals[mid-1]+vals[mid])/2:vals[Math.floor(mid)];
+      scores.forEach(e=>{
+        const uid=RM[e.roster_id];
+        if(!uid)return;
+        if(!med[uid])med[uid]={medW:0,medL:0};
+        if((e.points||0)>median)med[uid].medW++;else med[uid].medL++;
+      });
+    });
+  }
+  return med;
 }
 
 // ── SCORES TAB ──
@@ -1981,6 +2005,17 @@ function buildCareers(){
     const ps=years.map(yr=>place[uid][yr]).filter(Boolean);
     avgF[uid]=ps.length?(ps.reduce((a,b)=>a+b,0)/ps.length):12;
   });
+  // H2H career W/L (all seasons, all weeks)
+  const h2hFull=buildH2HMap();
+  const h2hWL={};
+  owners.forEach(uid=>{
+    const rid=RMR[uid];
+    let w=0,l=0;
+    if(h2hFull[rid])Object.values(h2hFull[rid]).forEach(rec=>{w+=rec.w;l+=rec.l;});
+    h2hWL[uid]={w,l};
+  });
+  // Median career W/L (all seasons, all weeks)
+  const medFull=buildMedianMap();
   // Sort by career earnings
   const sorted=[...owners].sort((a,b)=>earnings[b]-earnings[a]);
   // Placement cell helper
@@ -1990,10 +2025,16 @@ function buildCareers(){
     const suffix=p===1?'🏆':p===2?'🥈':p===3?'🥉':'';
     return`<td class="${cls}" style="text-align:center;font-family:'DM Mono',monospace">${p}${suffix}</td>`;
   };
+  const wlCell=(w,l)=>`<td style="text-align:center;font-family:'DM Mono',monospace;color:var(--text2)">${w}-${l}</td>`;
+  const dashCell=()=>`<td style="text-align:center;color:var(--muted)">—</td>`;
   // Build table rows
   const rows=sorted.map(uid=>{
     const td=t(uid);
     const earn=earnings[uid];
+    const h=h2hWL[uid];
+    const m=medFull[uid]||{medW:0,medL:0};
+    const totalW=h.w+m.medW,totalL=h.l+m.medL;
+    const hasData=h.w>0||h.l>0||m.medW>0||m.medL>0;
     return`<tr>
       <td style="font-weight:500;color:var(--text)">${td.name}</td>
       <td style="color:var(--muted);font-size:10px">${td.team}</td>
@@ -2002,11 +2043,14 @@ function buildCareers(){
       ${pCell(place[uid][2024])}
       ${pCell(place[uid][2025])}
       <td style="font-family:'DM Mono',monospace;color:var(--text2);text-align:center">${avgF[uid].toFixed(1)}</td>
+      ${hasData?wlCell(h.w,h.l):dashCell()}
+      ${hasData?wlCell(m.medW,m.medL):dashCell()}
+      ${hasData?wlCell(totalW,totalL):dashCell()}
     </tr>`;
   }).join('');
   c.innerHTML=`
   <table class="career-tbl">
-    <thead><tr><th>Owner</th><th>Team</th><th>Career Earnings</th><th>2023</th><th>2024</th><th>2025</th><th>Avg Finish</th></tr></thead>
+    <thead><tr><th>Owner</th><th>Team</th><th>Career Earnings</th><th>2023</th><th>2024</th><th>2025</th><th>Avg Finish</th><th>H2H W-L</th><th>Median W-L</th><th>Total W-L</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -2339,8 +2383,8 @@ async function init(){
   if(cachedRosters&&!loadPerm('tol_stats_2025')){
     fetchPlayerStats(2025).catch(()=>{});
   }
-  // Build scores tab (it's the default active tab)
-  buildScores();
+  // Build careers tab (it's the default active tab)
+  buildCareers();
   // Populate the 2026 draft order table immediately on load
   buildDraft2026();
 }
@@ -2372,7 +2416,7 @@ ALL 12 TEAMS:
 12. Duane Gillenwater — "Enter the Maye-Trix"
 
 HISTORY:
-2023 ($50 buy-in): 1st Mitch Blackwell $400, 2nd Jake Bogardus $200
+2023 ($50 buy-in): 1st Mitch Blackwell $400, 2nd Duane Gillenwater $200
 2024 ($100 buy-in): 1st Chris Bova $400, 2nd Nick Merkel $200, 3rd Jake Bogardus $100
 2025 ($100 buy-in): 1st Jake Blackwell $455, 2nd Nick Bova $205, no 3rd place payout
 
