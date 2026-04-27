@@ -57,18 +57,18 @@ the-other-league/
 
 ## TABS AND PANELS
 
-The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showTab(id, el)` and maps to a `<div class="panel" id="panel-{id}">`.
+The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showTab(id, el)` and maps to a `<div class="panel" id="panel-{id}">`. **Careers is the default active tab on load.**
 
 | Tab Label       | `showTab` ID    | Panel ID              | Lazy load?                              |
 |-----------------|-----------------|------------------------|------------------------------------------|
+| Careers (default)| `careers`      | `panel-careers`        | Yes — `buildCareers()` on first visit    |
 | Scores          | `scores`        | `panel-scores`         | Yes — `buildScores()` on first visit     |
 | Rosters         | `rosters`       | `panel-rosters`        | No — loaded at boot via `init()`         |
-| League Info     | `league`        | `panel-league`         | No — static HTML, no JS render needed   |
-| Scoring         | `scoring`       | `panel-scoring`        | No — `buildScoring()` runs at boot       |
+| Player Stats    | `stats`         | `panel-stats`          | Yes — `buildPlayerStats()` on first visit |
+| League Info     | `league`        | `panel-league`         | No — static HTML; scoring section rendered via `buildScoring()` at boot |
 | Rivalries       | `rivalries`     | `panel-rivalries`      | Re-renders on every visit via `buildRivalries()` |
 | Draft           | `draft`         | `panel-draft`          | Yes — `buildDraft2026()` at boot; past years on demand |
 | Transactions    | `transactions`  | `panel-transactions`   | Yes — `buildTransactions()` on first visit |
-| Careers         | `careers`       | `panel-careers`        | Yes — `buildCareers()` on first visit    |
 | ⚡ Ask Claude   | `ai`            | `panel-ai`             | No — static form; sends on user action  |
 
 ---
@@ -116,6 +116,12 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 - `draft-past-list-view`, `draft-past-board-view` — list/board toggle for past drafts
 - `dpast-list-btn`, `dpast-board-btn` — view toggle buttons for past drafts
 - `draft-history-container` — renders inside `draft-past-list-view`
+
+### Player Stats Panel
+- `stats-yr-toggle` — year filter buttons (2025 / 2024 / 2023)
+- `stats-pos-filter` — position filter pills (All / QB / RB / WR / TE / Rookies)
+- `stats-wk-filter` — week filter pills (Season / W1–W17)
+- `stats-container` — player stats table render area
 
 ### Transactions Panel
 - `txn-container` — transaction list render area
@@ -177,6 +183,16 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 
 ### Rivalries
 - `buildRivalries()` — renders 6 rivalry cards with H2H records from 2025 forward; re-renders on every tab visit
+
+### Player Stats
+- `fetchPlayerStats(year)` — fetches all 17 weeks of stats for all current dynasty roster players; permanently caches in `tol_stats_{year}`
+- `fetchWeekStats(year, week)` — fetches stats for a single week; permanently caches in `tol_stats_wk_{year}_{week}`
+- `calcPts(stats, pos)` — calculates estimated fantasy points from raw stat object using `SDATA` scoring settings
+- `buildPlayerStats(year, posFilter)` — renders player stats table sorted by estimated points; shows raw stat columns and point total
+- `setStatsYear(year, el)` — switches active year, re-renders stats
+- `setStatsWeek(week, el)` — switches between season total and a specific week; re-renders stats
+- `setStatsPos(pos, el)` — switches position filter; re-renders stats
+- `showPlayerStats(playerId)` — shows detailed stat breakdown modal/view for a specific player
 
 ### Transactions
 - `fetchTransactions(leagueId, year)` — fetches all completed transactions for a season; permanently caches past years
@@ -295,6 +311,11 @@ let cachedLeagueIds = null;  // { 2025: id, 2024: id, 2023: id }
 let currentTxnYear = 2025;   // active year in Transactions tab
 let currentTxnFilter = 'all'; // active type filter in Transactions tab
 let currentTxnTeam = null;   // roster_id or null (team filter in Transactions tab)
+let currentStatsYear = 2025; // active year in Player Stats tab
+let currentStatsPos = 'all'; // active position filter in Player Stats tab
+let currentStatsWeek = 'season'; // active week in Player Stats tab ('season' or 1–17)
+let currentScoresYear = 2025; // active year in Scores tab
+let currentScoresWeek = 1;   // active week in Scores tab
 let _draftPicks = null;      // picks for the currently loaded past draft year (board view)
 let aiMessages = [];         // running AI conversation history
 ```
@@ -311,6 +332,8 @@ let aiMessages = [];         // running AI conversation history
 | `tol_matchups_{year}` | permanent | All 17 weeks of matchup data for that season |
 | `tol_txn_{year}` | permanent | All completed transactions for that season |
 | `tol_drafts_{year}` | permanent | All draft picks for that season |
+| `tol_stats_{year}` | permanent | Season stats for all dynasty roster players (aggregated from 17 weeks) |
+| `tol_stats_wk_{year}_{week}` | permanent | Single-week stats for a specific year + week |
 
 ---
 
@@ -339,10 +362,10 @@ let aiMessages = [];         // running AI conversation history
 
 ---
 
-## PLANNED FEATURES (not yet built)
+## BACKLOG / NOT YET BUILT
 
-- Post-playoff full bracket view (currently only regular-season final standings shown)
-- Live roster data passed into Claude API calls (currently only static context is injected)
+- Post-playoff full bracket view (currently only regular-season final standings shown in Scores tab)
+- Live roster data passed into Claude API calls (currently only static `LEAGUE_CONTEXT` string is injected)
 
 ---
 

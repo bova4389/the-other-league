@@ -777,15 +777,15 @@ const SEASON_HISTORY = {
     },
     placements: [
       '722920890647515136', // 1 - Mitch Blackwell
-      '728292202471604224', // 2 - Duane Gillenwater
+      '728292202471604224', // 2 - Duane Gillenwater (Bustersx8)
       '728292169563099136', // 3 - Erin Jacobs
       '722612742522994688', // 4 - Chris Merkel
       '728293730280427520', // 5 - Chris Jacobs
       '722827711751487488', // 6 - Nick Bova
-      '722615938792382464', // 7 - Jake Bogardus
+      '728290759668797440', // 7 - Chris Bova
       '723731618132504576', // 8 - Nick Merkel
-      '470747640758267904', // 9 - Jake Blackwell
-      '728290759668797440', // 10 - Chris Bova
+      '722615938792382464', // 9 - Jake Bogardus
+      '470747640758267904', // 10 - Jake Blackwell
       '721908735856967680', // 11 - Matt Bova
       '722927129620197376', // 12 - Jared Hayes
     ]
@@ -834,15 +834,15 @@ const SEASON_HISTORY = {
     placements: [
       '470747640758267904', // 1 - Jake Blackwell
       '722827711751487488', // 2 - Nick Bova
-      '722615938792382464', // 3 - Jake Bogardus
-      '728290759668797440', // 4 - Chris Bova
+      '728290759668797440', // 3 - Chris Bova
+      '722615938792382464', // 4 - Jake Bogardus
       '722927129620197376', // 5 - Jared Hayes
       '722612742522994688', // 6 - Chris Merkel
-      '728292202471604224', // 7 - Duane Gillenwater
-      '728293730280427520', // 8 - Chris Jacobs
-      '723731618132504576', // 9 - Nick Merkel (consolation winner)
-      '721908735856967680', // 10 - Matt Bova
-      '722920890647515136', // 11 - Mitch Blackwell
+      '723731618132504576', // 7 - Nick Merkel (consolation winner)
+      '722920890647515136', // 8 - Mitch Blackwell
+      '721908735856967680', // 9 - Matt Bova
+      '728292202471604224', // 10 - Duane Gillenwater
+      '728293730280427520', // 11 - Chris Jacobs
       '728292169563099136', // 12 - Erin Jacobs
     ]
   }
@@ -882,8 +882,8 @@ const DRAFT_ORDER_2026 = [
   {pick:'1.06', uid:'728292202471604224', how:'7th place (reg season)'},
   {pick:'1.07', uid:'722927129620197376', how:'5th place (5v6 winner)'},
   {pick:'1.08', uid:'722612742522994688', how:'6th place (5v6 loser)'},
-  {pick:'1.09', uid:'728290759668797440', how:'4th place (3v4 loser)'},
-  {pick:'1.10', uid:'722615938792382464', how:'3rd place (3v4 winner)'},
+  {pick:'1.09', uid:'728290759668797440', how:'3rd place (3v4 winner)'},
+  {pick:'1.10', uid:'722615938792382464', how:'4th place (3v4 loser)'},
   {pick:'1.11', uid:'722827711751487488', how:'Runner-up'},
   {pick:'1.12', uid:'470747640758267904', how:'Champion 🏆'},
   {pick:'1.13', uid:'723731618132504576', how:'Consolation winner 🥈 (extra pick)'},
@@ -2048,15 +2048,15 @@ function buildSeasonStandings(container){
         <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${placeLabel(place)}</td>
         <td style="font-weight:500;color:var(--text)">${td.name}</td>
         <td style="color:var(--muted);font-size:10px">${td.team}</td>
+        <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${totalW}-${totalL}</td>
         <td style="font-family:'DM Mono',monospace;text-align:center">${s.h2hW}-${s.h2hL}</td>
         <td style="font-family:'DM Mono',monospace;text-align:center">${s.medW}-${s.medL}</td>
-        <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${totalW}-${totalL}</td>
         <td style="font-family:'DM Mono',monospace;text-align:center">${s.pf.toFixed(1)}</td>
         <td style="font-family:'DM Mono',monospace;text-align:center">${s.pa.toFixed(1)}</td>
       </tr>`;
     }).join('');
     const tblWrap=document.createElement('div');
-    tblWrap.innerHTML=`<table class="career-tbl"><thead><tr><th>Place</th><th>Owner</th><th>Team</th><th>H2H</th><th>Median</th><th>Total</th><th>PF</th><th>PA</th></tr></thead><tbody>${rows}</tbody></table>`;
+    tblWrap.innerHTML=`<table class="career-tbl"><thead><tr><th>Place</th><th>Owner</th><th>Team</th><th>Total</th><th>H2H</th><th>Median</th><th>PF</th><th>PA</th></tr></thead><tbody>${rows}</tbody></table>`;
     secDiv.appendChild(tblWrap);
     wrap.appendChild(secDiv);
   }
@@ -2124,14 +2124,14 @@ function buildCareers(){
       ${pCell(place[uid][2024])}
       ${pCell(place[uid][2025])}
       <td style="font-family:'DM Mono',monospace;color:var(--text2);text-align:center">${avgF[uid].toFixed(1)}</td>
+      ${hasData?wlCell(totalW,totalL):dashCell()}
       ${hasData?wlCell(h.w,h.l):dashCell()}
       ${hasData?wlCell(m.medW,m.medL):dashCell()}
-      ${hasData?wlCell(totalW,totalL):dashCell()}
     </tr>`;
   }).join('');
   c.innerHTML=`
   <table class="career-tbl">
-    <thead><tr><th>Owner</th><th>Team</th><th>Career Earnings</th><th>2023</th><th>2024</th><th>2025</th><th>Avg Finish</th><th>H2H W-L</th><th>Median W-L</th><th>Total W-L</th></tr></thead>
+    <thead><tr><th>Owner</th><th>Team</th><th>Career Earnings</th><th>2023</th><th>2024</th><th>2025</th><th>Avg Finish</th><th>Total W-L</th><th>H2H W-L</th><th>Median W-L</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
   buildSeasonStandings(c);
