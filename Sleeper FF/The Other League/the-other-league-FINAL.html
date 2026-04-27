@@ -1982,6 +1982,90 @@ function buildLeaderStats(){
 }
 
 // ── CAREERS TAB ──
+// Per-season summary: total H2H W/L, median W/L, PF, PA for weeks 1–maxWeek
+function buildSeasonStandingsData(year,maxWeek=14){
+  const h2h=buildH2HForYear(year,maxWeek);
+  if(!h2h)return null;
+  const raw=loadPerm(`tol_matchups_${year}`);
+  const stats={};
+  // Aggregate H2H totals and PF/PA per roster from the pair map
+  Object.keys(h2h).forEach(ridStr=>{
+    const rid=Number(ridStr);
+    if(!stats[rid])stats[rid]={h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
+    Object.values(h2h[ridStr]).forEach(rec=>{
+      stats[rid].h2hW+=rec.w;
+      stats[rid].h2hL+=rec.l;
+      stats[rid].pf+=rec.pf;
+      stats[rid].pa+=rec.pa;
+    });
+  });
+  // Compute median W/L from raw weekly data
+  Object.entries(raw).forEach(([_wk,weekData])=>{
+    if(Number(_wk)>maxWeek)return;
+    if(!weekData||!weekData.length)return;
+    const scores=weekData.filter(e=>e.matchup_id&&e.points!=null);
+    if(!scores.length)return;
+    const vals=scores.map(e=>e.points||0).sort((a,b)=>a-b);
+    const mid=vals.length/2;
+    const median=vals.length%2===0?(vals[mid-1]+vals[mid])/2:vals[Math.floor(mid)];
+    scores.forEach(e=>{
+      const rid=e.roster_id;
+      if(!stats[rid])stats[rid]={h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
+      if((e.points||0)>median)stats[rid].medW++;else stats[rid].medL++;
+    });
+  });
+  return stats;
+}
+
+function buildSeasonStandings(container){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='margin-top:32px;';
+  wrap.innerHTML='<div class="sec-title">SEASON STANDINGS</div><div class="sec-sub">Regular-season records (wks 1–14) · Places 1–6 by playoff result · 7–12 by reg-season record</div>';
+  for(const year of[2025,2024,2023]){
+    const stats=buildSeasonStandingsData(year,14);
+    const placements=SEASON_HISTORY[year].placements;
+    const secDiv=document.createElement('div');
+    secDiv.style.cssText='margin-bottom:28px;';
+    const lbl=document.createElement('div');
+    lbl.className='sec-row-label';
+    lbl.textContent=`${year} Final Standings`;
+    secDiv.appendChild(lbl);
+    if(!stats){
+      const note=document.createElement('div');
+      note.className='note';
+      note.style.cssText='max-width:520px';
+      note.innerHTML='Matchup data not yet cached — visit the <strong>Scores</strong> tab once to load it.';
+      secDiv.appendChild(note);
+      wrap.appendChild(secDiv);
+      continue;
+    }
+    const placeLabel=p=>p===1?'🏆 1st':p===2?'🥈 2nd':p===3?'🥉 3rd':p+'th';
+    const rows=placements.map((uid,i)=>{
+      const place=i+1;
+      const td=t(uid);
+      const rid=RMR[uid];
+      const s=stats[rid]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
+      const totalW=s.h2hW+s.medW,totalL=s.h2hL+s.medL;
+      const plCls=place===1?'p1':place===2?'p2':place===3?'p3':place>=10?'p-low':'p-mid';
+      return`<tr>
+        <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${placeLabel(place)}</td>
+        <td style="font-weight:500;color:var(--text)">${td.name}</td>
+        <td style="color:var(--muted);font-size:10px">${td.team}</td>
+        <td style="font-family:'DM Mono',monospace;text-align:center">${s.h2hW}-${s.h2hL}</td>
+        <td style="font-family:'DM Mono',monospace;text-align:center">${s.medW}-${s.medL}</td>
+        <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${totalW}-${totalL}</td>
+        <td style="font-family:'DM Mono',monospace;text-align:center">${s.pf.toFixed(1)}</td>
+        <td style="font-family:'DM Mono',monospace;text-align:center">${s.pa.toFixed(1)}</td>
+      </tr>`;
+    }).join('');
+    const tblWrap=document.createElement('div');
+    tblWrap.innerHTML=`<table class="career-tbl"><thead><tr><th>Place</th><th>Owner</th><th>Team</th><th>H2H</th><th>Median</th><th>Total</th><th>PF</th><th>PA</th></tr></thead><tbody>${rows}</tbody></table>`;
+    secDiv.appendChild(tblWrap);
+    wrap.appendChild(secDiv);
+  }
+  container.appendChild(wrap);
+}
+
 function buildCareers(){
   const c=document.getElementById('careers-container');
   c.dataset.loaded='1';
@@ -2053,6 +2137,7 @@ function buildCareers(){
     <thead><tr><th>Owner</th><th>Team</th><th>Career Earnings</th><th>2023</th><th>2024</th><th>2025</th><th>Avg Finish</th><th>H2H W-L</th><th>Median W-L</th><th>Total W-L</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
+  buildSeasonStandings(c);
 }
 
 // ── PLAYER STATS ──
