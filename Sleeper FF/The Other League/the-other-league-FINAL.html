@@ -882,8 +882,8 @@ const DRAFT_ORDER_2026 = [
   {pick:'1.06', uid:'728292202471604224', how:'7th place (reg season)'},
   {pick:'1.07', uid:'722927129620197376', how:'5th place (5v6 winner)'},
   {pick:'1.08', uid:'722612742522994688', how:'6th place (5v6 loser)'},
-  {pick:'1.09', uid:'722615938792382464', how:'3rd place (3v4 winner)'},
-  {pick:'1.10', uid:'728290759668797440', how:'4th place (3v4 loser)'},
+  {pick:'1.09', uid:'728290759668797440', how:'4th place (3v4 loser)'},
+  {pick:'1.10', uid:'722615938792382464', how:'3rd place (3v4 winner)'},
   {pick:'1.11', uid:'722827711751487488', how:'Runner-up'},
   {pick:'1.12', uid:'470747640758267904', how:'Champion 🏆'},
   {pick:'1.13', uid:'723731618132504576', how:'Consolation winner 🥈 (extra pick)'},
@@ -1169,11 +1169,11 @@ async function buildDraft2026(){
   const tbody=document.getElementById('d26-tbody');
   if(!tbody)return;
   // Fetch ALL 2026 traded picks across all rounds
-  let tradedFrom={};  // "round.origRid" → currentRid
+  let tradedFrom={};  // "round.origRid" → currentOwnerRid
   try{
     const tp=await api(`/league/${LID}/traded_picks`);
     (tp||[]).filter(p=>String(p.season)==='2026'&&p.roster_id!==p.owner_id)
-      .forEach(p=>{tradedFrom[`${p.round}.${p.owner_id}`]=p.roster_id;});
+      .forEach(p=>{tradedFrom[`${p.round}.${p.roster_id}`]=p.owner_id;});
   }catch(e){}
 
   // Base 12-team order (indices 0-11); pick 1.13 is consolation-only extra
@@ -1186,10 +1186,9 @@ async function buildDraft2026(){
     const currentRid=tradedFrom[`1.${origRid}`]||origRid;
     allRows.push({rd:1,pick:row.pick,currentUid:RM[currentRid],origUid:row.uid,traded:currentRid!==origRid,how:row.how});
   });
-  // Rounds 2-4: 12 picks each, snake format
+  // Rounds 2-4: 12 picks each, linear format (same order every round)
   for(let rd=2;rd<=4;rd++){
-    const baseOrder=rd%2===0?[...base12].reverse():base12;
-    baseOrder.forEach((row,i)=>{
+    base12.forEach((row,i)=>{
       const origRid=RMR[row.uid];
       const currentRid=tradedFrom[`${rd}.${origRid}`]||origRid;
       allRows.push({rd,pick:`${rd}.${String(i+1).padStart(2,'0')}`,currentUid:RM[currentRid],origUid:row.uid,traded:currentRid!==origRid,how:''});

@@ -192,7 +192,7 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 - `clearPlayerSearch()` — resets player search input and hides results
 
 ### Draft
-- `buildDraft2026()` — renders 2026 draft order table; fetches traded picks from Sleeper to annotate traded slots
+- `buildDraft2026()` — renders 2026 draft order table; fetches traded picks from Sleeper to annotate traded slots. Draft is **linear** (same order every round, not snake). tradedFrom map keyed by `"round.roster_id"` → `owner_id` (current holder)
 - `renderDraft2026Board()` — renders 2026 draft order as a board (teams as columns); built once on demand
 - `setDraft26View(view, el)` — toggles list/board for 2026 draft
 - `buildDraftHistory(year)` — fetches and renders past draft results for 2023/2024/2025
@@ -274,7 +274,7 @@ Only non-zero entries are rendered in the Scoring tab.
 // Array of 13 entries: { pick: '1.01', uid: user_id, how: string }
 const DRAFT_ORDER_2026 = [ ... ];
 ```
-13 picks because pick 1.13 is the consolation winner's bonus pick (Nick Merkel).
+13 picks because pick 1.13 is the consolation winner's bonus pick (Nick Merkel). The 2026 draft is **linear** — rounds 2–4 repeat the same order as round 1 (not snake). Picks 1.09 = Chris Bova (4th place), 1.10 = Jake Bogardus (3rd place).
 
 ### `QUICK_PROMPTS` — AI quick prompt text
 ```javascript
@@ -322,6 +322,7 @@ let aiMessages = [];         // running AI conversation history
 - **CORS fallback chain** — always try direct fetch first, then two proxy fallbacks
 - **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red. Sections labeled separately (Starters / Bench / Taxi / IR)
 - **Rivalries computed from 2025 forward** — pre-2025 matchups not included in rivalry records
+- **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1 (worst-to-best finish every round)
 
 ---
 
