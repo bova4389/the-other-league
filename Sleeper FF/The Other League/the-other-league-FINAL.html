@@ -908,6 +908,7 @@ function t(uid){ return TEAMS[uid]||{name:uid,team:'Unknown',you:false,tier:'mid
 function rToTeam(rid){ return t(RM[rid]||RM[String(rid)]); }
 function pname(pid){ if(cachedPlayers&&cachedPlayers[pid]){const p=cachedPlayers[pid];return p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();}return`#${pid}`; }
 function ppos(pid){ return(cachedPlayers&&cachedPlayers[pid])?(cachedPlayers[pid].position||''):''; }
+function posColor(pos){const m={QB:'var(--pos-qb)',RB:'var(--pos-rb)',WR:'var(--pos-wr)',TE:'var(--pos-te)',K:'var(--pos-k)',DEF:'var(--pos-def)'};return m[pos]||null;}
 function fmtDate(ms){ return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
 function fmtDateShort(ms){ return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 function abbrev(name){ const p=name.split(' '); return p.length>1?`${p[0][0]}. ${p.slice(1).join(' ')}`:name; }
@@ -1679,8 +1680,8 @@ function renderTxnRow(tx){
   const drops=Object.entries(tx.drops||{});
   const teamRid=adds[0]?.[1]??drops[0]?.[1];
   const team=rToTeam(teamRid);
-  const addLines=adds.map(([pid])=>{const n=pname(pid);const p=ppos(pid);return`<span style="color:var(--accent)">+${p?p+' ':''}${n}</span>`;}).join(', ');
-  const dropLines=drops.map(([pid])=>{const n=pname(pid);const p=ppos(pid);return`<span style="color:var(--accent3)">–${p?p+' ':''}${n}</span>`;}).join(', ');
+  const addLines=adds.map(([pid])=>{const n=pname(pid);const p=ppos(pid);const c=posColor(p)||'var(--accent)';return`<span style="color:${c}">+${p?p+' ':''}${n}</span>`;}).join(', ');
+  const dropLines=drops.map(([pid])=>{const n=pname(pid);const p=ppos(pid);const c=posColor(p)||'var(--accent3)';return`<span style="color:${c};opacity:.8">–${p?p+' ':''}${n}</span>`;}).join(', ');
   const detail=[addLines,dropLines].filter(Boolean).join(' &nbsp;·&nbsp; ');
   const badge=tx.type==='waiver'?'txn-waiver':'txn-add';
   const label=tx.type==='waiver'?'WAIVER':'FREE AGT';
@@ -1697,7 +1698,7 @@ function renderTxnTrade(tx,date){
   const sides={};
   rids.forEach(rid=>{ sides[rid]={players:[],picks:[]}; });
   Object.entries(tx.adds||{}).forEach(([pid,rid])=>{
-    if(sides[rid]){const n=pname(pid);const p=ppos(pid);sides[rid].players.push(p?`${p} ${n}`:n);}
+    if(sides[rid]){const n=pname(pid);const p=ppos(pid);sides[rid].players.push({name:n,pos:p});}
   });
   (tx.draft_picks||[]).forEach(pick=>{
     if(sides[pick.owner_id]){
@@ -1709,7 +1710,7 @@ function renderTxnTrade(tx,date){
   const sidesHtml=rids.map(rid=>{
     const team=rToTeam(rid);
     const s=sides[rid];
-    const items=[...s.players.map(n=>`<div class="trade-item">${n}</div>`),...s.picks.map(p=>`<div class="trade-item is-pick">${p}</div>`)];
+    const items=[...s.players.map(pl=>`<div class="trade-item" style="color:${posColor(pl.pos)||'inherit'}">${pl.pos?pl.pos+' ':''}${pl.name}</div>`),...s.picks.map(p=>`<div class="trade-item is-pick">${p}</div>`)];
     return`<div class="trade-side">
       <div class="trade-side-lbl">→ <strong>${team.name}</strong> received</div>
       <div class="trade-items">${items.join('')||'<div class="trade-item" style="opacity:.4">Nothing</div>'}</div>
