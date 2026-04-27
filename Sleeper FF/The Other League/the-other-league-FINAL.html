@@ -496,6 +496,11 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
           <button class="f-pill" onclick="setStatsWeek(17,this)">W17</button>
         </div>
       </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="stats-player-search" type="text" placeholder="Search players in current group..." oninput="onStatsPlayerSearch(this.value)" style="font-family:'DM Mono',monospace;font-size:11px;padding:7px 11px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:2px;outline:none;min-width:200px;flex:1;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <div id="stats-comparison-chips" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"></div>
+        <button id="stats-clear-compare" onclick="clearStatsComparison()" style="display:none;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:2px;cursor:pointer;">Clear</button>
+      </div>
       <div id="stats-container"><div class="ld"><div class="spin"></div><div class="lt">Loading stats...</div></div></div>
     </div>
 
@@ -902,6 +907,8 @@ let currentTxnTeam = null; // roster_id (number) or null for all teams
 let currentStatsYear = 2025;
 let currentStatsPos = 'all';
 let currentStatsWeek = 'season';
+let statsPlayerSearch = '';
+let statsSelectedPlayers = new Map();
 let currentScoresYear = 2025;
 let currentScoresWeek = 1;
 
@@ -1338,7 +1345,7 @@ async function buildRosters(rostersData,playersData){
         const pos=p.position||'';
         const age=p.age?` (${p.age})`:'';
         const posClass=pos?`pos-${pos.toLowerCase()}`:'';
-        return`<span class="chip ${posClass}" onclick="showPlayerStats('${id}')" title="${abbrev(name)} stats">${pos?`<span class="cp">${pos}</span>`:''}${name}${age}</span>`;
+        return`<span class="chip ${posClass}" onclick="showPlayerStats('${id}','${pos}')" title="${abbrev(name)} stats">${pos?`<span class="cp">${pos}</span>`:''}${name}${age}</span>`;
       };
       const tags=[
         td_.tier==='champion'?'<span class="tag tg-s">🏆 Champ</span>':'',
@@ -1353,7 +1360,7 @@ async function buildRosters(rostersData,playersData){
           <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Bench (${bench.length})<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAgeBench}</span></div><div class="pchips">${bench.map(id=>chip(id)).join('')}</div></div>
           ${taxi.length?`<div class="pg"><div class="pl">Taxi (${taxi.length})</div><div class="pchips">${taxi.map(id=>chip(id)).join('')}</div></div>`:''}
           ${ir.length?`<div class="pg"><div class="pl">IR / Reserve (${ir.length})</div><div class="pchips">${ir.map(id=>chip(id)).join('')}</div></div>`:''}
-          ${posAvgRow?`<div class="pg" style="padding-top:4px;"><div style="display:flex;gap:4px;flex-wrap:wrap;">${posAvgRow}</div></div>`:''}
+          ${posAvgRow?`<div class="pg" style="padding-top:4px;"><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Avg Age by Position</div><div style="display:flex;gap:4px;flex-wrap:wrap;">${posAvgRow}</div></div>`:''}
         </div>
       </div>`;
     });
@@ -2223,7 +2230,7 @@ function buildCareers(){
   });
   const careerCols=[
     {col:'name',label:'Owner'},{col:'team',label:'Team'},{col:'earn',label:'Career Earnings'},
-    {col:'p2023',label:'2023'},{col:'p2024',label:'2024'},{col:'p2025',label:'2025'},
+    {col:'p2025',label:'2025'},{col:'p2024',label:'2024'},{col:'p2023',label:'2023'},
     {col:'avgF',label:'Avg Finish'},{col:'totalW',label:'Total W-L'},
     {col:'h2hW',label:'H2H W-L'},{col:'medW',label:'Median W-L'}
   ];
@@ -2324,6 +2331,7 @@ function calcPts(stats,pos){
 }
 
 async function buildPlayerStats(year,posFilter){
+  resetStatsSearch();
   const c=document.getElementById('stats-container');
   c.dataset.loaded='1';
   c.innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Fetching stats...</div></div>';
@@ -2365,7 +2373,7 @@ async function buildPlayerStats(year,posFilter){
     const rk=(r)=>isRookieInYear(r.pid,currentStatsYear)?'<span class="rk-tag">[RK]</span>':'';
     if(pos==='QB'){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Cmp%</th><th>Pass Yds</th><th>Pass TDs</th><th>INTs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
         <td><span class="chip pos-qb" style="cursor:default"><span class="cp">QB</span>${r.name}${rk(r)}</span></td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
@@ -2381,7 +2389,7 @@ async function buildPlayerStats(year,posFilter){
       </tr>`;
     }else if(pos==='RB'){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Rush Yds</th><th>Rush TDs</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
         <td><span class="chip pos-rb" style="cursor:default"><span class="cp">RB</span>${r.name}${rk(r)}</span></td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
@@ -2396,7 +2404,7 @@ async function buildPlayerStats(year,posFilter){
       </tr>`;
     }else if(pos==='WR'){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
         <td><span class="chip pos-wr" style="cursor:default"><span class="cp">WR</span>${r.name}${rk(r)}</span></td>
         <td style="color:var(--text2)">${abbrev(r.owner)}</td>
@@ -2412,7 +2420,7 @@ async function buildPlayerStats(year,posFilter){
       thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>TE Prem Pts</th><th>Est. Pts</th></tr>`;
       rowFn=(r,i)=>{
         const tePrem=Math.round((r.stats.rec||0)*(SDATA.bonus_rec_te||0)*10)/10;
-        return`<tr id="stats-player-${r.pid}">
+        return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
           <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
           <td><span class="chip pos-te" style="cursor:default"><span class="cp">TE</span>${r.name}${rk(r)}</span></td>
           <td style="color:var(--text2)">${abbrev(r.owner)}</td>
@@ -2427,7 +2435,7 @@ async function buildPlayerStats(year,posFilter){
     }else{
       // All positions + Rookies (same columns)
       thead=`<tr><th>#</th><th>Player</th><th>NFL Team</th><th>Owner</th><th>Gms</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}">
+      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
         <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
         <td><span class="chip pos-${r.position.toLowerCase()}" style="cursor:default"><span class="cp">${r.position}</span>${r.name}${rk(r)}</span></td>
         <td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>
@@ -2442,12 +2450,14 @@ async function buildPlayerStats(year,posFilter){
         <table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table>
       </div>
       <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>`;
+    applyStatsFilters();
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load player stats.<br><small>${e.message}</small></div>`;
   }
 }
 
 function setStatsYear(year,el){
+  resetStatsSearch();
   document.querySelectorAll('#stats-yr-toggle .yr-btn').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
   currentStatsYear=year;
@@ -2461,6 +2471,7 @@ function setStatsYear(year,el){
 }
 
 function setStatsWeek(week,el){
+  resetStatsSearch();
   document.querySelectorAll('#stats-wk-filter .f-pill').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
   currentStatsWeek=week;
@@ -2470,6 +2481,7 @@ function setStatsWeek(week,el){
 }
 
 function setStatsPos(pos,el){
+  resetStatsSearch();
   document.querySelectorAll('#stats-pos-filter .f-pill').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
   currentStatsPos=pos;
@@ -2478,7 +2490,17 @@ function setStatsPos(pos,el){
   buildPlayerStats(currentStatsYear,pos);
 }
 
-function showPlayerStats(playerId){
+function showPlayerStats(playerId,posFilter){
+  const validPos=['QB','RB','WR','TE'];
+  if(posFilter&&validPos.includes(posFilter)){
+    currentStatsPos=posFilter;
+    document.querySelectorAll('#stats-pos-filter .f-pill').forEach(b=>{
+      const oc=b.getAttribute('onclick')||'';
+      b.classList.toggle('active',oc.includes(`'${posFilter}'`));
+    });
+    const sc=document.getElementById('stats-container');
+    if(sc)delete sc.dataset.loaded;
+  }
   const tabs=document.querySelectorAll('.tabs .tab');
   let statsTab;
   tabs.forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'stats'"))statsTab=t;});
@@ -2490,7 +2512,68 @@ function showPlayerStats(playerId){
       row.style.outline='2px solid var(--accent)';
       setTimeout(()=>row.style.outline='',1800);
     }
-  },250);
+  },400);
+}
+
+function resetStatsSearch(){
+  statsPlayerSearch='';
+  statsSelectedPlayers.clear();
+  const inp=document.getElementById('stats-player-search');
+  if(inp)inp.value='';
+  const chips=document.getElementById('stats-comparison-chips');
+  if(chips)chips.innerHTML='';
+  const clr=document.getElementById('stats-clear-compare');
+  if(clr)clr.style.display='none';
+}
+
+function onStatsPlayerSearch(val){
+  statsPlayerSearch=val.toLowerCase().trim();
+  applyStatsFilters();
+}
+
+function applyStatsFilters(){
+  const q=statsPlayerSearch;
+  const hasSel=statsSelectedPlayers.size>0;
+  document.querySelectorAll('#stats-container tr[data-pid]').forEach(row=>{
+    const name=row.dataset.name||'';
+    const pid=row.dataset.pid;
+    const selected=statsSelectedPlayers.has(pid);
+    const show=hasSel?selected:(!q||name.includes(q));
+    row.style.display=show?'':'none';
+    row.style.background=selected?'var(--surface2)':'';
+  });
+}
+
+function toggleStatsComparison(pid,name,evt){
+  if(evt)evt.stopPropagation();
+  if(statsSelectedPlayers.has(pid)){
+    statsSelectedPlayers.delete(pid);
+  }else{
+    statsSelectedPlayers.set(pid,name);
+  }
+  updateStatsComparisonChips();
+  applyStatsFilters();
+}
+
+function updateStatsComparisonChips(){
+  const chipsEl=document.getElementById('stats-comparison-chips');
+  const clrBtn=document.getElementById('stats-clear-compare');
+  if(!chipsEl)return;
+  if(statsSelectedPlayers.size===0){
+    chipsEl.innerHTML='';
+    if(clrBtn)clrBtn.style.display='none';
+    applyStatsFilters();
+    return;
+  }
+  if(clrBtn)clrBtn.style.display='';
+  chipsEl.innerHTML=[...statsSelectedPlayers.entries()].map(([pid,n])=>
+    `<span class="bdg bdg-m" style="cursor:pointer;font-size:10px;padding:3px 8px;" onclick="toggleStatsComparison('${pid}','${n.replace(/'/g,"\\'")}',event)">${n} ×</span>`
+  ).join('');
+}
+
+function clearStatsComparison(){
+  resetStatsSearch();
+  applyStatsFilters();
 }
 
 // ── TAB SWITCHER ──
