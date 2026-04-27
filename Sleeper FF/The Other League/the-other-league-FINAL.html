@@ -404,7 +404,6 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
       <button class="tab" onclick="showTab('rosters',this)">Rosters</button>
       <button class="tab" onclick="showTab('stats',this)">Player Stats</button>
       <button class="tab" onclick="showTab('league',this)">League Info</button>
-      <button class="tab" onclick="showTab('scoring',this)">Scoring</button>
       <button class="tab" onclick="showTab('rivalries',this)">Rivalries</button>
       <button class="tab" onclick="showTab('draft',this)">Draft</button>
       <button class="tab" onclick="showTab('transactions',this)">Transactions</button>
@@ -605,14 +604,12 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
           <div class="ir-row"><span class="ik">Rival Games</span><span class="iv">2x per season</span></div>
         </div>
       </div>
-    </div>
-
-    <!-- SCORING -->
-    <div class="panel" id="panel-scoring">
-      <div class="sec-title">SCORING SETTINGS</div>
-      <div class="sec-sub">Non-PPR · TE Premium · Distance Bonuses · Super Flex</div>
-      <div class="note"><strong>Key implications:</strong> Non-PPR kills volume slot WRs. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
-      <div class="sc-grid" id="score-grid"></div>
+      <div style="margin-top:28px;">
+        <div class="sec-row-label">Scoring Settings</div>
+        <div class="sec-sub">Non-PPR · TE Premium · Distance Bonuses · Super Flex</div>
+        <div class="note"><strong>Key implications:</strong> Non-PPR kills volume slot WRs. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
+        <div class="sc-grid" id="score-grid"></div>
+      </div>
     </div>
 
     <!-- RIVALRIES -->
