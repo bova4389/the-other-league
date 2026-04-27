@@ -1350,8 +1350,8 @@ async function buildRosters(rostersData,playersData){
           <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">${tags}<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAge}</span></div>
         </div>
         <div class="rcb">
-          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Starters (${starters.length})<span class="bdg bdg-m" style="font-size:8px;">Avg ${avgAgeStarters}</span></div><div class="pchips">${starters.map(id=>chip(id)).join('')||'<span style="color:var(--muted);font-size:11px;">Not set</span>'}</div></div>
-          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Bench (${bench.length})<span class="bdg bdg-m" style="font-size:8px;">Avg ${avgAgeBench}</span></div><div class="pchips">${bench.map(id=>chip(id)).join('')}</div></div>
+          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Starters (${starters.length})<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAgeStarters}</span></div><div class="pchips">${starters.map(id=>chip(id)).join('')||'<span style="color:var(--muted);font-size:11px;">Not set</span>'}</div></div>
+          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Bench (${bench.length})<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAgeBench}</span></div><div class="pchips">${bench.map(id=>chip(id)).join('')}</div></div>
           ${taxi.length?`<div class="pg"><div class="pl">Taxi (${taxi.length})</div><div class="pchips">${taxi.map(id=>chip(id)).join('')}</div></div>`:''}
           ${ir.length?`<div class="pg"><div class="pl">IR / Reserve (${ir.length})</div><div class="pchips">${ir.map(id=>chip(id)).join('')}</div></div>`:''}
           ${posAvgRow?`<div class="pg" style="padding-top:4px;"><div style="display:flex;gap:4px;flex-wrap:wrap;">${posAvgRow}</div></div>`:''}
