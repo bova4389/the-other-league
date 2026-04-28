@@ -141,6 +141,9 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 /* Clickable chips (Player Stats link) */
 .chip[onclick]{cursor:pointer;transition:opacity .15s;}
 .chip[onclick]:hover{opacity:.7;}
+/* Draft pick chips */
+.chip-pick{background:transparent;border:1px solid var(--border);color:var(--text2);}
+.chip-pick .from{font-size:8px;opacity:.6;margin-left:3px;}
 /* Rookie year label */
 .rk-tag{font-size:8px;font-family:'DM Mono',monospace;color:var(--muted);margin-left:3px;opacity:.8;}
 
@@ -978,7 +981,7 @@ function setCacheBar(fromCache,ts){
 
 async function refreshData(){
   clearCache();
-  cachedRosters=null;cachedPlayers=null;cachedLeague=null;
+  cachedRosters=null;cachedPlayers=null;cachedLeague=null;window._futurePicksMap=null;
   document.getElementById('cache-dot').className='cache-dot';
   document.getElementById('cache-status-txt').textContent='Refreshing...';
   document.getElementById('refresh-btn').disabled=true;
@@ -1225,6 +1228,34 @@ async function buildDraft2026(){
   }).join('');
 }
 
+// Builds a map of future pick ownership (2027 + 2028) keyed by user_id.
+// Each entry: [{year, round, fromUid}] — fromUid is null if it's the team's own pick.
+async function buildFuturePicksMap(){
+  if(window._futurePicksMap) return window._futurePicksMap;
+  const trades={};
+  try{
+    const tp=await api(`/league/${LID}/traded_picks`);
+    (tp||[]).filter(p=>(String(p.season)==='2027'||String(p.season)==='2028')&&p.roster_id!==p.owner_id)
+      .forEach(p=>{trades[`${p.season}.${p.round}.${p.roster_id}`]=p.owner_id;});
+  }catch(e){}
+  const map={};
+  Object.values(RM).forEach(uid=>{map[uid]=[];});
+  [2027,2028].forEach(year=>{
+    [1,2,3,4].forEach(round=>{
+      Object.entries(RM).forEach(([rid,uid])=>{
+        const ridN=parseInt(rid);
+        const currRid=trades[`${year}.${round}.${ridN}`]||ridN;
+        const currUid=RM[currRid];
+        if(!map[currUid])map[currUid]=[];
+        map[currUid].push({year,round,fromUid:currRid!==ridN?uid:null});
+      });
+    });
+  });
+  Object.values(map).forEach(picks=>picks.sort((a,b)=>a.year-b.year||a.round-b.round));
+  window._futurePicksMap=map;
+  return map;
+}
+
 function renderDraft2026Board(){
   const container=document.getElementById('d26-board-view');
   const rows=window._draft2026Rows;
@@ -1315,8 +1346,10 @@ async function buildRosters(rostersData,playersData){
     const rosters=rostersData||await api(`/league/${LID}/rosters`);
     const players=playersData||await api('/players/nfl');
     cachedRosters=rosters;cachedPlayers=players;
+    const picksMap=await buildFuturePicksMap();
     c.innerHTML='';
     const g=document.createElement('div');g.className='roster-grid';
+    const RD_LABEL={1:'1st Rd',2:'2nd Rd',3:'3rd Rd',4:'4th Rd'};
     rosters.forEach(r=>{
       const uid=RM[r.roster_id],td_=t(uid);
       const sSet=new Set((r.starters||[]).map(String));
@@ -1350,6 +1383,12 @@ async function buildRosters(rostersData,playersData){
       const tags=[
         td_.tier==='champion'?'<span class="tag tg-s">🏆 Champ</span>':'',
       ].filter(Boolean).join(' ');
+      const teamPicks=(picksMap&&picksMap[uid])||[];
+      const pickChips=teamPicks.map(pk=>{
+        const yr=`'${String(pk.year).slice(2)}`;
+        const from=pk.fromUid?`<span class="from">(from ${abbrev(t(pk.fromUid).name)})</span>`:'';
+        return`<span class="chip chip-pick">${yr} ${RD_LABEL[pk.round]}${from}</span>`;
+      }).join('');
       g.innerHTML+=`<div class="r-card" id="roster-card-${uid}">
         <div class="rch">
           <div><div class="rch-team">${td_.team}</div><div class="rch-own">${td_.name}${td_.co?` + ${td_.co}`:''}${td_.note?` · ${td_.note}`:''}</div></div>
@@ -1361,6 +1400,7 @@ async function buildRosters(rostersData,playersData){
           ${taxi.length?`<div class="pg"><div class="pl">Taxi (${taxi.length})</div><div class="pchips">${taxi.map(id=>chip(id)).join('')}</div></div>`:''}
           ${ir.length?`<div class="pg"><div class="pl">IR / Reserve (${ir.length})</div><div class="pchips">${ir.map(id=>chip(id)).join('')}</div></div>`:''}
           ${posAvgRow?`<div class="pg" style="padding-top:4px;"><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Avg Age by Position</div><div style="display:flex;gap:4px;flex-wrap:wrap;">${posAvgRow}</div></div>`:''}
+          ${teamPicks.length?`<div class="pg" style="padding-top:4px;border-top:1px solid var(--border);margin-top:4px;"><div class="pl">Draft Picks (${teamPicks.length})</div><div class="pchips">${pickChips}</div></div>`:''}
         </div>
       </div>`;
     });
