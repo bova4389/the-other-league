@@ -58,6 +58,9 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .toggle-btn:hover{border-color:var(--accent);color:var(--text);}
 
 /* CACHE STATUS BAR */
+.sleeper-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 28px;display:flex;align-items:center;}
+.sleeper-link{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;opacity:.8;transition:opacity .15s;}
+.sleeper-link:hover{opacity:1;}
 .cache-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 28px;display:flex;align-items:center;gap:14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex-wrap:wrap;}
 .cache-bar .cb-status{display:flex;align-items:center;gap:6px;}
 .cache-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
@@ -352,6 +355,10 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
   </div>
 </header>
 
+<div class="sleeper-bar">
+  <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="sleeper-link">Open in Sleeper ↗</a>
+</div>
+
 <div class="cache-bar">
   <div class="cb-status">
     <div class="cache-dot" id="cache-dot"></div>
@@ -405,15 +412,14 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
   <div class="content">
     <div class="tabs">
       <button class="tab active" onclick="showTab('careers',this)">Careers</button>
+      <button class="tab" onclick="showTab('league',this)">League Info</button>
+      <button class="tab" onclick="showTab('rivalries',this)">Rivalries</button>
       <button class="tab" onclick="showTab('scores',this)">Scores</button>
       <button class="tab" onclick="showTab('rosters',this)">Rosters</button>
       <button class="tab" onclick="showTab('stats',this)">Player Stats</button>
-      <button class="tab" onclick="showTab('league',this)">League Info</button>
-      <button class="tab" onclick="showTab('rivalries',this)">Rivalries</button>
       <button class="tab" onclick="showTab('draft',this)">Draft</button>
       <button class="tab" onclick="showTab('transactions',this)">Transactions</button>
       <button class="tab ai-tab" onclick="showTab('ai',this)">⚡ Ask Claude</button>
-      <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="tab" style="margin-left:auto;color:var(--accent2);text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;">Sleeper ↗</a>
     </div>
 
     <!-- SCORES -->
@@ -1952,12 +1958,13 @@ function buildLeaderStats(){
   if(earnValEl)earnValEl.textContent='$'+earnings[topEarner];
   if(earnSubEl)earnSubEl.textContent=t(topEarner).name;
 
-  // Most Consistent Finisher (lowest avg finish)
-  const mostCons=owners.reduce((best,uid)=>avgF[uid]<avgF[best]?uid:best,owners[0]);
+  // Most Consistent Finisher (lowest avg finish — show all tied owners)
+  const minAvgF=Math.min(...owners.map(uid=>avgF[uid]));
+  const tiedCons=owners.filter(uid=>avgF[uid]===minAvgF);
   const consValEl=document.getElementById('stat-cons-val');
   const consSubEl=document.getElementById('stat-cons-sub');
-  if(consValEl)consValEl.textContent=t(mostCons).name;
-  if(consSubEl)consSubEl.textContent='Avg finish: '+avgF[mostCons].toFixed(1);
+  if(consValEl)consValEl.textContent=tiedCons.map(uid=>t(uid).name).join(' / ');
+  if(consSubEl)consSubEl.textContent='Avg finish: '+minAvgF.toFixed(1);
 
   // Worst Average Finish (highest avg finish)
   const worstFin=owners.reduce((worst,uid)=>avgF[uid]>avgF[worst]?uid:worst,owners[0]);
