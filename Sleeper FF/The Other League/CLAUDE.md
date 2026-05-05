@@ -69,6 +69,7 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 | Rivalries       | `rivalries`     | `panel-rivalries`      | Re-renders on every visit via `buildRivalries()` |
 | Draft           | `draft`         | `panel-draft`          | Yes — `buildDraft2026()` at boot; past years on demand |
 | Transactions    | `transactions`  | `panel-transactions`   | Yes — `buildTransactions()` on first visit |
+| ⚖ Trade Eval   | `trade`         | `panel-trade`          | Yes — `initTradeEval()` on first visit  |
 | ⚡ Ask Claude   | `ai`            | `panel-ai`             | No — static form; sends on user action  |
 
 ---
@@ -133,6 +134,9 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 
 ### Careers Panel
 - `careers-container` — career stats table
+
+### Trade Evaluator Panel
+- `ktc-badge` — shows "Values: KTC Live ✓" (green) or "Values: Snapshot" (yellow) after `fetchKTCValues()` resolves
 
 ### AI Panel
 - `ai-input` — chat input field
@@ -226,6 +230,14 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 ### Tab Navigation
 - `showTab(tab, el)` — activates a tab + panel; triggers lazy-load functions on first visit
 
+### Trade Evaluator
+- `initTradeEval()` — lazy-init on first tab visit: populates team dropdowns, kicks off `fetchKTCValues()`
+- `fetchKTCValues()` — tries to fetch live KTC dynasty values via unofficial JSON endpoint + CORS proxy chain; falls back to `KTC_SNAPSHOT` if fetch fails or returns < 50 players; sets `_ktcSource` to `'live'` or `'snapshot'`
+- `getKTCValue(playerName)` — looks up player value from `_ktcValues` (live) or `KTC_SNAPSHOT` (fallback); fuzzy-matches on last name
+- `getPickValue(year, round)` — returns pick value from `KTC_PICK_VALUES`
+- `evaluateTrade()` — reads selected players/picks from both sides, computes value delta using KTC values, renders result card with winner/loser and value breakdown
+- `getTradeAI(giveUid, receiveUid)` — calls Claude API with team rosters + trade details for AI analysis; appended after `evaluateTrade()` result
+
 ### AI Chat
 - `quickPrompt(key)` — fills `#ai-input` with a pre-set prompt from `QUICK_PROMPTS` and calls `sendAI()`
 - `clearChat()` — resets `aiMessages` and clears `#ai-history`
@@ -292,6 +304,20 @@ const DRAFT_ORDER_2026 = [ ... ];
 ```
 13 picks because pick 1.13 is the consolation winner's bonus pick (Nick Merkel). The 2026 draft is **linear** — rounds 2–4 repeat the same order as round 1 (not snake). Picks 1.09 = Chris Bova (4th place), 1.10 = Jake Bogardus (3rd place).
 
+### `KTC_SNAPSHOT` — hardcoded dynasty player values
+```javascript
+// player_name (lowercase) → integer value on KTC scale (~1–9999)
+// Snapshot taken April 2026 — update before 2026 season
+const KTC_SNAPSHOT = { ... };
+```
+Used as fallback when live KTC fetch fails. Comment in code warns to update before each season.
+
+### `KTC_PICK_VALUES` — pick values by year + round
+```javascript
+// year → { round: value }
+const KTC_PICK_VALUES = { 2026: { 1: 2800, 2: 900, 3: 450, 4: 250 }, ... };
+```
+
 ### `QUICK_PROMPTS` — AI quick prompt text
 ```javascript
 // key → prompt string
@@ -317,6 +343,9 @@ let currentStatsWeek = 'season'; // active week in Player Stats tab ('season' or
 let currentScoresYear = 2025; // active year in Scores tab
 let currentScoresWeek = 1;   // active week in Scores tab
 let _draftPicks = null;      // picks for the currently loaded past draft year (board view)
+let _tradeInit = false;      // trade evaluator tab has been initialized
+let _ktcValues = null;       // live KTC values if fetch succeeds; null = use snapshot
+let _ktcSource = 'snapshot'; // 'live' or 'snapshot'
 let aiMessages = [];         // running AI conversation history
 ```
 
