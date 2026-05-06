@@ -13,7 +13,10 @@ Two independent projects live here. Each has its own detailed CLAUDE.md — read
 
 ## Shared Conventions
 
-Both projects are **static HTML / Vanilla JS** sites hosted on GitHub Pages. No npm, no Node, no build step. All dependencies load from CDN `<script>` tags. Never introduce a build tool.
+Both projects are **static HTML / Vanilla JS** sites. No npm, no Node, no build step. All dependencies load from CDN `<script>` tags. Never introduce a build tool.
+
+- **Majors Golf Pool** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-pga-pickems.com
+- **Sleeper FF** is hosted on **GitHub Pages** — push to `main` and the site updates automatically.
 
 ## Git Setup
 
