@@ -4,18 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Workspace Structure
 
-Two independent projects live here. Each has its own detailed CLAUDE.md — read it before working on that project.
+Three independent projects live here. Each has its own detailed CLAUDE.md — read it before working on that project.
 
 | Project | Path | CLAUDE.md |
 |---------|------|-----------|
 | Majors Golf Pool | `Majors Golf Pool/` | [`Majors Golf Pool/CLAUDE.md`](Majors Golf Pool/CLAUDE.md) |
 | Sleeper Fantasy Football | `Sleeper FF/The Other League/` | [`Sleeper FF/The Other League/CLAUDE.md`](Sleeper FF/The Other League/CLAUDE.md) |
+| Basic Bros Ryder Cup | `Basic Bros Ryder Cup/` | [`Basic Bros Ryder Cup/CLAUDE.md`](Basic Bros Ryder Cup/CLAUDE.md) |
 
 ## Shared Conventions
 
-Both projects are **static HTML / Vanilla JS** sites. No npm, no Node, no build step. All dependencies load from CDN `<script>` tags. Never introduce a build tool.
+All projects are **static HTML / Vanilla JS** sites. No npm, no Node, no build step. All dependencies load from CDN `<script>` tags. Never introduce a build tool.
 
 - **Majors Golf Pool** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-pga-pickems.com
+- **Basic Bros Ryder Cup** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-ryder-cup.com
 - **Sleeper FF** is hosted on **GitHub Pages** — push to `main` and the site updates automatically.
 
 ## Git Setup
@@ -29,6 +31,6 @@ Never `git add Majors Golf Pool/` from the outer repo — it will be treated as 
 
 ## Project States (as of May 2026)
 
-**Majors Golf Pool** — PGA Championship 2026 is the next live tournament (ESPN event ID `401811947`, starts May 11). All four 2025 major scoreboards are fully hardcoded. Masters 2025 and PGA Championship 2025 pool standings (Total, R1–R4, Payouts) are fully hardcoded in `standings.js`. U.S. Open 2025 and The Open 2025 scoreboards are hardcoded but their pool standings are not yet entered. Each scoreboard function resets its table state on every year switch so the 2026 tab always shows "Scoreboard not yet available."
+**Majors Golf Pool** — Masters 2026 is complete (Sarah Crowell won the pool, -33; Scottie Scheffler won the actual tournament). Total standings, R1–R4, and payouts are all hardcoded in `standings.js`. PGA Championship 2026 is the next live tournament (ESPN event ID `401811947`, starts May 14). All four 2025 major scoreboards are fully hardcoded. Masters 2025 and PGA Championship 2025 pool standings (Total, R1–R4, Payouts) are fully hardcoded in `standings.js`. U.S. Open 2025 and The Open 2025 scoreboards are hardcoded but their pool standings are not yet entered.
 
 **Sleeper FF / The Other League** — Active development project. The working file is `the-other-league-FINAL.html` (3200+ lines); `index.html` is an 8-line stub. Full feature set for roster management, trade evaluation (with live KTC values), draft picks, and standings. See its CLAUDE.md for the complete function and data reference.
