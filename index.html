@@ -1359,9 +1359,9 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     <!-- DRAFT -->
     <div class="panel" id="panel-draft">
       <div class="sec-title">ROOKIE DRAFT</div>
-      <div class="sec-sub">Snake Format · 4 Rounds + Consolation Pick (1.13)</div>
+      <div class="sec-sub">4 Rounds · Linear Format (2026) · Consolation Pick 1.13</div>
       <div class="yr-toggle">
-        <button class="yr-btn active" onclick="setDraftYear('2026',this)">2026 Order</button>
+        <button class="yr-btn active" onclick="setDraftYear('2026',this)">2026 Results</button>
         <button class="yr-btn" onclick="setDraftYear('2025',this)">2025 Results</button>
         <button class="yr-btn" onclick="setDraftYear('2024',this)">2024 Results</button>
         <button class="yr-btn" onclick="setDraftYear('2023',this)">2023 Results</button>
@@ -1821,7 +1821,8 @@ function buildH2HMap(){
   for(const year of[2023,2024,2025]){
     const data=loadPerm(`tol_matchups_${year}`);
     if(!data)continue;
-    Object.values(data).forEach(weekData=>{
+    Object.entries(data).forEach(([wk,weekData])=>{
+      if(Number(wk)>14)return;
       if(!weekData||!weekData.length)return;
       const groups={};
       weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
@@ -1837,13 +1838,14 @@ function buildH2HMap(){
   return h2h;
 }
 
-// All-time median W/L per owner across all seasons (all weeks)
+// All-time median W/L per owner across regular season weeks only (weeks 1-14)
 function buildMedianMap(){
   const med={};
   for(const year of[2023,2024,2025]){
     const data=loadPerm(`tol_matchups_${year}`);
     if(!data)continue;
-    Object.values(data).forEach(weekData=>{
+    Object.entries(data).forEach(([wk,weekData])=>{
+      if(Number(wk)>14)return;
       if(!weekData||!weekData.length)return;
       const scores=weekData.filter(e=>e.matchup_id&&e.points!=null);
       if(!scores.length)return;
@@ -2567,6 +2569,7 @@ function setTxnFilter(type,el){
 
 // ── DRAFT HISTORY ──
 let _draftPicks=null; // picks loaded for the current past-draft year (used by board view)
+let _draftPicksYear=null; // year corresponding to _draftPicks
 
 async function buildDraftHistory(year){
   const c=document.getElementById('draft-history-container');
@@ -2576,18 +2579,24 @@ async function buildDraftHistory(year){
   if(boardEl){boardEl.innerHTML='';delete boardEl.dataset.built;}
   const key=`tol_drafts_${year}`;
   const cached=loadPerm(key);
-  if(cached){_draftPicks=cached;renderDraftPicks(c,cached,year);return;}
+  if(cached){_draftPicks=cached;_draftPicksYear=year;renderDraftPicks(c,cached,year);return;}
   try{
-    const ids=cachedLeagueIds||await findLeagueIds();
-    const leagueId=ids[year];
+    let leagueId;
+    if(String(year)==='2026'){
+      leagueId=LID;
+    } else {
+      const ids=cachedLeagueIds||await findLeagueIds();
+      leagueId=ids[year];
+    }
     if(!leagueId){c.innerHTML=`<div class="note">Draft data for ${year} not available.</div>`;return;}
     const drafts=await api(`/league/${leagueId}/drafts`);
     if(!drafts||!drafts.length){c.innerHTML=`<div class="note">No draft found for ${year}.</div>`;return;}
-    const rookieDraft=drafts.find(d=>d.type==='snake')||drafts[0];
+    const rookieDraft=drafts.find(d=>d.type==='snake'||d.type==='linear')||drafts[0];
     const picks=await api(`/draft/${rookieDraft.draft_id}/picks`);
     savePerm(key,picks);
     buildLeaderStats(); // update most draft picks stat now that data is cached
     _draftPicks=picks;
+    _draftPicksYear=year;
     renderDraftPicks(c,picks,year);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load ${year} draft.<br><small>${e.message}</small></div>`;
@@ -2661,7 +2670,7 @@ function setDraftPastView(view,el){
   const boardEl=document.getElementById('draft-past-board-view');
   if(view==='board'){
     listEl.style.display='none';boardEl.style.display='block';
-    if(!boardEl.dataset.built&&_draftPicks){boardEl.dataset.built='1';renderDraftBoard(_draftPicks);}
+    if(!boardEl.dataset.built&&_draftPicks){boardEl.dataset.built='1';renderDraftBoard(_draftPicks,_draftPicksYear);}
     else if(!boardEl.dataset.built){boardEl.innerHTML='<div class="note">Load a draft year first.</div>';}
   }else{
     listEl.style.display='block';boardEl.style.display='none';
@@ -2673,8 +2682,7 @@ function setDraftYear(year,el){
   if(el)el.classList.add('active');
   const v2026=document.getElementById('draft-view-2026');
   const vPast=document.getElementById('draft-view-past');
-  if(year==='2026'){v2026.style.display='';vPast.style.display='none';buildDraft2026();}
-  else{v2026.style.display='none';vPast.style.display='';buildDraftHistory(year);}
+  v2026.style.display='none';vPast.style.display='';buildDraftHistory(year);
 }
 
 // ── LEAGUE LEADERS BANNER ──
@@ -3843,8 +3851,8 @@ async function init(){
   }
   // Prefetch careers data (lazy-loads on tab visit, but preload for speed)
   buildCareers();
-  // Populate the 2026 draft order table immediately on load
-  buildDraft2026();
+  // Pre-fetch 2026 draft results in background
+  buildDraftHistory('2026').catch(()=>{});
 }
 
 // ── AI CHAT ──
