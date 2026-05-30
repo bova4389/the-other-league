@@ -368,10 +368,11 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 
 ## LEAGUE CONTEXT SUMMARY
 
-- 12 teams, dynasty format, Year 4 (2026 upcoming)
+- 12 teams, dynasty format, Year 4 (2026 season — post-draft)
 - Commissioner: Matt Bova — team "Show Me Your Penix"
-- 2025 Champion: Jake Blackwell ("Nacua Matata") — gets pick 1.12
-- 2025 Consolation: Nick Merkel ("Breeces Peanut ButterCups") — gets pick 1.13
+- 2025 Champion: Jake Blackwell ("Nacua Matata") — had pick 1.12 in 2026 draft
+- 2025 Consolation: Nick Merkel ("Breeces Peanut ButterCups") — had pick 1.13 in 2026 draft
+- 2026 Rookie Draft: **Complete** — results pulled live from Sleeper API on Draft tab
 - Contenders: Chris Bova ("Titsburg Feelers"), Jake Bogardus ("BoKnows723")
 - Active traders: Chris Merkel, Nick Merkel
 - 2027 rule change voted in: 1 WRRB_FLEX → WR/RB/TE FLEX (increases TE value)

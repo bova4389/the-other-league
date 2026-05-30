@@ -1,6 +1,6 @@
 # THE OTHER LEAGUE — MASTER CONTEXT DOCUMENT
 *Dynasty Fantasy Football · Sleeper Platform · Commissioner: Matt Bova*
-*Last updated: April 2026 · Pre-Draft*
+*Last updated: May 2026 · 2026 Rookie Draft Complete*
 
 ---
 
@@ -39,7 +39,7 @@
 - Chris Merkel and Nick Merkel are brothers
 - Jake Bogardus co-owns with wife Katie
 
-**Tier assessment (as of 2026 pre-draft):**
+**Tier assessment (as of 2026 post-draft):**
 - **Contenders:** Chris Bova, Jake Bogardus — strongest all-around win-now rosters with depth
 - **Champion:** Jake Blackwell — 2025 winner, pick 1.12 this year
 - **Active traders:** Chris Merkel, Nick Merkel — most trade-active owners in the league
@@ -177,7 +177,7 @@ One WRRB_FLEX converts to WR/RB/TE FLEX. This meaningfully increases TE value on
 | 1.12 | Champion — last pick as penalty |
 | 1.13 | Consolation bracket winner — manually inserted |
 
-**Consolation pick process:** After pick 1.12, Matt pauses the draft in the Sleeper app. The consolation winner texts Matt their selection. Matt manually assigns it in the Round 5 row of the draft board, then resumes the draft.
+**2026 Draft is complete.** Results are pulled live from the Sleeper API on the Draft tab of the dashboard.
 
 **2026 Draft Order (fully confirmed):**
 | Pick | Owner | How Earned |
@@ -421,7 +421,7 @@ Static tab with scoring rules (formerly a separate Scoring tab — merged here).
 6 rivalry matchup cards with all-time H2H records (computed from 2025 forward). Re-renders on every tab visit.
 
 ### Draft ✅ Complete
-2026 draft board (list and board views, all 4 rounds, picks 1.12 and 1.13 pre-filled, traded picks annotated). Historical draft results for 2023/2024/2025. Pick ownership for 2026 and 2027.
+2026 rookie draft results pulled live from Sleeper API (draft is complete as of May 2026). Historical draft results for 2023/2024/2025 also available. All four year tabs show actual pick results (list + board views). Career W-L totals fixed to count regular season weeks 1–14 only (playoffs excluded).
 
 ### Transactions ✅ Complete
 All league transactions across seasons with filters: year, type (Waiver / Free Agent / Trade), team dropdown, player search. Two-sided trade cards.
