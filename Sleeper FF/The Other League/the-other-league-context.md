@@ -70,6 +70,69 @@ Each pair plays twice per season. Rivalry weeks are H2H only — no league media
 
 ---
 
+## ANNUAL SCHEDULE GENERATION (12 teams · 14 weeks)
+
+Each year Matt asks for a manually-built 14-week regular-season schedule with the same constraints. Use the structured method below — do **not** try greedy/random week-by-week construction, it explodes in output tokens and rarely converges.
+
+### Standing requirements
+1. Rivals (the 6 pairs above) play **only** in Weeks 4 and 13.
+2. Every team plays every other team at least once.
+3. 6 matchups per week (all 12 teams play).
+4. **Restricted pairs** (one game total per season, never repeated): Chris Bova ↔ Bogardus, Nick Bova ↔ Duane, Mitch Blackwell ↔ Chris Merkel, Erin ↔ Matt.
+5. No team plays the same opponent in back-to-back weeks.
+6. No team plays the same opponent 3+ times.
+7. Each team's 14 games = 2 vs rival (W4, W13) + 10 unique non-rival opponents + 2 extra "repeat" games against non-rival, non-restricted opponents.
+
+### Math sanity check (always do this first)
+- Total matchups: 14 × 6 = 84
+- Rival matchups: 12 (6 in W4, 6 in W13)
+- Unique non-rival pairs: C(12,2) − 6 = 60
+- Remaining slots = repeats: 84 − 12 − 60 = **12 repeats**
+- Each team gets exactly 2 repeats (24 team-slots / 2 = 12) ✓
+
+### Step-by-step algorithm
+
+**Step 1 — Group teams into 6 "rival pairs" (treat each as one unit P1–P6).** Default mapping:
+- P1 = {Erin, Andrew}, P2 = {Matt, Duane}, P3 = {Jared, Bogardus}
+- P4 = {MBlackwell, JBlackwell}, P5 = {CBova, NBova}, P6 = {CMerkel, NMerkel}
+
+**Step 2 — Pick the 12 repeats as a 12-cycle on the teams.** A 2-regular graph (every vertex degree 2) guarantees each team has exactly 2 repeats. Use a cycle that walks through rival groups in order so the repeats land on adjacent groups:
+
+`Erin → Duane → Jared → MBlackwell → CBova → CMerkel → Andrew → Matt → Bogardus → JBlackwell → NBova → NMerkel → Erin`
+
+This makes 6 of the 15 pair-meetings (P1-P2, P2-P3, P3-P4, P4-P5, P5-P6, P6-P1 — the "ring") occur 3 times; the other 9 occur exactly 2 times.
+
+**Step 3 — Verify restricted pairs land on "straight" or "cross" sub-matchings exactly once.** For each meeting between rival pairs P_i = {a,b} and P_j = {c,d}, the two orientations are:
+- Straight: a-c & b-d
+- Cross: a-d & b-c
+
+A pair-meeting that occurs 2 times must use one straight + one cross (covers all 4 unique team-vs-team matchups). A pair-meeting that occurs 3 times uses one of {1 straight + 2 crosses} or {1 cross + 2 straights} — the doubled orientation determines which 2 matchups become the repeats. Match this against the cycle from Step 2.
+
+**Step 4 — Build the week skeleton using two 1-factorizations of K_6 + two "ring" weeks.**
+
+K_6 (the complete graph on the 6 rival groups) has a clean 1-factorization into 5 factors. Each factor = 3 pair-meetings = a full week of 6 matchups. Two 1-factorizations give 10 weeks where every pair-meeting appears exactly twice. Then add 2 extra weeks covering the 6-cycle ring (the pair-meetings that need a 3rd occurrence):
+- Extra week A: P1-P2, P3-P4, P5-P6
+- Extra week B: P2-P3, P4-P5, P6-P1
+
+That's 12 non-rival weeks. Drop them into calendar weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14 (W4 and W13 are rivalry).
+
+**Step 5 — Assign orientations to avoid back-to-back conflicts.** When two adjacent calendar weeks both contain the same pair-meeting (this will happen once or twice with the 1-factorization layout), use *different* orientations in those two weeks. That guarantees no team sees the same opponent in consecutive weeks.
+
+**Step 6 — Final verification pass** — walk each team's 14-week opponent list and confirm:
+- Every opponent appears
+- No opponent appears in adjacent weeks
+- Max 2 appearances per opponent
+- Restricted pairs appear exactly once
+- Rivals appear only in W4 and W13
+
+### 2026 reference schedule (already generated — May 2026)
+The 2026 schedule built with this method is saved in conversation history. If asked to "use the same schedule as 2026" or "regenerate similar to last year," start from the cycle in Step 2 and the K_6 factorization in Step 4 rather than randomizing.
+
+### Output format
+Deliver the schedule in **3 chunked replies** (W1–7, W8–14, verification). Each reply must be well under the 32k output token limit — the full schedule + verification in one response will overflow.
+
+---
+
 ## ROSTER CONSTRUCTION
 
 - **Total starters:** 11

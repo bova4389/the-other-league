@@ -29,6 +29,9 @@
   --ai-resp-bg:#0a1628; --ai-resp-border:rgba(22,224,214,0.35);
   --pos-qb:#c084fc; --pos-rb:#4ade80; --pos-wr:#60a5fa;
   --pos-te:#fb923c; --pos-k:#94a3b8; --pos-def:#f87171;
+  --pos-qb-bg:rgba(192,132,252,.2); --pos-rb-bg:rgba(74,222,128,.2);
+  --pos-wr-bg:rgba(96,165,250,.2); --pos-te-bg:rgba(251,146,60,.2);
+  --pos-k-bg:rgba(148,163,184,.2); --pos-def-bg:rgba(248,113,113,.2);
 }
 [data-theme="light"] {
   --bg:#e8eaf0; --surface:#ffffff; --card:#f4f5f8; --border:#c5cce0;
@@ -47,6 +50,9 @@
   --ai-resp-bg:#f0f9ff; --ai-resp-border:rgba(8,145,178,0.35);
   --pos-qb:#7c3aed; --pos-rb:#15803d; --pos-wr:#1d4ed8;
   --pos-te:#c2410c; --pos-k:#475569; --pos-def:#dc2626;
+  --pos-qb-bg:rgba(124,58,237,.15); --pos-rb-bg:rgba(21,128,61,.15);
+  --pos-wr-bg:rgba(29,78,216,.15); --pos-te-bg:rgba(194,65,12,.15);
+  --pos-k-bg:rgba(71,85,105,.15); --pos-def-bg:rgba(220,38,38,.15);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;transition:background .2s,color .2s;}
@@ -79,7 +85,7 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
 .refresh-btn:disabled{opacity:.4;cursor:not-allowed;}
 
-.bdg{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;padding:3px 8px;letter-spacing:.08em;text-transform:uppercase;border-radius:2px;}
+.bdg{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:3px 8px;letter-spacing:.03em;text-transform:uppercase;border-radius:2px;}
 .bdg-g{background:var(--accent);color:var(--bg);}
 .bdg-b{background:var(--tag-you-bg);color:var(--tag-you-fg);border:1px solid var(--tag-you-fg);}
 .bdg-m{background:var(--border);color:var(--muted);}
@@ -158,13 +164,13 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .rch-own{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
 .rcb{padding:10px 12px;}
 .pg{margin-bottom:8px;}
-.pl{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;}
+.pl{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
 .pchips{display:flex;flex-wrap:wrap;gap:3px;}
 .chip{font-family:'DM Mono',monospace;font-size:10px;padding:3px 7px;background:var(--border);color:var(--text2);border-radius:2px;}
 .chip.s{background:var(--chip-s-bg);color:var(--chip-s-fg);}
 .chip.tx{background:var(--chip-t-bg);color:var(--chip-t-fg);}
 .chip.ir{background:var(--chip-ir-bg);color:var(--chip-ir-fg);}
-.chip .cp{font-size:8px;opacity:.55;margin-right:2px;}
+.chip .cp{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;opacity:1;margin-right:7px;padding:1px 4px;border-radius:2px;background:rgba(255,255,255,.08);}
 /* All chips colored by position */
 .chip.pos-qb{color:var(--pos-qb);}
 .chip.pos-rb{color:var(--pos-rb);}
@@ -172,13 +178,13 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .chip.pos-te{color:var(--pos-te);}
 .chip.pos-k{color:var(--pos-k);}
 .chip.pos-def{color:var(--pos-def);}
-/* Position label inside chips */
-.chip.pos-qb .cp{color:var(--pos-qb);opacity:.85;}
-.chip.pos-rb .cp{color:var(--pos-rb);opacity:.85;}
-.chip.pos-wr .cp{color:var(--pos-wr);opacity:.85;}
-.chip.pos-te .cp{color:var(--pos-te);opacity:.85;}
-.chip.pos-k .cp{color:var(--pos-k);opacity:.85;}
-.chip.pos-def .cp{color:var(--pos-def);opacity:.85;}
+/* Position label inside chips — colored badge */
+.chip.pos-qb .cp{color:var(--pos-qb);background:var(--pos-qb-bg);opacity:1;}
+.chip.pos-rb .cp{color:var(--pos-rb);background:var(--pos-rb-bg);opacity:1;}
+.chip.pos-wr .cp{color:var(--pos-wr);background:var(--pos-wr-bg);opacity:1;}
+.chip.pos-te .cp{color:var(--pos-te);background:var(--pos-te-bg);opacity:1;}
+.chip.pos-k .cp{color:var(--pos-k);background:var(--pos-k-bg);opacity:1;}
+.chip.pos-def .cp{color:var(--pos-def);background:var(--pos-def-bg);opacity:1;}
 /* Clickable chips (Player Stats link) */
 .chip[onclick]{cursor:pointer;transition:opacity .15s;}
 .chip[onclick]:hover{opacity:.7;}
@@ -273,6 +279,13 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .match-pts{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--text2);letter-spacing:.02em;flex-shrink:0;}
 .match-pts.leading{color:var(--accent);}
 .match-h2h{padding:5px 14px;border-top:1px solid var(--border);background:var(--surface);font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase;}
+.bracket-chip{font-family:'DM Mono',monospace;font-size:9px;color:var(--accent2);letter-spacing:.09em;text-transform:uppercase;text-align:center;padding:5px 14px 4px;background:var(--surface);border-bottom:1px solid var(--border);}
+.bracket-chip.gold{color:#c8a800;border-bottom-color:rgba(200,168,0,0.4);}
+.bracket-chip.bronze{color:#b87333;border-bottom-color:rgba(184,115,51,0.4);}
+.bracket-chip.silver{color:var(--accent);border-bottom-color:rgba(22,224,214,0.35);}
+.proj-banner{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.06em;padding:7px 12px;border:1px solid var(--border);border-left:3px solid var(--accent);margin-bottom:12px;}
+.proj-chip{font-family:'DM Mono',monospace;font-size:8px;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:1px 4px;margin-left:5px;vertical-align:middle;letter-spacing:.04em;}
+.wk-divider{display:flex;align-items:center;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.09em;color:var(--accent3);text-transform:uppercase;white-space:nowrap;padding:0 2px 0 8px;border-left:1px solid var(--accent3);}
 
 /* ── YEAR / FILTER TOGGLES ── */
 .yr-toggle{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;}
@@ -283,6 +296,10 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .f-pill{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:5px 11px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;border-radius:2px;transition:all .15s;}
 .f-pill:hover{border-color:var(--accent2);color:var(--accent2);}
 .f-pill.active{background:var(--accent2);color:var(--bg);border-color:var(--accent2);}
+.f-pill.rivalry{border-color:var(--accent3);color:var(--accent3);}
+.f-pill.rivalry:hover{border-color:var(--accent3);color:var(--accent3);}
+.f-pill.rivalry.active{background:var(--accent3);border-color:var(--accent3);color:var(--bg);}
+.rivalry-banner{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.06em;padding:7px 12px;border:1px solid var(--border);border-left:3px solid var(--accent3);margin-bottom:12px;}
 
 /* ── TRANSACTIONS ── */
 .txn-list{display:flex;flex-direction:column;gap:5px;}
@@ -498,7 +515,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   padding: 6px 16px;
   border-radius: 3px;
 }
-.hlm-item span { color: var(--accent2); font-weight: 500; }
+.hlm-item span { color: var(--accent3); font-weight: 500; }
 
 /* Home nav grid — bigger, more impactful */
 .home-nav-grid {
@@ -515,8 +532,27 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 [data-theme="dark"] .sticky-shell { box-shadow: 0 4px 30px rgba(0,0,0,0.8); }
 
 /* ── HEADER LOGO ── */
-.hdr-logo { height: 76px; width: auto; object-fit: contain; display: block; }
+.hdr-logo { height: 76px; width: auto; object-fit: contain; display: block; position: relative; z-index: 1; }
 @media(max-width:680px){ .hdr-logo { height: 52px; } }
+.hdr-logo-link { position: relative; }
+[data-theme="dark"] .hdr-logo-link::before {
+  content: '';
+  position: absolute;
+  inset: -16px -24px;
+  background: radial-gradient(ellipse 80% 90% at 50% 50%,
+    rgba(22,224,214,0.18) 0%,
+    rgba(123,46,255,0.10) 45%,
+    rgba(255,79,216,0.04) 70%,
+    transparent 85%);
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 0;
+}
+[data-theme="dark"] .hdr-logo {
+  filter:
+    drop-shadow(0 0 10px rgba(22,224,214,0.5))
+    drop-shadow(0 0 28px rgba(123,46,255,0.25));
+}
 
 /* ── TAB-BAR (sticky nav) ── */
 .tab-bar { background: var(--surface); overflow: hidden; }
@@ -908,7 +944,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .trade-sec-lbl{ font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: .07em; }
 .sb-label     { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .07em; }
 .itab-label   { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: .14em; }
-.bdg          { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .05em; }
+.bdg          { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: .03em; }
 
 /* Section subtitle → DM Sans, readable sentence-case */
 .sec-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
@@ -925,7 +961,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 
 /* Player chips → DM Sans (not monospace) */
 .chip         { font-family: 'DM Sans', sans-serif; font-size: 11px; }
-.chip .cp     { font-family: 'Bebas Neue', sans-serif; font-size: 10px; opacity: .9; margin-right: 3px; }
+.chip .cp     { font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; opacity: 1; margin-right: 7px; padding: 1px 4px; border-radius: 2px; }
 .rch-own      { font-family: 'DM Sans', sans-serif; font-size: 10px; }
 .lt           { font-family: 'DM Sans', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
 .err          { font-family: 'DM Sans', sans-serif; }
@@ -1145,10 +1181,11 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     <!-- SCORES -->
     <div class="panel" id="panel-scores">
       <div class="sec-title">WEEKLY SCORES</div>
-      <div class="sec-sub">Head-to-Head Records · All-Time · 2023–2025</div>
+      <div class="sec-sub">Head-to-Head Records · All-Time · 2023–2026</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
         <div class="yr-toggle" id="scores-yr-toggle">
-          <button class="yr-btn active" onclick="setScoresYear(2025,this)">2025</button>
+          <button class="yr-btn active" onclick="setScoresYear(2026,this)">2026</button>
+          <button class="yr-btn" onclick="setScoresYear(2025,this)">2025</button>
           <button class="yr-btn" onclick="setScoresYear(2024,this)">2024</button>
           <button class="yr-btn" onclick="setScoresYear(2023,this)">2023</button>
         </div>
@@ -1169,6 +1206,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
           <button class="f-pill" onclick="setScoresWeek(12,this)">W12</button>
           <button class="f-pill" onclick="setScoresWeek(13,this)">W13</button>
           <button class="f-pill" onclick="setScoresWeek(14,this)">W14</button>
+          <span class="wk-divider">PLAYOFFS</span>
           <button class="f-pill" onclick="setScoresWeek(15,this)">W15</button>
           <button class="f-pill" onclick="setScoresWeek(16,this)">W16</button>
           <button class="f-pill" onclick="setScoresWeek(17,this)">W17</button>
@@ -1180,7 +1218,14 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     <!-- ROSTERS -->
     <div class="panel" id="panel-rosters">
       <div class="sec-title">LEAGUE ROSTERS</div>
-      <div class="sec-sub">Live from Sleeper · Green = Starters · Blue = Taxi · Orange = IR</div>
+      <div class="sec-sub">Live from Sleeper &middot; Number in parentheses = player age</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Position colors:</span>
+        <span class="chip pos-qb"><span class="cp">QB</span>Quarterback</span>
+        <span class="chip pos-wr"><span class="cp">WR</span>Wide Receiver</span>
+        <span class="chip pos-rb"><span class="cp">RB</span>Running Back</span>
+        <span class="chip pos-te"><span class="cp">TE</span>Tight End</span>
+      </div>
       <div id="rosters-container"><div class="ld"><div class="spin"></div><div class="lt">Connecting to Sleeper...</div></div></div>
     </div>
 
@@ -1190,7 +1235,8 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       <div class="sec-sub">NFL Season Stats · Dynasty Roster Players · Raw Stats + Est. Fantasy Pts</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
         <div class="yr-toggle" id="stats-yr-toggle">
-          <button class="yr-btn active" onclick="setStatsYear(2025,this)">2025</button>
+          <button class="yr-btn active" onclick="setStatsYear(2026,this)">2026</button>
+          <button class="yr-btn" onclick="setStatsYear(2025,this)">2025</button>
           <button class="yr-btn" onclick="setStatsYear(2024,this)">2024</button>
           <button class="yr-btn" onclick="setStatsYear(2023,this)">2023</button>
         </div>
@@ -1202,6 +1248,12 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
           <button class="f-pill" onclick="setStatsPos('TE',this)">TE</button>
           <button class="f-pill" onclick="setStatsPos('rookie',this)">Rookies</button>
         </div>
+      </div>
+      <div style="margin-bottom:14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Stat groups:</span>
+        <button class="f-pill active" id="sg-pass" onclick="toggleStatGroup('pass',this)">Passing</button>
+        <button class="f-pill active" id="sg-rush" onclick="toggleStatGroup('rush',this)">Rushing</button>
+        <button class="f-pill active" id="sg-rec" onclick="toggleStatGroup('rec',this)">Receiving</button>
       </div>
       <div style="margin-bottom:14px;">
         <div class="filter-bar" id="stats-wk-filter" style="overflow-x:auto;flex-wrap:nowrap;max-width:100%;">
@@ -1234,6 +1286,32 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     </div>
 
     <!-- LEAGUE INFO -->
+    <!-- ============================================================
+         LEAGUE INFO PAGE — ANNUAL UPDATE CHECKLIST
+         Update these items at the end of each season:
+
+         1. PAYOUTS — Add a new "20XX Payouts — Final" card to the
+            info-grid under "Payouts". Copy the structure from the
+            prior year card. Update the current year card from
+            "Pending" to "Final" once the payout is settled.
+
+         2. CURRENT YEAR PAYOUT CARD — Update the "20XX Payouts —
+            Pending" card at the top of the Payouts grid. Change
+            Total Pot, 1st/2nd/Rivalry amounts once finalized.
+
+         3. RULE UPDATES — Add a new card to the "Rule Updates"
+            info-grid if the league votes in any changes for the
+            upcoming season.
+
+         4. FORMAT & SETTINGS — Update if roster slots, lineup
+            spots, waiver rules, or trade deadline change.
+
+         5. SCORING SETTINGS — Scoring values are dynamic via SDATA
+            in JS. Only update SDATA if scoring rules change.
+
+         NOTE: #score-grid is populated by buildScoring() from
+         SDATA — do NOT hardcode scoring values here.
+    ============================================================ -->
     <div class="panel" id="panel-league">
       <div class="sec-title">LEAGUE STRUCTURE</div>
       <div class="sec-sub">The Other League · Dynasty · ~Year 4</div>
@@ -1672,13 +1750,89 @@ let cachedLeagueIds = null;    // { 2025: id, 2024: id, 2023: id }
 let currentTxnYear = 2025;
 let currentTxnFilter = 'all';
 let currentTxnTeam = null; // roster_id (number) or null for all teams
-let currentStatsYear = 2025;
+let currentStatsYear = 2026;
 let currentStatsPos = 'all';
 let currentStatsWeek = 'season';
+let statsShowPass=true,statsShowRush=true,statsShowRec=true;
 let statsPlayerSearch = '';
 let statsSelectedPlayers = new Map();
-let currentScoresYear = 2025;
+let currentScoresYear = 2026;
 let currentScoresWeek = 1;
+// Rivalry weeks per year: week pills turn pink, rivalry banner shown on matchup cards
+const RIVALRY_WEEKS = {
+  2025: [4, 13],
+  2026: [4, 13],
+};
+
+// Playoff bracket labels per year/week. Key = two owner names sorted alphabetically, joined by |
+const PLAYOFF_BRACKET_INFO = {
+  2025: {
+    15: {
+      'Jake Blackwell|Jared Hayes':        {label:'Winners Bracket · Round 1'},
+      'Chris Merkel|Nick Bova':            {label:'Winners Bracket · Round 1'},
+      'Matt Bova|Mitch Blackwell':         {label:'Consolation · Round 1'},
+      'Erin Jacobs|Nick Merkel':           {label:'Consolation · Round 1'},
+    },
+    16: {
+      'Jake Blackwell|Jake Bogardus':      {label:'Winners Bracket · Semifinal'},
+      'Chris Bova|Nick Bova':              {label:'Winners Bracket · Semifinal'},
+      'Chris Merkel|Jared Hayes':          {label:'5th Place Match',style:'bronze'},
+      'Duane Gillenwater|Mitch Blackwell': {label:'Consolation · Semifinal'},
+      'Andrew Bova|Nick Merkel':           {label:'Consolation · Semifinal'},
+      'Erin Jacobs|Matt Bova':             {label:'Consolation'},
+    },
+    17: {
+      'Jake Blackwell|Nick Bova':          {label:'🏆 Championship — 1st Place',style:'gold'},
+      'Chris Bova|Jake Bogardus':          {label:'3rd Place Match',style:'bronze'},
+      'Mitch Blackwell|Nick Merkel':       {label:'Consolation Final · 13th Pick',style:'silver'},
+      'Andrew Bova|Duane Gillenwater':     {label:'Consolation'},
+    },
+  },
+  2024: {
+    15: {
+      'Jake Blackwell|Jake Bogardus':      {label:'Winners Bracket · Round 1'},
+      'Andrew Bova|Duane Gillenwater':     {label:'Winners Bracket · Round 1'},
+      'Jared Hayes|Matt Bova':             {label:'Consolation · Round 1'},
+      'Erin Jacobs|Mitch Blackwell':       {label:'Consolation · Round 1'},
+    },
+    16: {
+      'Jake Bogardus|Nick Merkel':         {label:'Winners Bracket · Semifinal'},
+      'Andrew Bova|Chris Bova':            {label:'Winners Bracket · Semifinal'},
+      'Duane Gillenwater|Jake Blackwell':  {label:'5th Place Match',style:'bronze'},
+      'Mitch Blackwell|Nick Bova':         {label:'Consolation · Semifinal'},
+      'Chris Merkel|Matt Bova':            {label:'Consolation · Semifinal'},
+      'Erin Jacobs|Jared Hayes':           {label:'Consolation'},
+    },
+    17: {
+      'Chris Bova|Nick Merkel':            {label:'🏆 Championship — 1st Place',style:'gold'},
+      'Andrew Bova|Jake Bogardus':         {label:'3rd Place Match',style:'bronze'},
+      'Chris Merkel|Nick Bova':            {label:'Consolation Final · 13th Pick',style:'silver'},
+      'Matt Bova|Mitch Blackwell':         {label:'Consolation'},
+    },
+  },
+  2023: {
+    15: {
+      'Mitch Blackwell|Nick Bova':         {label:'Winners Bracket · Round 1'},
+      'Andrew Bova|Erin Jacobs':           {label:'Winners Bracket · Round 1'},
+      'Chris Bova|Matt Bova':              {label:'Consolation · Round 1'},
+      'Jake Blackwell|Jared Hayes':        {label:'Consolation · Round 1'},
+    },
+    16: {
+      'Duane Gillenwater|Erin Jacobs':     {label:'Winners Bracket · Semifinal'},
+      'Chris Merkel|Mitch Blackwell':      {label:'Winners Bracket · Semifinal'},
+      'Andrew Bova|Nick Bova':             {label:'5th Place Match',style:'bronze'},
+      'Chris Bova|Jake Bogardus':          {label:'Consolation · Semifinal'},
+      'Jake Blackwell|Nick Merkel':        {label:'Consolation · Semifinal'},
+      'Jared Hayes|Matt Bova':             {label:'Consolation'},
+    },
+    17: {
+      'Duane Gillenwater|Mitch Blackwell': {label:'🏆 Championship — 1st Place',style:'gold'},
+      'Chris Merkel|Erin Jacobs':          {label:'3rd Place Match',style:'bronze'},
+      'Chris Bova|Nick Merkel':            {label:'Consolation Final · 13th Pick',style:'silver'},
+      'Jake Blackwell|Jake Bogardus':      {label:'Consolation'},
+    },
+  },
+};
 let _tradeInit = false;   // trade evaluator tab has been initialized
 let _ktcValues = null;    // live KTC values if fetch succeeds; null = use snapshot
 let _ktcSource = 'snapshot';
@@ -1749,6 +1903,9 @@ function setCacheBar(fromCache,ts){
 
 async function refreshData(){
   clearCache();
+  try{localStorage.removeItem('tol_txn_2026');}catch(e){} // re-fetch current season trades
+  try{localStorage.removeItem('tol_matchups_2026');}catch(e){} // re-fetch current season scores
+  _stats2026Cache=null; // re-fetch current season stats+projections
   cachedRosters=null;cachedPlayers=null;cachedLeague=null;window._futurePicksMap=null;
   document.getElementById('cache-dot').className='cache-dot';
   document.getElementById('cache-status-txt').textContent='Refreshing...';
@@ -1818,7 +1975,7 @@ function buildH2HMap(){
     if(!h2h[b])h2h[b]={};
     if(!h2h[b][a])h2h[b][a]={w:0,l:0};
   };
-  for(const year of[2023,2024,2025]){
+  for(const year of[2023,2024,2025,2026]){
     const data=loadPerm(`tol_matchups_${year}`);
     if(!data)continue;
     Object.entries(data).forEach(([wk,weekData])=>{
@@ -1841,7 +1998,7 @@ function buildH2HMap(){
 // All-time median W/L per owner across regular season weeks only (weeks 1-14)
 function buildMedianMap(){
   const med={};
-  for(const year of[2023,2024,2025]){
+  for(const year of[2023,2024,2025,2026]){
     const data=loadPerm(`tol_matchups_${year}`);
     if(!data)continue;
     Object.entries(data).forEach(([wk,weekData])=>{
@@ -1864,6 +2021,13 @@ function buildMedianMap(){
 }
 
 // ── SCORES TAB ──
+function updateRivalryPills(year){
+  const rw=RIVALRY_WEEKS[year]||[];
+  document.querySelectorAll('#scores-wk-filter .f-pill').forEach((b,i)=>{
+    b.classList.toggle('rivalry',rw.includes(i+1));
+  });
+}
+
 function setScoresYear(year,el){
   document.querySelectorAll('#scores-yr-toggle .yr-btn').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
@@ -1871,6 +2035,7 @@ function setScoresYear(year,el){
   // Reset to week 1
   currentScoresWeek=1;
   document.querySelectorAll('#scores-wk-filter .f-pill').forEach((b,i)=>{b.classList.toggle('active',i===0);});
+  updateRivalryPills(year);
   buildScores();
 }
 
@@ -1894,6 +2059,7 @@ function goToScoresWeek(year,week){
   document.querySelectorAll('#scores-wk-filter .f-pill').forEach((b,i)=>{
     b.classList.toggle('active',i===week-1);
   });
+  updateRivalryPills(year);
   buildScores();
 }
 
@@ -1913,32 +2079,49 @@ async function buildScores(){
 
 function renderHistoricalScores(container,matchups,week){
   const h2h=buildH2HMap();
+  const is2026=currentScoresYear===2026;
   const weekData=matchups[week]||[];
   const groups={};
   weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
   const pairs=Object.values(groups).filter(p=>p.length===2);
   if(!pairs.length){
-    container.innerHTML=`<div class="note">No matchup data for ${currentScoresYear} Week ${week}.</div>`;
+    container.innerHTML=`<div class="note">${is2026?'No matchup data yet for 2026 Week '+week+'. Check back once the season starts.':'No matchup data for '+currentScoresYear+' Week '+week+'.'}</div>`;
     return;
   }
-  let html='<div class="match-grid">';
+  const isRivalry=(RIVALRY_WEEKS[currentScoresYear]||[]).includes(week);
+  let html='';
+  if(isRivalry) html+='<div class="rivalry-banner">&#9876; Rivalry Week</div>';
+  if(is2026) html+='<div class="proj-banner">&#9889; Projected scores &mdash; updates as games are played. Not yet final.</div>';
+  html+='<div class="match-grid">';
   pairs.forEach(pair=>{
     const[a,b]=pair;
     const ta=rToTeam(a.roster_id),tb=rToTeam(b.roster_id);
-    const aWin=(a.points||0)>=(b.points||0);
+    const aScore=a.points||0,bScore=b.points||0;
+    const noScores=is2026&&aScore===0&&bScore===0;
+    const aWin=noScores?false:aScore>=bScore;
     const ridA=a.roster_id,ridB=b.roster_id;
     const aW=(h2h[ridA]&&h2h[ridA][ridB])?h2h[ridA][ridB].w:0;
     const aL=(h2h[ridA]&&h2h[ridA][ridB])?h2h[ridA][ridB].l:0;
+    const bracketPool=PLAYOFF_BRACKET_INFO[currentScoresYear]?.[week];
+    const bracketData=bracketPool?bracketPool[[ta.name,tb.name].sort().join('|')]||null:null;
+    const bracketLabel=bracketData?.label||'';
+    const bracketStyle=bracketData?.style||'';
+    const aScoreStr=noScores?'&mdash;':aScore.toFixed(2);
+    const bScoreStr=noScores?'&mdash;':bScore.toFixed(2);
+    const projChip=is2026&&!noScores?'<span class="proj-chip">PROJ</span>':'';
+    const aWinCls=!noScores&&aWin?'winner':'';
+    const bWinCls=!noScores&&!aWin?'winner':'';
     html+=`<div class="match-card">
-      <div class="match-side ${aWin?'winner':''}">
+      ${bracketLabel?`<div class="bracket-chip ${bracketStyle}">${bracketLabel}</div>`:''}
+      <div class="match-side ${aWinCls}">
         <div class="match-tm"><div class="match-name">${ta.name}</div><div class="match-own">${ta.team}</div></div>
-        <div class="match-pts ${aWin?'leading':''}">${(a.points||0).toFixed(2)}</div>
+        <div class="match-pts ${aWinCls==='winner'?'leading':''}">${aScoreStr}${projChip}</div>
       </div>
-      <div class="match-side ${!aWin?'winner':''}">
+      <div class="match-side ${bWinCls}">
         <div class="match-tm"><div class="match-name">${tb.name}</div><div class="match-own">${tb.team}</div></div>
-        <div class="match-pts ${!aWin?'leading':''}">${(b.points||0).toFixed(2)}</div>
+        <div class="match-pts ${bWinCls==='winner'?'leading':''}">${bScoreStr}</div>
       </div>
-      <div class="match-h2h">All-time: ${abbrev(ta.name)} ${aW}–${aL} ${abbrev(tb.name)}</div>
+      ${(currentScoresYear===2025||currentScoresYear===2026)?`<div class="match-h2h">All-time: ${abbrev(ta.name)} ${aW}&ndash;${aL} ${abbrev(tb.name)}</div>`:''}
     </div>`;
   });
   html+='</div>';
@@ -2140,7 +2323,7 @@ async function buildRosters(rostersData,playersData){
       const rosterForPos=[...starters,...bench];
       const posAvg=(pos)=>{const a=rosterForPos.map(id=>players[id]).filter(p=>p?.position===pos&&p.age).map(p=>p.age);return a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):null;};
       const posAvgs=[{pos:'QB',val:posAvg('QB')},{pos:'WR',val:posAvg('WR')},{pos:'RB',val:posAvg('RB')},{pos:'TE',val:posAvg('TE')}].filter(p=>p.val!==null);
-      const posAvgRow=posAvgs.map(p=>`<span class="bdg bdg-m pos-${p.pos.toLowerCase()}" style="font-size:8px;">${p.pos} ${p.val}</span>`).join('');
+      const posAvgRow=posAvgs.map(p=>`<span class="bdg bdg-m pos-${p.pos.toLowerCase()}">${p.pos} ${p.val}</span>`).join('');
       // Chip renders player name + position label + age, colored by position
       const chip=(id)=>{
         const p=players[id];if(!p)return`<span class="chip">#${id}</span>`;
@@ -2162,14 +2345,14 @@ async function buildRosters(rostersData,playersData){
       g.innerHTML+=`<div class="r-card" id="roster-card-${uid}">
         <div class="rch">
           <div><div class="rch-team">${td_.team}</div><div class="rch-own">${td_.name}${td_.co?` + ${td_.co}`:''}${td_.note?` · ${td_.note}`:''}</div></div>
-          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">${tags}<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAge}</span></div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">${tags}<span class="bdg bdg-m">Avg Age ${avgAge}</span></div>
         </div>
         <div class="rcb">
-          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Starters (${starters.length})<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAgeStarters}</span></div><div class="pchips">${starters.map(id=>chip(id)).join('')||'<span style="color:var(--muted);font-size:11px;">Not set</span>'}</div></div>
-          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:5px;">Bench (${bench.length})<span class="bdg bdg-m" style="font-size:8px;">Avg Age ${avgAgeBench}</span></div><div class="pchips">${bench.map(id=>chip(id)).join('')}</div></div>
+          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:8px;">Starters (${starters.length})<span class="bdg bdg-m">Avg Age ${avgAgeStarters}</span></div><div class="pchips">${starters.map(id=>chip(id)).join('')||'<span style="color:var(--muted);font-size:11px;">Not set</span>'}</div></div>
+          <div class="pg"><div class="pl" style="display:flex;align-items:center;gap:8px;">Bench (${bench.length})<span class="bdg bdg-m">Avg Age ${avgAgeBench}</span></div><div class="pchips">${bench.map(id=>chip(id)).join('')}</div></div>
           ${taxi.length?`<div class="pg"><div class="pl">Taxi (${taxi.length})</div><div class="pchips">${taxi.map(id=>chip(id)).join('')}</div></div>`:''}
           ${ir.length?`<div class="pg"><div class="pl">IR / Reserve (${ir.length})</div><div class="pchips">${ir.map(id=>chip(id)).join('')}</div></div>`:''}
-          ${posAvgRow?`<div class="pg" style="padding-top:4px;"><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Avg Age by Position</div><div style="display:flex;gap:4px;flex-wrap:wrap;">${posAvgRow}</div></div>`:''}
+          ${posAvgRow?`<div class="pg" style="padding-top:4px;"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Avg Age by Position</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${posAvgRow}</div></div>`:''}
           ${teamPicks.length?`<div class="pg" style="padding-top:4px;border-top:1px solid var(--border);margin-top:4px;"><div class="pl">Draft Picks (${teamPicks.length})</div><div class="pchips">${pickChips}</div></div>`:''}
         </div>
       </div>`;
@@ -2251,7 +2434,7 @@ function buildRivalries(){
   const g=document.getElementById('rivalry-grid');
   g.innerHTML='';
   // Rivalries started in 2025 — compute H2H from that year forward
-  const rivalYears=[2025,2026];
+  const rivalYears=[2026,2025];
   const h2hByYear={};
   for(const year of rivalYears){
     const h=buildH2HForYear(year,14);
@@ -2264,19 +2447,25 @@ function buildRivalries(){
     const yearRows=[];
     for(const year of rivalYears){
       const yh2h=h2hByYear[year];
-      if(!yh2h)continue;
-      const rec=yh2h[ridA]&&yh2h[ridA][ridB]?yh2h[ridA][ridB]:null;
-      if(!rec||rec.w+rec.l===0)continue;
-      atW+=rec.w;atL+=rec.l;atPF+=rec.pf||0;atPB+=rec.pa||0;
-      // Determine year winner (more wins; tie-break on points); record always shown from winner's perspective
-      let yrWinner,wrW,wrL;
-      if(rec.w>rec.l){yrWinner=abbrev(a.name);wrW=rec.w;wrL=rec.l;}
-      else if(rec.l>rec.w){yrWinner=abbrev(b.name);wrW=rec.l;wrL=rec.w;}
-      else{const aWon=(rec.pf||0)>=(rec.pa||0);yrWinner=aWon?abbrev(a.name):abbrev(b.name);wrW=aWon?rec.w:rec.l;wrL=aWon?rec.l:rec.w;}
-      // Week links back to Scores tab
-      const wks=findRivalWeeks(year,ridA,ridB);
-      const wkLinks=wks.map(w=>`<a href="#" onclick="goToScoresWeek(${year},${w});return false;" class="riv-wk-link">W${w}</a>`).join(' ');
-      yearRows.push(`<div class="riv-rec-yr">${year}: <strong>${yrWinner}</strong> (W) ${wrW}–${wrL} ${wkLinks?'· '+wkLinks:''}</div>`);
+      const rec=yh2h&&yh2h[ridA]&&yh2h[ridA][ridB]?yh2h[ridA][ridB]:null;
+      const hasGames=rec&&rec.w+rec.l>0;
+      if(hasGames){
+        atW+=rec.w;atL+=rec.l;atPF+=rec.pf||0;atPB+=rec.pa||0;
+        // Determine year winner (more wins; tie-break on points); record always shown from winner's perspective
+        let yrWinner,wrW,wrL;
+        if(rec.w>rec.l){yrWinner=abbrev(a.name);wrW=rec.w;wrL=rec.l;}
+        else if(rec.l>rec.w){yrWinner=abbrev(b.name);wrW=rec.l;wrL=rec.w;}
+        else{const aWon=(rec.pf||0)>=(rec.pa||0);yrWinner=aWon?abbrev(a.name):abbrev(b.name);wrW=aWon?rec.w:rec.l;wrL=aWon?rec.l:rec.w;}
+        // Week links back to Scores tab
+        const wks=findRivalWeeks(year,ridA,ridB);
+        const wkLinks=wks.map(w=>`<a href="#" onclick="goToScoresWeek(${year},${w});return false;" class="riv-wk-link">W${w}</a>`).join(' ');
+        yearRows.push(`<div class="riv-rec-yr">${year}: <strong>${yrWinner}</strong> (W) ${wrW}&ndash;${wrL} ${wkLinks?'&middot; '+wkLinks:''}</div>`);
+      } else if(year===2026){
+        // Pre-season placeholder — links to rivalry weeks in Scores tab
+        const w4=`<a href="#" onclick="goToScoresWeek(2026,4);return false;" class="riv-wk-link">W4</a>`;
+        const w13=`<a href="#" onclick="goToScoresWeek(2026,13);return false;" class="riv-wk-link">W13</a>`;
+        yearRows.push(`<div class="riv-rec-yr">2026: <span style="color:var(--muted)">TBD</span> &middot; ${w4} ${w13}</div>`);
+      }
     }
     const hasData=atW+atL>0;
     // All-time columnar record
@@ -2321,7 +2510,7 @@ async function fetchTransactions(leagueId,year){
   const all=results.flat().filter(tx=>tx&&tx.status==='complete');
   // Sort newest first
   all.sort((a,b)=>(b.created||0)-(a.created||0));
-  if(year<2026){savePerm(key,all);buildLeaderStats();} // cache past seasons and update trades stat
+  savePerm(key,all);buildLeaderStats(); // cache and update trades stat (2026 cleared on Refresh)
   return all;
 }
 
@@ -2746,11 +2935,28 @@ function buildLeaderStats(){
   if(worstValEl)worstValEl.textContent=t(worstFin).name;
   if(worstSubEl)worstSubEl.textContent='Avg finish: '+avgF[worstFin].toFixed(1);
 
-  // Most Career Wins — hardcoded regular season totals (11 in 2023 + 22 in 2024 + 22 in 2025 = 55)
+  // Most Career Wins — dynamic from all cached matchup data (H2H + median, regular season only)
+  const h2hAll=buildH2HMap();
+  const medAll=buildMedianMap();
+  const winsMap={};
+  owners.forEach(uid=>{
+    const rid=RMR[uid];
+    let w=0;
+    if(h2hAll[rid])Object.values(h2hAll[rid]).forEach(rec=>{w+=rec.w;});
+    w+=(medAll[uid]||{medW:0}).medW;
+    winsMap[uid]=w;
+  });
   const winsValEl=document.getElementById('stat-wins-val');
   const winsSubEl=document.getElementById('stat-wins-sub');
-  if(winsValEl)winsValEl.textContent=55;
-  if(winsSubEl)winsSubEl.textContent=t('728290759668797440').name;
+  const anyWins=owners.some(uid=>winsMap[uid]>0);
+  if(anyWins){
+    const winsLdr=owners.reduce((best,uid)=>winsMap[uid]>winsMap[best]?uid:best,owners[0]);
+    if(winsValEl)winsValEl.textContent=winsMap[winsLdr];
+    if(winsSubEl)winsSubEl.textContent=t(winsLdr).name;
+  }else{
+    if(winsValEl)winsValEl.textContent='—';
+    if(winsSubEl)winsSubEl.textContent='Visit Scores tab to load';
+  }
 
   // Most Draft Picks — 2024+2025 from cached pick data, 2026 from known order + assumed rounds 2-4
   const pickMap={};
@@ -2765,10 +2971,17 @@ function buildLeaderStats(){
     });
   }
   if(picksLoaded){
-    // 2026 round 1 picks from the known draft order
-    DRAFT_ORDER_2026.forEach(p=>{if(pickMap[p.uid]!==undefined)pickMap[p.uid]++;});
-    // 2026 rounds 2–4: each owner assumed to retain their 3 remaining picks
-    owners.forEach(uid=>{pickMap[uid]+=3;});
+    // 2026: use actual picks if cached (draft is complete), otherwise estimate
+    const picks2026=loadPerm('tol_drafts_2026');
+    if(picks2026){
+      picks2026.forEach(p=>{
+        const uid=RM[p.roster_id]||RM[String(p.roster_id)];
+        if(uid)pickMap[uid]++;
+      });
+    }else{
+      DRAFT_ORDER_2026.forEach(p=>{if(pickMap[p.uid]!==undefined)pickMap[p.uid]++;});
+      owners.forEach(uid=>{pickMap[uid]+=3;});
+    }
   }
   const picksValEl=document.getElementById('stat-picks-val');
   const picksSubEl=document.getElementById('stat-picks-sub');
@@ -2781,7 +2994,7 @@ function buildLeaderStats(){
     if(picksSubEl)picksSubEl.textContent='Visit Draft tab to load';
   }
 
-  // Most Trades Completed — from cached transaction data across all seasons
+  // Most Trades Completed — from cached transaction data across all seasons (2023–present)
   const tradeMap={};
   owners.forEach(uid=>{tradeMap[uid]=0;});
   let tradesLoaded=true;
@@ -2794,6 +3007,18 @@ function buildLeaderStats(){
         if(uid)tradeMap[uid]++;
       });
     });
+  }
+  // Include 2026 trades if available (refreshed on each page Refresh)
+  if(tradesLoaded){
+    const txns2026=loadPerm('tol_txn_2026');
+    if(txns2026){
+      txns2026.filter(tx=>tx.type==='trade').forEach(tx=>{
+        (tx.roster_ids||[]).forEach(rid=>{
+          const uid=RM[rid]||RM[String(rid)];
+          if(uid)tradeMap[uid]++;
+        });
+      });
+    }
   }
   const tradesValEl=document.getElementById('stat-trades-val');
   const tradesSubEl=document.getElementById('stat-trades-sub');
@@ -2913,7 +3138,54 @@ function buildSeasonStandingsData(year,maxWeek=14){
 function buildSeasonStandings(container){
   const wrap=document.createElement('div');
   wrap.style.cssText='margin-top:32px;';
-  wrap.innerHTML='<div class="sec-title">SEASON STANDINGS</div><div class="sec-sub">Regular-season records (wks 1–14) · Places 1–6 by playoff result · 7–12 by reg-season record · Click any column to sort</div>';
+
+  // ── 2026 CURRENT SEASON ──
+  const cur26=document.createElement('div');
+  cur26.style.cssText='margin-bottom:36px;';
+  const raw2026=loadPerm('tol_matchups_2026');
+  let latestWeek2026=0;
+  if(raw2026){
+    Object.entries(raw2026).forEach(([wk,data])=>{
+      if(data&&Array.isArray(data)&&data.some(e=>e&&(e.points||0)>0))
+        latestWeek2026=Math.max(latestWeek2026,Number(wk));
+    });
+  }
+  const stats2026=latestWeek2026>0?buildSeasonStandingsData(2026,latestWeek2026):null;
+  const owners2026=Object.keys(TEAMS);
+  let rowData2026;
+  if(!stats2026){
+    rowData2026=[...owners2026].sort((a,b)=>t(a).name.localeCompare(t(b).name))
+      .map((uid,i)=>{const td=t(uid);return{place:i+1,uid,name:td.name,team:td.team,totalW:0,totalL:0,h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};});
+  }else{
+    rowData2026=owners2026.map(uid=>{
+      const td=t(uid);const rid=RMR[uid];
+      const s=stats2026[rid]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
+      return{place:null,uid,name:td.name,team:td.team,
+        totalW:s.h2hW+s.medW,totalL:s.h2hL+s.medL,
+        h2hW:s.h2hW,h2hL:s.h2hL,medW:s.medW,medL:s.medL,pf:s.pf,pa:s.pa};
+    }).sort((a,b)=>b.totalW!==a.totalW?b.totalW-a.totalW:b.pf-a.pf)
+      .map((r,i)=>({...r,place:i+1}));
+  }
+  standingsRowData[2026]=rowData2026;
+  if(!standingsSort[2026])standingsSort[2026]={col:'place',dir:1};
+  cur26.innerHTML=`<div class="sec-title" style="color:var(--accent)">2026 CURRENT SEASON</div>`+
+    `<div class="sec-sub">${latestWeek2026>0?`Through Week ${latestWeek2026} · Sorted by total wins · Click any column to sort`:'Season hasn\'t started yet · Records will populate as weeks complete · Visit the <strong>Scores</strong> tab to load matchup data'}</div>`;
+  const cols2026=[
+    {col:'place',label:'#'},{col:'name',label:'Owner'},{col:'team',label:'Team'},
+    {col:'totalW',label:'Total'},{col:'h2hW',label:'H2H'},{col:'medW',label:'Median'},
+    {col:'pf',label:'PF'},{col:'pa',label:'PA'}
+  ];
+  const thead2026=`<thead id="standings-thead-2026"><tr>${cols2026.map(c=>
+    `<th data-col="${c.col}" onclick="sortStandingsByCol(2026,'${c.col}')">${c.label}<span class="sort-arrow">${c.col==='place'?' ↑':' ↕'}</span></th>`
+  ).join('')}</tr></thead>`;
+  const tbl2026=document.createElement('div');
+  tbl2026.innerHTML=`<table class="career-tbl">${thead2026}<tbody id="standings-tbody-2026">${renderStandingsTbody(2026,rowData2026)}</tbody></table>`;
+  cur26.appendChild(tbl2026);
+  wrap.appendChild(cur26);
+
+  const histHdr=document.createElement('div');
+  histHdr.innerHTML='<div class="sec-title">SEASON STANDINGS</div><div class="sec-sub">Regular-season records (wks 1–14) · Places 1–6 by playoff result · 7–12 by reg-season record · Click any column to sort</div>';
+  wrap.appendChild(histHdr);
   for(const year of[2025,2024,2023]){
     const stats=buildSeasonStandingsData(year,14);
     const placements=computeFullPlacements(year);
@@ -2983,7 +3255,7 @@ function renderCareerTbody(){
     <td style="font-weight:500;color:var(--text)">${r.name}</td>
     <td style="color:var(--muted);font-size:10px">${r.team}</td>
     <td class="${r.earn>0?'earn':'earn-zero'}">${r.earn>0?'$'+r.earn:'$0'}</td>
-    ${careerPCell(r.p2023)}${careerPCell(r.p2024)}${careerPCell(r.p2025)}
+    ${careerPCell(r.p2025)}${careerPCell(r.p2024)}${careerPCell(r.p2023)}
     <td style="font-family:'DM Mono',monospace;color:var(--text2);text-align:center">${r.avgF.toFixed(1)}</td>
     ${r.hasData?careerWLCell(r.totalW,r.totalL):careerDashCell()}
     ${r.hasData?careerWLCell(r.h2hW,r.h2hL):careerDashCell()}
@@ -3070,6 +3342,8 @@ function isRookieInYear(pid,year){
   return p.years_exp===(2026-year);
 }
 
+let _stats2026Cache=null;
+
 async function fetchPlayerStats(year){
   const key=`tol_stats_${year}`;
   const cached=loadPerm(key);
@@ -3119,6 +3393,75 @@ async function fetchWeekStats(year,week){
   return result;
 }
 
+async function fetch2026SeasonStats(){
+  if(_stats2026Cache)return _stats2026Cache;
+  const rosterPlayerIds=new Set();
+  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
+  if(!rosterPlayerIds.size)return{actual:{},proj:{},completedWeeks:new Set()};
+  const STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt','pass_td_40p',
+    'rush_att','rush_yd','rush_td','rush_2pt','rush_40p',
+    'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
+    'kr_yd','pr_yd','fum_lost','bonus_pass_yd_400','bonus_rush_yd_200','bonus_rec_yd_200'];
+  const weeks=Array.from({length:17},(_,i)=>i+1);
+  const[actualResults,projResults]=await Promise.all([
+    Promise.all(weeks.map(w=>api(`/stats/nfl/regular/2026/${w}`).catch(()=>({})))),
+    Promise.all(weeks.map(w=>api(`/projections/nfl/2026/${w}`).catch(()=>({}))))
+  ]);
+  const completedWeeks=new Set();
+  const actual={},proj={};
+  actualResults.forEach((weekData,idx)=>{
+    const week=idx+1;
+    let hasData=false;
+    Object.entries(weekData||{}).forEach(([pid,stats])=>{
+      if(!rosterPlayerIds.has(String(pid)))return;
+      if(stats.gp>=1)hasData=true;
+      if(!actual[pid])actual[pid]={};
+      STAT_KEYS.forEach(k=>{if(stats[k])actual[pid][k]=(actual[pid][k]||0)+stats[k];});
+    });
+    if(hasData)completedWeeks.add(week);
+  });
+  projResults.forEach((weekData,idx)=>{
+    if(completedWeeks.has(idx+1))return;
+    Object.entries(weekData||{}).forEach(([pid,stats])=>{
+      if(!rosterPlayerIds.has(String(pid)))return;
+      if(!proj[pid])proj[pid]={};
+      Object.entries(stats).forEach(([k,v])=>{if(v&&typeof v==='number')proj[pid][k]=(proj[pid][k]||0)+v;});
+    });
+  });
+  _stats2026Cache={actual,proj,completedWeeks};
+  return _stats2026Cache;
+}
+
+async function fetch2026WeekStats(week){
+  const rosterPlayerIds=new Set();
+  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
+  if(!rosterPlayerIds.size)return{data:{},isProjected:true};
+  const STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt','pass_td_40p',
+    'rush_att','rush_yd','rush_td','rush_2pt','rush_40p',
+    'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
+    'kr_yd','pr_yd','fum_lost','bonus_pass_yd_400','bonus_rush_yd_200','bonus_rec_yd_200'];
+  const actualData=await api(`/stats/nfl/regular/2026/${week}`).catch(()=>({}));
+  const result={};
+  let hasActual=false;
+  Object.entries(actualData||{}).forEach(([pid,stats])=>{
+    if(!rosterPlayerIds.has(String(pid)))return;
+    if(stats.gp>=1)hasActual=true;
+    const filtered={};
+    STAT_KEYS.forEach(k=>{if(stats[k])filtered[k]=stats[k];});
+    if(Object.keys(filtered).length)result[pid]=filtered;
+  });
+  if(hasActual)return{data:result,isProjected:false};
+  const projData=await api(`/projections/nfl/2026/${week}`).catch(()=>({}));
+  const projResult={};
+  Object.entries(projData||{}).forEach(([pid,stats])=>{
+    if(!rosterPlayerIds.has(String(pid)))return;
+    const filtered={};
+    Object.entries(stats).forEach(([k,v])=>{if(v&&typeof v==='number')filtered[k]=v;});
+    if(Object.keys(filtered).length)projResult[pid]=filtered;
+  });
+  return{data:projResult,isProjected:true};
+}
+
 function calcPts(stats,pos){
   if(!stats)return 0;
   let pts=0;
@@ -3151,11 +3494,117 @@ function calcPts(stats,pos){
   return Math.round(pts*10)/10;
 }
 
+async function build2026Stats(c,pos){
+  try{
+    const is2026Season=currentStatsWeek==='season';
+    let statsData={},projStatsData=null,isProjectedWeek=false,completedWeeks=new Set();
+    if(is2026Season){
+      const result=await fetch2026SeasonStats();
+      statsData=result.actual;projStatsData=result.proj;completedWeeks=result.completedWeeks;
+    }else{
+      const result=await fetch2026WeekStats(currentStatsWeek);
+      statsData=result.data;isProjectedWeek=result.isProjected;
+    }
+    const pidToRoster={};
+    (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>pidToRoster[String(id)]=r.roster_id));
+    const allPids=new Set([...Object.keys(statsData||{}),...(projStatsData?Object.keys(projStatsData):[])]);
+    if(!allPids.size){
+      const msg=is2026Season
+        ?'2026 NFL season has not yet started. Stats and projections will appear once Sleeper publishes data — check back closer to the season opener.'
+        :`No data yet for 2026 Week ${currentStatsWeek}.`;
+      c.innerHTML=`<div class="proj-banner">&#9889; 2026 Season &mdash; data not yet available.</div><div class="note" style="margin-top:12px">${msg}</div>`;
+      return;
+    }
+    const fmtPts=n=>n>0?n.toFixed(1):'—';
+    const rows=[];
+    allPids.forEach(pid=>{
+      const p=cachedPlayers?.[pid];
+      if(!p)return;
+      const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
+      const position=p.position||'';
+      const nflTeam=p.team||'—';
+      const rid=pidToRoster[String(pid)];
+      const teamData=rid?rToTeam(rid):{name:'—',you:false};
+      const actualStats=statsData?.[pid]||{};
+      const projStats=projStatsData?.[pid]||{};
+      const actPts=calcPts(actualStats,position);
+      const rawProjPts=is2026Season?calcPts(projStats,position):0;
+      const projPts=rawProjPts||(is2026Season?Math.round(((projStats.pts_std||projStats.pts_half_ppr||projStats.pts_ppr||0))*10)/10:0);
+      const pts=is2026Season?actPts+projPts:actPts;
+      rows.push({pid,name,position,nflTeam,owner:teamData.name,you:teamData.you,stats:actualStats,projStats,actPts,projPts,pts,fmtActPts:fmtPts(actPts),fmtProjPts:fmtPts(projPts)});
+    });
+    const filtered=pos==='rookie'
+      ?rows.filter(r=>['QB','RB','WR','TE'].includes(r.position)&&isRookieInYear(r.pid,2026))
+      :pos==='all'?rows.filter(r=>['QB','RB','WR','TE'].includes(r.position))
+      :rows.filter(r=>r.position===pos);
+    filtered.sort((a,b)=>b.pts-a.pts);
+    if(!filtered.length){
+      c.innerHTML=`<div class="note">No 2026 stats found for this position group yet.</div>`;
+      return;
+    }
+    const fmt=(n,dec=0)=>n?(dec?n.toFixed(dec):Math.round(n)).toString():'—';
+    const pct=(a,b)=>(a&&b)?(a/b*100).toFixed(1)+'%':'—';
+    const rk=(r)=>isRookieInYear(r.pid,2026)?'<span class="rk-tag">[RK]</span>':'';
+    let topHtml='';
+    if(is2026Season&&completedWeeks.size===0){
+      topHtml=`<div class="proj-banner">&#9889; Pre-season projections &mdash; season actuals will replace projected weeks as games are played.</div>`;
+    }else if(is2026Season){
+      const maxWk=Math.max(...completedWeeks);
+      topHtml=`<div class="proj-banner">&#9889; Through Week ${maxWk} actual + projected remaining weeks. Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections.</div>`;
+    }else if(isProjectedWeek){
+      topHtml=`<div class="proj-banner">&#9889; Week ${currentStatsWeek} &mdash; projected stats, not yet final.</div>`;
+    }
+    const ptsCols=is2026Season
+      ?`<th>Act. Pts</th><th>Proj Pts</th>`
+      :`<th>Est. Pts${isProjectedWeek?' (Proj)':''}</th>`;
+    const ptsCell=(r)=>is2026Season
+      ?`<td style="color:var(--accent)">${r.fmtActPts}</td><td style="color:var(--muted)">${r.fmtProjPts}</td>`
+      :`<td style="color:var(--accent);font-weight:500">${r.pts}${isProjectedWeek?'<span class="proj-chip" style="margin-left:4px">PROJ</span>':''}</td>`;
+    const isAllView=pos==='all'||pos==='rookie';
+    const showPass=statsShowPass&&(pos==='QB'||isAllView);
+    const showRush=statsShowRush&&(pos==='QB'||pos==='RB'||pos==='WR'||isAllView);
+    const showRec=statsShowRec&&(pos==='RB'||pos==='WR'||pos==='TE'||isAllView);
+    const showTEPrem=pos==='TE'&&showRec;
+    const thPass=showPass?`<th>Att</th><th>Cmp%</th><th>Pass Yds</th><th>Pass TDs</th><th>INTs</th>`:'';
+    const thRush=showRush?`<th>Rush Att</th><th>Rush Yds</th><th>Rush TDs</th>`:'';
+    const thRec=showRec?`<th>Rec</th><th>Rec Yds</th><th>Rec TDs</th>${showTEPrem?'<th>TE Prem</th>':''}`:'';
+    const thTeam=isAllView?`<th>NFL Team</th>`:'';
+    const thead=`<tr><th>#</th><th>Player</th>${thTeam}<th>Owner</th><th>Gms</th>${thPass}${thRush}${thRec}${ptsCols}</tr>`;
+    const rowFn=(r,i)=>{
+      const p=r.position;
+      const tdPass=showPass?(p==='QB'
+        ?`<td>${fmt(r.stats.pass_att)}</td><td>${pct(r.stats.pass_cmp,r.stats.pass_att)}</td><td style="color:var(--text)">${fmt(r.stats.pass_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.pass_td)}</td><td style="color:var(--accent3)">${fmt(r.stats.pass_int)}</td>`
+        :`<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>`):'';
+      const tdRush=showRush?(['QB','RB','WR'].includes(p)
+        ?`<td>${fmt(r.stats.rush_att)}</td><td style="color:var(--text)">${fmt(r.stats.rush_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rush_td)}</td>`
+        :`<td>—</td><td>—</td><td>—</td>`):'';
+      const tePrem=showTEPrem&&p==='TE'?Math.round((r.stats.rec||0)*(SDATA.bonus_rec_te||0)*10)/10:null;
+      const tdRec=showRec?(['RB','WR','TE'].includes(p)
+        ?`<td>${fmt(r.stats.rec)}</td><td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>${showTEPrem?`<td style="color:var(--pos-te)">${tePrem||'—'}</td>`:''}`
+        :`<td>—</td><td>—</td><td>—</td>${showTEPrem?'<td>—</td>':''}`):'';
+      const tdTeam=isAllView?`<td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>`:'';
+      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
+    };
+    const weekLabel=currentStatsWeek==='season'?'season':`week ${currentStatsWeek}`;
+    const sortLabel=is2026Season?'total (actual+proj) pts':'est. pts';
+    const hasRookies2026=filtered.some(r=>isRookieInYear(r.pid,2026));
+    c.innerHTML=`${topHtml}
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players &middot; 2026 ${weekLabel} &middot; sorted by ${sortLabel}</div>
+      <div style="overflow-x:auto"><table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table></div>
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses, rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.${is2026Season?' Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections for remaining weeks.':''}</div>
+      ${hasRookies2026?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
+    applyStatsFilters();
+  }catch(e){
+    c.innerHTML=`<div class="err">&#9888; Could not load 2026 stats.<br><small>${e.message}</small></div>`;
+  }
+}
+
 async function buildPlayerStats(year,posFilter){
   resetStatsSearch();
   const c=document.getElementById('stats-container');
   c.dataset.loaded='1';
   c.innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Fetching stats...</div></div>';
+  if((year||currentStatsYear)===2026){await build2026Stats(c,posFilter||currentStatsPos);return;}
   try{
     const statsData=currentStatsWeek==='season'
       ? await fetchPlayerStats(year||currentStatsYear)
@@ -3187,94 +3636,56 @@ async function buildPlayerStats(year,posFilter){
       c.innerHTML=`<div class="note">No stats found for ${year} — data may not be available yet.</div>`;
       return;
     }
-    // Build adaptive columns
-    let thead='',rowFn;
     const fmt=(n,dec=0)=>n?(dec?n.toFixed(dec):Math.round(n)).toString():'—';
     const pct=(a,b)=>(a&&b)?(a/b*100).toFixed(1)+'%':'—';
     const rk=(r)=>isRookieInYear(r.pid,currentStatsYear)?'<span class="rk-tag">[RK]</span>':'';
-    if(pos==='QB'){
-      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Cmp%</th><th>Pass Yds</th><th>Pass TDs</th><th>INTs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
-        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-qb" style="cursor:default"><span class="cp">QB</span>${r.name}${rk(r)}</span></td>
-        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
-        <td>${fmt(r.stats.gp)}</td>
-        <td>${fmt(r.stats.pass_att)}</td>
-        <td>${pct(r.stats.pass_cmp,r.stats.pass_att)}</td>
-        <td style="color:var(--text)">${fmt(r.stats.pass_yd)}</td>
-        <td style="color:var(--accent)">${fmt(r.stats.pass_td)}</td>
-        <td style="color:var(--accent3)">${fmt(r.stats.pass_int)}</td>
-        <td>${fmt(r.stats.rush_yd)}</td>
-        <td>${fmt(r.stats.rush_td)}</td>
-        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
-      </tr>`;
-    }else if(pos==='RB'){
-      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Att</th><th>Rush Yds</th><th>Rush TDs</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
-        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-rb" style="cursor:default"><span class="cp">RB</span>${r.name}${rk(r)}</span></td>
-        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
-        <td>${fmt(r.stats.gp)}</td>
-        <td>${fmt(r.stats.rush_att)}</td>
-        <td style="color:var(--text)">${fmt(r.stats.rush_yd)}</td>
-        <td style="color:var(--accent)">${fmt(r.stats.rush_td)}</td>
-        <td>${fmt(r.stats.rec)}</td>
-        <td>${fmt(r.stats.rec_yd)}</td>
-        <td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>
-        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
-      </tr>`;
-    }else if(pos==='WR'){
-      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>Rush Yds</th><th>Rush TDs</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
-        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-wr" style="cursor:default"><span class="cp">WR</span>${r.name}${rk(r)}</span></td>
-        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
-        <td>${fmt(r.stats.gp)}</td>
-        <td>${fmt(r.stats.rec)}</td>
-        <td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td>
-        <td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>
-        <td>${fmt(r.stats.rush_yd)}</td>
-        <td>${fmt(r.stats.rush_td)}</td>
-        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
-      </tr>`;
-    }else if(pos==='TE'){
-      thead=`<tr><th>#</th><th>Player</th><th>Owner</th><th>Gms</th><th>Rec</th><th>Rec Yds</th><th>Rec TDs</th><th>TE Prem Pts</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>{
-        const tePrem=Math.round((r.stats.rec||0)*(SDATA.bonus_rec_te||0)*10)/10;
-        return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
-          <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-          <td><span class="chip pos-te" style="cursor:default"><span class="cp">TE</span>${r.name}${rk(r)}</span></td>
-          <td style="color:var(--text2)">${abbrev(r.owner)}</td>
-          <td>${fmt(r.stats.gp)}</td>
-          <td>${fmt(r.stats.rec)}</td>
-          <td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td>
-          <td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>
-          <td style="color:var(--pos-te)">${tePrem||'—'}</td>
-          <td style="color:var(--accent);font-weight:500">${r.pts}</td>
-        </tr>`;
-      };
-    }else{
-      // All positions + Rookies (same columns)
-      thead=`<tr><th>#</th><th>Player</th><th>NFL Team</th><th>Owner</th><th>Gms</th><th>Est. Pts</th></tr>`;
-      rowFn=(r,i)=>`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer">
-        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td>
-        <td><span class="chip pos-${r.position.toLowerCase()}" style="cursor:default"><span class="cp">${r.position}</span>${r.name}${rk(r)}</span></td>
-        <td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>
-        <td style="color:var(--text2)">${abbrev(r.owner)}</td>
-        <td>${fmt(r.stats.gp)}</td>
-        <td style="color:var(--accent);font-weight:500">${r.pts}</td>
-      </tr>`;
-    }
+    const ptsCols=`<th>Est. Pts</th>`;
+    const ptsCell=(r)=>`<td style="color:var(--accent);font-weight:500">${r.pts}</td>`;
+    const isAllView=pos==='all'||pos==='rookie';
+    const showPass=statsShowPass&&(pos==='QB'||isAllView);
+    const showRush=statsShowRush&&(pos==='QB'||pos==='RB'||pos==='WR'||isAllView);
+    const showRec=statsShowRec&&(pos==='RB'||pos==='WR'||pos==='TE'||isAllView);
+    const showTEPrem=pos==='TE'&&showRec;
+    const thPass=showPass?`<th>Att</th><th>Cmp%</th><th>Pass Yds</th><th>Pass TDs</th><th>INTs</th>`:'';
+    const thRush=showRush?`<th>Rush Att</th><th>Rush Yds</th><th>Rush TDs</th>`:'';
+    const thRec=showRec?`<th>Rec</th><th>Rec Yds</th><th>Rec TDs</th>${showTEPrem?'<th>TE Prem</th>':''}`:'';
+    const thTeam=isAllView?`<th>NFL Team</th>`:'';
+    const thead=`<tr><th>#</th><th>Player</th>${thTeam}<th>Owner</th><th>Gms</th>${thPass}${thRush}${thRec}${ptsCols}</tr>`;
+    const rowFn=(r,i)=>{
+      const p=r.position;
+      const tdPass=showPass?(p==='QB'
+        ?`<td>${fmt(r.stats.pass_att)}</td><td>${pct(r.stats.pass_cmp,r.stats.pass_att)}</td><td style="color:var(--text)">${fmt(r.stats.pass_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.pass_td)}</td><td style="color:var(--accent3)">${fmt(r.stats.pass_int)}</td>`
+        :`<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>`):'';
+      const tdRush=showRush?(['QB','RB','WR'].includes(p)
+        ?`<td>${fmt(r.stats.rush_att)}</td><td style="color:var(--text)">${fmt(r.stats.rush_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rush_td)}</td>`
+        :`<td>—</td><td>—</td><td>—</td>`):'';
+      const tePrem=showTEPrem&&p==='TE'?Math.round((r.stats.rec||0)*(SDATA.bonus_rec_te||0)*10)/10:null;
+      const tdRec=showRec?(['RB','WR','TE'].includes(p)
+        ?`<td>${fmt(r.stats.rec)}</td><td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>${showTEPrem?`<td style="color:var(--pos-te)">${tePrem||'—'}</td>`:''}`
+        :`<td>—</td><td>—</td><td>—</td>${showTEPrem?'<td>—</td>':''}`):'';
+      const tdTeam=isAllView?`<td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>`:'';
+      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
+    };
+    const hasRookies=filtered.some(r=>isRookieInYear(r.pid,currentStatsYear));
     c.innerHTML=`
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players · ${year} ${currentStatsWeek==='season'?'season':`week ${currentStatsWeek}`} · sorted by est. pts</div>
       <div style="overflow-x:auto">
         <table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table>
       </div>
-      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>`;
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>
+      ${hasRookies?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
     applyStatsFilters();
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load player stats.<br><small>${e.message}</small></div>`;
   }
+}
+
+function toggleStatGroup(group,el){
+  if(group==='pass')statsShowPass=!statsShowPass;
+  else if(group==='rush')statsShowRush=!statsShowRush;
+  else if(group==='rec')statsShowRec=!statsShowRec;
+  el.classList.toggle('active');
+  buildPlayerStats(currentStatsYear,currentStatsPos);
 }
 
 function setStatsYear(year,el){
@@ -3844,6 +4255,10 @@ async function init(){
         fetchTransactions(ids[year],year).then(()=>buildLeaderStats()).catch(()=>{});
       }
     });
+    // Prefetch 2026 transactions (cleared on Refresh so count stays current)
+    if(!loadPerm('tol_txn_2026')){
+      fetchTransactions(LID,2026).catch(()=>{});
+    }
   }).catch(()=>{});
   // Prefetch 2025 player stats in background after rosters are ready
   if(cachedRosters&&!loadPerm('tol_stats_2025')){

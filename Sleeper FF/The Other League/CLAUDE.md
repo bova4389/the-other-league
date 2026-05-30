@@ -45,6 +45,8 @@ the-other-league/                      — repo root
   - `/league/{lid}/drafts` — drafts list
   - `/draft/{draft_id}/picks` — picks for a draft
   - `/players/nfl` — full player database (~5MB, slow)
+  - `/stats/nfl/regular/{year}/{week}` — actual player stats for a completed week
+  - `/projections/nfl/{year}/{week}` — projected player stats (**no "regular" in path** — different from stats endpoint)
 - CORS note: Direct browser fetch may fail. Fallback proxies in order: `corsproxy.io`, `api.allorigins.win`
 
 ### Anthropic API
@@ -82,7 +84,7 @@ The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick=
 | 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
 | ℹ️ | League | `league` | `panel-league` | No — static HTML |
 | ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
-| 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit |
+| 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit. Year tabs: 2026 (default), 2025, 2024, 2023. W15–W17 marked "PLAYOFFS". W4/W13 pills turn pink for rivalry years. |
 | 📋 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
@@ -153,6 +155,7 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 
 ### Player Stats Panel
 - `stats-yr-toggle`, `stats-pos-filter`, `stats-wk-filter`, `stats-container`
+- `sg-pass`, `sg-rush`, `sg-rec` — stat group toggle buttons (Passing / Rushing / Receiving); toggling rebuilds the table
 
 ### Transactions Panel
 - `txn-container`, `txn-yr-toggle`, `txn-filter-bar`, `txn-team-filter`, `txn-player-search`, `txn-player-results`
@@ -198,22 +201,38 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 - `buildCareers()` — calls `buildLeaderStats()` to refresh pills, then builds the career earnings/placement table and per-season standings tables
 
 ### Scores Tab
-- `buildScores()` — entry point: checks live vs off-season
-- `renderScoresOffseason(c)` — shows 2025 final standings
-- `renderScoresWeek(container, week)` — renders matchup cards with H2H records
-- `changeScoreWeek(week)` — prev/next week handler
+State variables: `currentScoresYear` (default 2026), `currentScoresWeek` (default 1)
+
+- `buildScores()` — fetches matchups for `currentScoresYear` via `findLeagueIds()` + `fetchAllMatchups()`, then calls `renderHistoricalScores()`
+- `renderHistoricalScores(container, matchups, week)` — renders matchup cards; handles 2026 "projected" banner + `—` scores for pre-season; applies bracket chips from `PLAYOFF_BRACKET_INFO`; applies rivalry banner from `RIVALRY_WEEKS`
+- `setScoresYear(year, el)` — switches year tab, resets to W1, calls `updateRivalryPills(year)`, rebuilds scores
+- `setScoresWeek(week, el)` — switches week pill, rebuilds scores
+- `goToScoresWeek(year, week)` — navigates from Rivalries tab: switches to scores tab, sets year+week, calls `updateRivalryPills(year)`, rebuilds scores
+- `updateRivalryPills(year)` — toggles `.rivalry` class on W4/W13 pills based on `RIVALRY_WEEKS[year]`; called whenever year changes
 
 ### Rosters
 - `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips
 
 ### Rivalries
-- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit
+- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit; always shows a "2026: TBD · W4 W13" placeholder row for each rivalry until live matchup data is available
+- `buildH2HForYear(year, maxWeek)` — builds H2H map from cached matchup data for a single year (up to `maxWeek`; default 17)
+- `findRivalWeeks(year, ridA, ridB, maxWeek)` — returns sorted list of week numbers where two roster IDs faced each other (default `maxWeek=14`)
 
 ### Player Stats
-- `fetchPlayerStats(year)` / `fetchWeekStats(year, week)` — fetches and caches stat data
-- `calcPts(stats, pos)` — calculates fantasy points using `SDATA`
-- `buildPlayerStats(year, posFilter)` — renders stats table
+State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `'all'`), `currentStatsWeek` (default `'season'`), `statsShowPass`, `statsShowRush`, `statsShowRec` (all default `true` — control column group visibility).
+
+- `fetchPlayerStats(year)` / `fetchWeekStats(year, week)` — fetches and caches stat data for 2023–2025 (permanent localStorage)
+- `fetch2026SeasonStats()` — fetches all 17 weeks of actuals (`/stats/nfl/regular/2026/{week}`) + projections (`/projections/nfl/2026/{week}`) in parallel; identifies completed weeks by `gp >= 1`; aggregates actuals and projected separately; caches in session-only `_stats2026Cache` (cleared on Refresh, not localStorage)
+- `fetch2026WeekStats(week)` — tries actuals first; falls back to projections if no `gp >= 1` data
+- `calcPts(stats, pos)` — calculates fantasy points using `SDATA`. **Note:** Projections API returns different field names than stats API — projection aggregation must capture all numeric fields (not filter by STAT_KEYS) or use `pts_std`/`pts_half_ppr`/`pts_ppr` fallback.
+- `build2026Stats(c, pos)` — 2026 renderer; season view shows dual "Act. Pts" / "Proj Pts" columns; week view shows actuals or projected with PROJ chip; uses unified column builder (same as `buildPlayerStats`)
+- `buildPlayerStats(year, posFilter)` — renders stats table for all years; routes to `build2026Stats` if year is 2026; uses unified column builder (no position-specific if/else)
+- `toggleStatGroup(group, el)` — toggles `statsShowPass`/`statsShowRush`/`statsShowRec`, calls `buildPlayerStats`
 - `setStatsYear()`, `setStatsWeek()`, `setStatsPos()` — filter handlers
+
+**Unified column builder** (used in both `build2026Stats` and `buildPlayerStats`): Passing columns shown only for QB + All/Rookie views; Rushing for QB/RB/WR + All/Rookie; Receiving for RB/WR/TE + All/Rookie. TE Prem column added when `pos==='TE'` and Receiving is enabled. Non-applicable cells render `—`. NFL Team column only shown on All/Rookie views.
+
+**Rookie tag:** `isRookieInYear(pid, year)` uses Sleeper `years_exp` field (`years_exp === 0` = 2026 rookie, `1` = 2025 rookie, etc.). `[RK]` tag rendered via `.rk-tag` span inside the player chip. A legend note appears below the scoring note when any player in the filtered view has `[RK]`.
 
 ### Transactions
 - `fetchTransactions(leagueId, year)` — fetches and permanently caches past transactions
@@ -261,6 +280,8 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 ### `KTC_SNAPSHOT` — hardcoded dynasty player values (snapshot April 2026)
 ### `KTC_PICK_VALUES` — pick values by year + round
 ### `LEAGUE_CONTEXT` — static context string injected into AI calls
+### `RIVALRY_WEEKS` — rivalry week numbers per year: `{ 2025: [4, 13], 2026: [4, 13] }`. Controls pink pill styling on Scores tab and rivalry banner on matchup cards.
+### `PLAYOFF_BRACKET_INFO` — playoff bracket labels for W15/W16/W17. Keyed `year → week → { "NameA|NameB" → { label, style } }`. Names are sorted alphabetically before joining with `|`. Covers 2023, 2024, 2025 fully. Add 2026 data here once playoff matchup pairings are known. Styles: `'gold'` (championship), `'bronze'` (3rd/5th place), `'silver'` (consolation final), omit for regular bracket rounds.
 
 ---
 
@@ -271,11 +292,12 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 | `tol_cache_v2` | 6h | Current season rosters |
 | `tol_theme` | permanent | User theme preference |
 | `tol_lids` | permanent | Past league IDs |
-| `tol_matchups_{year}` | permanent | All 17 weeks of matchup data |
-| `tol_txn_{year}` | permanent | All completed transactions |
+| `tol_matchups_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All 17 weeks of matchup data |
+| `tol_txn_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All completed transactions |
 | `tol_drafts_{year}` | permanent | All draft picks |
-| `tol_stats_{year}` | permanent | Season stats aggregated from 17 weeks |
-| `tol_stats_wk_{year}_{week}` | permanent | Single-week stats |
+| `tol_stats_{year}` | permanent | Season stats aggregated from 17 weeks (2023–2025 only) |
+| `tol_stats_wk_{year}_{week}` | permanent | Single-week stats (2023–2025 only) |
+| `_stats2026Cache` | session (JS variable, not localStorage) | 2026 actual + projected stats; cleared on Refresh via `refreshData()` |
 
 ---
 
@@ -305,7 +327,9 @@ Three-level hierarchy — **no DM Mono for anything the user sees in main conten
 | Use Case | Font | Notes |
 |----------|------|-------|
 | Section titles, stat values | **Bebas Neue** | All-caps display, sporty |
-| Display labels (stat pill labels, rivalry record labels, badge text) | **Bebas Neue** | Larger sizes (11–14px) with letter-spacing |
+| Stat pill labels, rivalry record labels | **Bebas Neue** | Larger sizes (11–14px) with letter-spacing |
+| Position badge labels (`.cp` inside `.chip`) | **DM Sans 600** | 10px, colored background badge per position — replaced Bebas Neue for readability |
+| Avg Age badges and other `.bdg` chips | **DM Sans 600** | 10px — replaced Bebas Neue for readability |
 | Nav tab labels | **DM Sans 700** | Bold uppercase, `letter-spacing: .14em` — Bebas Neue was too condensed |
 | Body text, table cells, player chips, buttons, form elements | **DM Sans** | Clean, readable |
 | Code/timestamps/KTC values (intentional monospace) | **DM Mono** | Used sparingly; never in main content areas |
@@ -354,9 +378,11 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 - **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
 - **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent
 - **CORS fallback chain** — direct → corsproxy.io → allorigins.win; never remove
-- **Single-file architecture** — all HTML, CSS, JS in `the-other-league-FINAL.html`
-- **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red
-- **Rivalries from 2025 forward only** — pre-2025 matchups excluded from rivalry records
+- **Single-file architecture** — all HTML, CSS, JS in `index.html` at the **repo root** (not inside `Sleeper FF/`)
+- **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red. Color legend shown at top of Rosters panel using actual `.chip` elements. Number in parentheses after player name = age.
+- **Position badge (`.cp`)** — the position label inside each `.chip` is styled as a small colored badge: DM Sans 600, 10px, `padding: 1px 4px`, `border-radius: 2px`, background from `--pos-XX-bg` CSS variables (semi-transparent, defined for both dark and light themes). Replaced Bebas Neue — do not revert.
+- **Avg Age badges (`.bdg`)** — use DM Sans 600 at 10px. The override block near the end of `<style>` sets `font-family: 'DM Sans'` — this overrides the base `.bdg` rule. Replaced Bebas Neue — do not revert.
+- **Rivalries from 2025 forward only** — pre-2025 matchups excluded from rivalry records. Rivalry weeks: W4 and W13 (both 2025 and 2026). W14 is NOT a rivalry week — a prior mistake that was corrected.
 - **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1
 - **Sidebar is permanently hidden** — `display: none !important`. `scrollToTeam()` and `buildSidebar()` exist in JS but sidebar is not visible.
 - **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
