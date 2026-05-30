@@ -20,6 +20,24 @@ All projects are **static HTML / Vanilla JS** sites. No npm, no Node, no build s
 - **Basic Bros Ryder Cup** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-ryder-cup.com
 - **Sleeper FF** is hosted on **GitHub Pages** — push to `main` and the site updates automatically.
 
+## Cache Busting (Required on All DreamHost Projects)
+
+Safari on mobile aggressively caches pages. Users should never need to manually clear their cache to see updates. Every DreamHost project must have both layers of cache busting in place:
+
+**Layer 1 — `.htaccess` (server-side headers):**
+Every DreamHost project must have a `.htaccess` file that sends `no-cache, no-store, must-revalidate` for all `.html`, `.js`, and `.css` files, and allows a 30-day cache for images. See the existing `.htaccess` files in `Majors Golf Pool/` and `Basic Bros Ryder Cup/` as the template.
+
+**Layer 2 — Query string version on CSS/JS links (HTML-side):**
+Every `<link rel="stylesheet">` and `<script src>` tag that references a local file must include a `?v=YYYYMMDD` query string (e.g. `css/styles.css?v=20260522`). **Update the date whenever you make changes to the CSS or JS files.** This breaks any CDN or ISP-level caching that ignores server headers.
+
+Example:
+```html
+<link rel="stylesheet" href="css/styles.css?v=20260522" />
+<script src="js/app.js?v=20260522"></script>
+```
+
+These two layers together ensure users — especially on Safari mobile — always see the latest version without having to clear their cache.
+
 ## Git Setup
 
 These are **two separate git repositories**:
@@ -31,6 +49,6 @@ Never `git add Majors Golf Pool/` from the outer repo — it will be treated as 
 
 ## Project States (as of May 2026)
 
-**Majors Golf Pool** — Masters 2026 is complete (Sarah Crowell won the pool, -33; Scottie Scheffler won the actual tournament). Total standings, R1–R4, and payouts are all hardcoded in `standings.js`. PGA Championship 2026 is the next live tournament (ESPN event ID `401811947`, starts May 14). All four 2025 major scoreboards are fully hardcoded. Masters 2025 and PGA Championship 2025 pool standings (Total, R1–R4, Payouts) are fully hardcoded in `standings.js`. U.S. Open 2025 and The Open 2025 scoreboards are hardcoded but their pool standings are not yet entered.
+**Majors Golf Pool** — Masters 2026 ✅, PGA Championship 2026 ✅, Masters 2025 ✅, PGA Championship 2025 ✅, and U.S. Open 2025 ✅ are all fully hardcoded in `standings.js` (Total, R1–R4, Payouts). The Open Championship 2025 scoreboard is hardcoded but pool standings (`THEOPEN_2025_TOTAL` + rounds) are not yet entered. U.S. Open 2026 is the next upcoming tournament (ESPN event ID `401811952`).
 
 **Sleeper FF / The Other League** — Active development project. The working file is `the-other-league-FINAL.html` (3200+ lines); `index.html` is an 8-line stub. Full feature set for roster management, trade evaluation (with live KTC values), draft picks, and standings. See its CLAUDE.md for the complete function and data reference.

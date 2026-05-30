@@ -2,9 +2,9 @@
 
 ## WHAT THIS PROJECT IS
 
-A personal fantasy football dashboard for "The Other League" — a 12-team dynasty league on the Sleeper platform. The site pulls live data from the Sleeper public API and the Anthropic API to display rosters, league history, draft picks, scoring rules, rivalries, and an AI analysis layer.
+A personal fantasy football dashboard for "The Other League" — a 12-team dynasty league on the Sleeper platform. The site pulls live data from the Sleeper public API to display rosters, league history, draft picks, scoring rules, rivalries, and a trade evaluator with live KTC values.
 
-**Owner:** Matt Bova (commissioner). Built for personal use during development; eventually shared with league mates.
+**Commissioner:** Matt Bova. Built for personal use, shared with league mates via GitHub Pages.
 
 ---
 
@@ -15,19 +15,15 @@ This is a **static HTML/JavaScript project** — no framework, no build step, no
 ```
 the-other-league/
 ├── CLAUDE.md                          — you are here
-├── index.html                         — main unified dashboard (target state)
-├── the-other-league-FINAL.html        — current working version (most complete)
-├── the-other-league-Claude-html.html  — earlier version (reference only)
+├── index.html                         — 8-line stub that redirects to the-other-league-FINAL.html
+├── the-other-league-FINAL.html        — THE working file (3300+ lines, all logic embedded)
 ├── the-other-league-context.md        — master league context document
-└── chunks/                            — prior standalone chunk files (reference)
-    ├── chunk1-history.html
-    ├── chunk2-rosters.html
-    └── chunk3-draft.html
+└── chunks/                            — prior standalone chunk files (reference only)
 ```
 
-**Current state:** `the-other-league-FINAL.html` is the working file. It combines rosters, league info, scoring, rivalries, draft, transactions, career stats, and an embedded "Ask Claude" AI tab into one file.
+**Current state:** `the-other-league-FINAL.html` is the **only** file to edit. It contains all HTML, CSS, and JavaScript in one file.
 
-**Deployment:** GitHub Pages (static hosting). No server, no backend. All API calls happen client-side from the browser.
+**Deployment:** GitHub Pages (static hosting). Push to `main` → site updates automatically.
 
 ---
 
@@ -48,41 +44,86 @@ the-other-league/
 - CORS note: Direct browser fetch may fail. Fallback proxies in order: `corsproxy.io`, `api.allorigins.win`
 
 ### Anthropic API
-- Endpoint: `https://api.anthropic.com/v1/messages`
-- Model: `claude-sonnet-4-20250514`
-- Used for: the "Ask Claude" tab — AI analysis chat with full league context injected as the first user message
-- No API key handling needed in code (handled externally)
+- Used **only** by `getTradeAI()` inside the Trade Evaluator panel
+- The "Ask Claude" tab was removed from the UI (panel and icon tab are gone)
+- `sendAI()`, `addMsg()`, `clearChat()`, `aiMessages`, `LEAGUE_CONTEXT`, `QUICK_PROMPTS` remain in JS because `getTradeAI()` calls them — do not delete them
 
 ---
 
-## TABS AND PANELS
+## NAVIGATION STRUCTURE
 
-The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showTab(id, el)` and maps to a `<div class="panel" id="panel-{id}">`. **Careers is the default active tab on load.**
+### Sticky Shell
+`<div class="sticky-shell">` uses `position: sticky; top: 0; z-index: 100`. It contains:
+1. `<header>` — logo (home link) + "Open in Sleeper" pill + dark mode toggle
+2. `<nav class="icon-nav">` — 9 icon tabs + 1 refresh button
 
-| Tab Label       | `showTab` ID    | Panel ID              | Lazy load?                              |
-|-----------------|-----------------|------------------------|------------------------------------------|
-| Careers (default)| `careers`      | `panel-careers`        | Yes — `buildCareers()` on first visit    |
-| Scores          | `scores`        | `panel-scores`         | Yes — `buildScores()` on first visit     |
-| Rosters         | `rosters`       | `panel-rosters`        | No — loaded at boot via `init()`         |
-| Player Stats    | `stats`         | `panel-stats`          | Yes — `buildPlayerStats()` on first visit |
-| League Info     | `league`        | `panel-league`         | No — static HTML; scoring section rendered via `buildScoring()` at boot |
-| Rivalries       | `rivalries`     | `panel-rivalries`      | Re-renders on every visit via `buildRivalries()` |
-| Draft           | `draft`         | `panel-draft`          | Yes — `buildDraft2026()` at boot; past years on demand |
-| Transactions    | `transactions`  | `panel-transactions`   | Yes — `buildTransactions()` on first visit |
-| ⚖ Trade Eval   | `trade`         | `panel-trade`          | Yes — `initTradeEval()` on first visit  |
-| ⚡ Ask Claude   | `ai`            | `panel-ai`             | No — static form; sends on user action  |
+The header logo (`<div class="hdr-logo-link">`) calls `showTab('home')` on click — it IS the home button.
+
+### Icon Nav
+Each tab is `<div class="icon-tab" onclick="showTab('id',this)" data-tab="id">` with an emoji icon and text label. The active tab gets `class="active"` and a teal bottom border.
+
+The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick="refreshData()">` — styled with a left border separator; it never gets the active class.
+
+### URL Hash Routing
+`showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash` and navigates to the matching tab. `hashchange` event is also wired. Valid tab IDs are in `VALID_TABS` array in JS.
+
+### `body.is-home` CSS Class
+`document.body.classList.toggle('is-home', tab==='home')` — set in HTML on `<body class="is-home">` at load, toggled in `showTab()`. CSS rules under `body.is-home` hide the sidebar, cache bar, and utility strips, and give the home panel edge-to-edge layout.
+
+### Tabs and Panels
+
+| Icon | Tab Label | `showTab` ID | Panel ID | Lazy load? |
+|------|-----------|--------------|----------|-----------|
+| (logo click) | Home | `home` | `panel-home` | No — static HTML with countdown JS |
+| 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
+| ℹ️ | League | `league` | `panel-league` | No — static HTML |
+| ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
+| 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit |
+| 📋 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
+| 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
+| 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
+| 🔄 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
+| ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit |
+| ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
+
+**Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI. The underlying JS functions are kept because `getTradeAI()` uses them.
+
+### Home Panel (`panel-home`)
+Contains:
+- `TOL Large Logo.png` as hero image with neon glow (`.home-hero-logo`)
+- NFL Season countdown to Sep 10, 2026 8:20 PM ET — `startCountdown()` function, IDs: `cd-days`, `cd-hours`, `cd-mins`, `cd-secs`
+- 2025 Champion card: Jake Blackwell / "Nacua Matata" / Pick 1.12
+- League meta pills: Commissioner · Matt Bova, Est. · 2023, Dynasty · 12 Teams
+
+**Removed from home panel:** Consolation winner card (Nick Merkel), Quick-nav grid (replaced by icon nav)
+
+### Careers Panel (`panel-careers`)
+Contains:
+1. Section title "LEAGUE LEADERS" + subtitle
+2. `.career-status-bar` — the perpetual stats bar (7 `.s-pill` items) — **lives here, not globally**
+3. `#careers-container` — career stats table + per-season standings tables (built by `buildCareers()`)
+
+The perpetual stats bar was formerly a global `.status` div shown above all panels. It was moved inside this panel so it only appears on the Careers tab.
+
+---
+
+## REMOVED / HIDDEN ELEMENTS
+
+- **Sidebar** (`.sidebar`) — `display: none !important` — the All Teams team list is gone. `buildSidebar()` and `scrollToTeam()` still exist in JS but sidebar is invisible.
+- **Cache bar** (`.cache-bar`) — `display: none !important` inline style — the "Cached data · Last fetched Xm ago · Refresh" row is hidden. The DOM elements and IDs (`cache-dot`, `cache-status-txt`, `refresh-btn`) still exist in the HTML so `setCacheBar()` and `refreshData()` work correctly.
+- **Sleeper bar** (`.sleeper-bar`) — removed from HTML. "Open in Sleeper" link moved to the header.
 
 ---
 
 ## KEY ELEMENT IDs
 
-### Header / Cache Bar
-- `cache-dot` — colored dot (live vs cached)
-- `cache-status-txt` — cache status message
-- `refresh-btn` — clears cache and re-fetches
+### Header
 - `t-icon`, `t-lbl` — theme toggle icon and label
+- `cache-dot` — colored dot (live vs cached) — inside hidden `.cache-bar`
+- `cache-status-txt` — cache status message — inside hidden `.cache-bar`
+- `refresh-btn` — original refresh button — inside hidden `.cache-bar`; `refreshData()` still uses it programmatically
 
-### Stats Pills (top status bar)
+### Perpetual Stats (inside `panel-careers`)
 - `stat-champs` — past champions list
 - `stat-earn-val`, `stat-earn-sub` — highest career earnings
 - `stat-wins-val`, `stat-wins-sub` — most career wins
@@ -91,57 +132,35 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 - `stat-trades-val`, `stat-trades-sub` — most trades completed
 - `stat-worst-val`, `stat-worst-sub` — worst average finish
 
-### Sidebar
-- `team-list` — sidebar team items (built by `buildSidebar()`)
-
 ### Scores Panel
-- `scores-container` — main scores area; holds matchup cards or off-season standings
-- `match-grid-inner` — dynamically created inside `scores-container` during season
+- `scores-container` — main scores area
 
 ### Rosters Panel
 - `rosters-container` — roster grid (12 `r-card` divs)
-- `roster-card-{uid}` — individual roster card per team (used by `scrollToTeam()`)
-
-### Scoring Panel
-- `score-grid` — grid of scoring rule items
+- `roster-card-{uid}` — individual roster card per team
 
 ### Rivalries Panel
 - `rivalry-grid` — rivalry matchup cards
 
 ### Draft Panel
-- `draft-view-2026` — 2026 draft view container
-- `draft-view-past` — past draft years view container
-- `d26-list-view`, `d26-board-view` — list/board toggle views for 2026
-- `d26-tbody` — table body for 2026 draft order
-- `d26-list-btn`, `d26-board-btn` — view toggle buttons for 2026
-- `draft-past-list-view`, `draft-past-board-view` — list/board toggle for past drafts
-- `dpast-list-btn`, `dpast-board-btn` — view toggle buttons for past drafts
-- `draft-history-container` — renders inside `draft-past-list-view`
+- `draft-view-2026`, `draft-view-past`
+- `d26-list-view`, `d26-board-view`, `d26-tbody`
+- `draft-history-container`
 
 ### Player Stats Panel
-- `stats-yr-toggle` — year filter buttons (2025 / 2024 / 2023)
-- `stats-pos-filter` — position filter pills (All / QB / RB / WR / TE / Rookies)
-- `stats-wk-filter` — week filter pills (Season / W1–W17)
-- `stats-container` — player stats table render area
+- `stats-yr-toggle`, `stats-pos-filter`, `stats-wk-filter`, `stats-container`
 
 ### Transactions Panel
-- `txn-container` — transaction list render area
-- `txn-yr-toggle` — year filter buttons
-- `txn-filter-bar` — type filter pills (All / Waivers / Free Agent / Trades)
-- `txn-team-filter` — team dropdown select
-- `txn-player-search` — player history search input
-- `txn-player-results` — player history search results
+- `txn-container`, `txn-yr-toggle`, `txn-filter-bar`, `txn-team-filter`, `txn-player-search`, `txn-player-results`
 
 ### Careers Panel
-- `careers-container` — career stats table
+- `careers-container` — career stats table + season standings
 
 ### Trade Evaluator Panel
-- `ktc-badge` — shows "Values: KTC Live ✓" (green) or "Values: Snapshot" (yellow) after `fetchKTCValues()` resolves
+- `ktc-badge` — shows live vs snapshot KTC values status
 
-### AI Panel
-- `ai-input` — chat input field
-- `ai-send-btn` — send button
-- `ai-history` — message thread container
+### Countdown (Home Panel)
+- `countdown-display`, `cd-days`, `cd-hours`, `cd-mins`, `cd-secs`
 
 ---
 
@@ -153,99 +172,67 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 
 ### Cache
 - `saveCache(rosters)` — writes roster data + timestamp to `localStorage[tol_cache_v2]`
-- `loadCache()` — reads cache; returns `null` if missing or older than 6h
-- `clearCache()` — removes `tol_cache_v2` from localStorage
-- `savePerm(key, data)` — writes data with no TTL (for historical data that never changes)
-- `loadPerm(key)` — reads permanent data from localStorage
-- `setCacheBar(fromCache, ts)` — updates the cache dot, text, and refresh button
+- `loadCache()` — returns `null` if missing or older than 6h
+- `clearCache()` — removes `tol_cache_v2`
+- `savePerm(key, data)` / `loadPerm(key)` — permanent localStorage (no TTL, for historical data)
+- `setCacheBar(fromCache, ts)` — updates cache dot, text, refresh button (still called even though bar is hidden)
 - `refreshData()` — clears cache, resets state, re-runs `init()`
 
 ### Sleeper API
 - `api(path)` — fetches from Sleeper with CORS fallback chain (direct → corsproxy.io → allorigins.win)
-- `findLeagueIds()` — walks `previous_league_id` chain to discover past season league IDs; caches in `tol_lids`
+- `findLeagueIds()` — walks `previous_league_id` chain to discover past season IDs; caches in `tol_lids`
 
 ### Matchups / H2H
-- `fetchAllMatchups(leagueId, year)` — fetches all 17 weeks of matchups for a season; caches in `tol_matchups_{year}`
-- `buildH2HMap()` — builds all-time H2H record map from all cached matchup seasons; returns `h2h[ridA][ridB] = {w, l}`
-- `buildH2HForYear(year)` — same as `buildH2HMap()` but for a single season only
+- `fetchAllMatchups(leagueId, year)` — fetches all 17 weeks; caches in `tol_matchups_{year}`
+- `buildH2HMap()` — all-time H2H record map from all cached seasons; returns `h2h[ridA][ridB] = {w, l}`
+- `buildH2HForYear(year)` — same but single season
 
-### Scores Tab
-- `buildScores()` — entry point: checks if season is live (week > 0) or off-season
-- `renderScoresOffseason(c)` — shows 2025 final standings when no active season
-- `renderScoresWeek(container, week)` — renders matchup cards for a given week with all-time H2H records
-- `changeScoreWeek(week)` — nav handler for prev/next week buttons
-
-### Sidebar
-- `buildSidebar()` — populates `#team-list` from `RM` + `TEAMS`
-- `scrollToTeam(uid)` — switches to Rosters tab and smooth-scrolls to that team's card
-
-### Rosters
-- `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips; starters/bench/taxi/IR in separate sections
-
-### Scoring
-- `buildScoring()` — renders non-zero scoring values from `SDATA` into `#score-grid`
-
-### Rivalries
-- `buildRivalries()` — renders 6 rivalry cards with H2H records from 2025 forward; re-renders on every tab visit
-
-### Player Stats
-- `fetchPlayerStats(year)` — fetches all 17 weeks of stats for all current dynasty roster players; permanently caches in `tol_stats_{year}`
-- `fetchWeekStats(year, week)` — fetches stats for a single week; permanently caches in `tol_stats_wk_{year}_{week}`
-- `calcPts(stats, pos)` — calculates estimated fantasy points from raw stat object using `SDATA` scoring settings
-- `buildPlayerStats(year, posFilter)` — renders player stats table sorted by estimated points; shows raw stat columns and point total
-- `setStatsYear(year, el)` — switches active year, re-renders stats
-- `setStatsWeek(week, el)` — switches between season total and a specific week; re-renders stats
-- `setStatsPos(pos, el)` — switches position filter; re-renders stats
-- `showPlayerStats(playerId)` — shows detailed stat breakdown modal/view for a specific player
-
-### Transactions
-- `fetchTransactions(leagueId, year)` — fetches all completed transactions for a season; permanently caches past years
-- `buildTransactions(filter, year)` — renders filtered transaction list into `#txn-container`
-- `populateTxnTeamDropdown()` — fills `#txn-team-filter` select once on first visit
-- `setTxnTeam(value)` — updates `currentTxnTeam` and re-renders
-- `setTxnYear(year, el)` — switches active year, clears player search, re-renders
-- `setTxnFilter(type, el)` — switches type filter, re-renders
-- `onTxnPlayerSearch(val)` — debounced (350ms) input handler for player search
-- `runPlayerSearch(query)` — searches all seasons' transactions + draft history for a player; requires `cachedPlayers`
-- `renderTxnRow(tx)` — renders a waiver/free agent transaction row
-- `renderTxnTrade(tx, date)` — renders a two-sided trade card
-- `clearPlayerSearch()` — resets player search input and hides results
-
-### Draft
-- `buildDraft2026()` — renders 2026 draft order table; fetches traded picks from Sleeper to annotate traded slots. Draft is **linear** (same order every round, not snake). tradedFrom map keyed by `"round.roster_id"` → `owner_id` (current holder)
-- `renderDraft2026Board()` — renders 2026 draft order as a board (teams as columns); built once on demand
-- `setDraft26View(view, el)` — toggles list/board for 2026 draft
-- `buildDraftHistory(year)` — fetches and renders past draft results for 2023/2024/2025
-- `renderDraftPicks(container, picks, year)` — renders picks as a sortable list table
-- `renderDraftBoard(picks, year)` — renders picks as a board with teams as columns
-- `setDraftPastView(view, el)` — toggles list/board for past draft results
-- `setDraftYear(year, el)` — switches between 2026 order and past year results
-
-### Stats Banner
-- `buildLeaderStats()` — computes and renders all 7 header stats from `SEASON_HISTORY` + cached pick/transaction data; called at boot and after each background data fetch
+### Stats Banner (Perpetual Stats)
+- `buildLeaderStats()` — computes and renders all 7 perpetual stats from `SEASON_HISTORY` + cached pick/transaction data. Called at boot and after each background data fetch. Targets IDs inside `panel-careers`.
 
 ### Careers
-- `buildCareers()` — builds career earnings/placement table from `SEASON_HISTORY` for 2023–2025
+- `buildCareers()` — calls `buildLeaderStats()` to refresh pills, then builds the career earnings/placement table and per-season standings tables
+
+### Scores Tab
+- `buildScores()` — entry point: checks live vs off-season
+- `renderScoresOffseason(c)` — shows 2025 final standings
+- `renderScoresWeek(container, week)` — renders matchup cards with H2H records
+- `changeScoreWeek(week)` — prev/next week handler
+
+### Rosters
+- `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips
+
+### Rivalries
+- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit
+
+### Player Stats
+- `fetchPlayerStats(year)` / `fetchWeekStats(year, week)` — fetches and caches stat data
+- `calcPts(stats, pos)` — calculates fantasy points using `SDATA`
+- `buildPlayerStats(year, posFilter)` — renders stats table
+- `setStatsYear()`, `setStatsWeek()`, `setStatsPos()` — filter handlers
+
+### Transactions
+- `fetchTransactions(leagueId, year)` — fetches and permanently caches past transactions
+- `buildTransactions(filter, year)` — renders filtered list
+- `runPlayerSearch(query)` — searches all seasons + draft history for a player
+
+### Draft
+- `buildDraft2026()` — renders 2026 linear draft order (same order every round, not snake)
+- `buildDraftHistory(year)` — fetches and renders past draft results
 
 ### Tab Navigation
-- `showTab(tab, el)` — activates a tab + panel; triggers lazy-load functions on first visit
+- `showTab(tab, el)` — activates tab + panel; triggers lazy-load on first visit; toggles `body.is-home`; updates URL hash
 
 ### Trade Evaluator
-- `initTradeEval()` — lazy-init on first tab visit: populates team dropdowns, kicks off `fetchKTCValues()`
-- `fetchKTCValues()` — tries to fetch live KTC dynasty values via unofficial JSON endpoint + CORS proxy chain; falls back to `KTC_SNAPSHOT` if fetch fails or returns < 50 players; sets `_ktcSource` to `'live'` or `'snapshot'`
-- `getKTCValue(playerName)` — looks up player value from `_ktcValues` (live) or `KTC_SNAPSHOT` (fallback); fuzzy-matches on last name
-- `getPickValue(year, round)` — returns pick value from `KTC_PICK_VALUES`
-- `evaluateTrade()` — reads selected players/picks from both sides, computes value delta using KTC values, renders result card with winner/loser and value breakdown
-- `getTradeAI(giveUid, receiveUid)` — calls Claude API with team rosters + trade details for AI analysis; appended after `evaluateTrade()` result
-
-### AI Chat
-- `quickPrompt(key)` — fills `#ai-input` with a pre-set prompt from `QUICK_PROMPTS` and calls `sendAI()`
-- `clearChat()` — resets `aiMessages` and clears `#ai-history`
-- `addMsg(role, content)` — appends a message bubble to `#ai-history`; parses markdown bold/bullets for assistant messages
-- `sendAI()` — reads input, calls Anthropic API, renders response; injects `LEAGUE_CONTEXT` as preamble
+- `initTradeEval()` — lazy-init: populates team dropdowns, kicks off `fetchKTCValues()`
+- `fetchKTCValues()` — tries live KTC JSON; falls back to `KTC_SNAPSHOT` if < 50 players returned
+- `evaluateTrade()` — computes value delta using KTC values, renders result card
+- `getTradeAI(giveUid, receiveUid)` — calls Claude API with trade details
 
 ### Boot
-- `init()` — boot sequence: loads/caches rosters, builds leader stats, prefetches historical matchup/draft/transaction data in background, kicks off `buildScores()` and `buildDraft2026()`
+- `startCountdown()` — countdown timer to Sep 10, 2026 8:20 PM ET; ticks every 1s
+- `routeFromHash()` — reads `location.hash` on boot and navigates to matching tab
+- `init()` — boot sequence: loads/caches rosters, builds leader stats, prefetches historical data in background
 
 ---
 
@@ -254,100 +241,22 @@ The dashboard has 9 tabs rendered in `<div class="tabs">`. Each tab calls `showT
 ### `TEAMS` — static team registry
 ```javascript
 // user_id → { name, team, you, tier, note?, co? }
-const TEAMS = { ... };
 ```
-Tiers used: `'contender'`, `'mid'`, `'trader'`, `'champion'`. The `you: true` flag marks Matt Bova's team. `co` is set for co-owned teams.
+`you: true` marks Matt Bova's team. `co` is for co-owned teams.
 
-### `RM` — roster → owner mapping
+### `RM` / `RMR` — roster ↔ owner mapping
 ```javascript
-// roster_id (1–12, number key) → user_id string
-const RM = { 1: '721908735856967680', ... };
+const RM = { 1: '721908735856967680', ... };  // roster_id → user_id
+const RMR = {};  // user_id → roster_id (computed at boot)
 ```
 
-### `RMR` — reverse: owner → roster
-```javascript
-// user_id string → roster_id integer
-const RMR = {}; // computed from RM at boot
-```
-
-### `RIVALS` — rivalry pairs
-```javascript
-// Array of 6 pairs: { a: user_id, b: user_id }
-const RIVALS = [ ... ];
-```
-Rivalries started in 2025. H2H records computed from 2025 forward only.
-
-### `SEASON_HISTORY` — past season results
-```javascript
-// year → { buyin, pot, payouts: { user_id: dollars }, placements: [user_id], consolation_winner? }
-const SEASON_HISTORY = { 2023: {...}, 2024: {...}, 2025: {...} };
-```
-`placements` is ordered 1st through 12th. `payouts` only lists earners. Used by `buildLeaderStats()` and `buildCareers()`.
-
-### `SLABELS` — scoring key display names
-```javascript
-// scoring_key → human-readable label
-const SLABELS = { pass_td: 'Pass TD', ... };
-```
-
-### `SDATA` — scoring values
-```javascript
-// scoring_key → point value (float)
-const SDATA = { pass_td: 4.0, rec: 0.0, bonus_rec_te: 0.5, ... };
-```
-Only non-zero entries are rendered in the Scoring tab.
-
-### `DRAFT_ORDER_2026` — 2026 round 1 draft order
-```javascript
-// Array of 13 entries: { pick: '1.01', uid: user_id, how: string }
-const DRAFT_ORDER_2026 = [ ... ];
-```
-13 picks because pick 1.13 is the consolation winner's bonus pick (Nick Merkel). The 2026 draft is **linear** — rounds 2–4 repeat the same order as round 1 (not snake). Picks 1.09 = Chris Bova (4th place), 1.10 = Jake Bogardus (3rd place).
-
-### `KTC_SNAPSHOT` — hardcoded dynasty player values
-```javascript
-// player_name (lowercase) → integer value on KTC scale (~1–9999)
-// Snapshot taken April 2026 — update before 2026 season
-const KTC_SNAPSHOT = { ... };
-```
-Used as fallback when live KTC fetch fails. Comment in code warns to update before each season.
-
+### `RIVALS` — 6 rivalry pairs (started 2025)
+### `SEASON_HISTORY` — past season results (2023–2025)
+### `SDATA` / `SLABELS` — scoring values and display names
+### `DRAFT_ORDER_2026` — 2026 round 1 order (13 picks — includes consolation bonus pick 1.13)
+### `KTC_SNAPSHOT` — hardcoded dynasty player values (snapshot April 2026)
 ### `KTC_PICK_VALUES` — pick values by year + round
-```javascript
-// year → { round: value }
-const KTC_PICK_VALUES = { 2026: { 1: 2800, 2: 900, 3: 450, 4: 250 }, ... };
-```
-
-### `QUICK_PROMPTS` — AI quick prompt text
-```javascript
-// key → prompt string
-// Keys: 'draft', 'trade', 'roster', 'waiver', 'rivalry', 'tes', 'contenders', 'myteam'
-const QUICK_PROMPTS = { ... };
-```
-
-### `LEAGUE_CONTEXT` — AI system context string
-Static multi-line string injected as preamble in every AI conversation. Contains all 12 teams, scoring rules, history, rivalries, and 2027 rule change.
-
-### Runtime state variables
-```javascript
-let cachedRosters = null;    // Sleeper rosters array
-let cachedPlayers = null;    // Sleeper players object { player_id: {...} }
-let cachedLeague = null;     // Sleeper league object (current week etc.)
-let cachedLeagueIds = null;  // { 2025: id, 2024: id, 2023: id }
-let currentTxnYear = 2025;   // active year in Transactions tab
-let currentTxnFilter = 'all'; // active type filter in Transactions tab
-let currentTxnTeam = null;   // roster_id or null (team filter in Transactions tab)
-let currentStatsYear = 2025; // active year in Player Stats tab
-let currentStatsPos = 'all'; // active position filter in Player Stats tab
-let currentStatsWeek = 'season'; // active week in Player Stats tab ('season' or 1–17)
-let currentScoresYear = 2025; // active year in Scores tab
-let currentScoresWeek = 1;   // active week in Scores tab
-let _draftPicks = null;      // picks for the currently loaded past draft year (board view)
-let _tradeInit = false;      // trade evaluator tab has been initialized
-let _ktcValues = null;       // live KTC values if fetch succeeds; null = use snapshot
-let _ktcSource = 'snapshot'; // 'live' or 'snapshot'
-let aiMessages = [];         // running AI conversation history
-```
+### `LEAGUE_CONTEXT` — static context string injected into AI calls
 
 ---
 
@@ -355,53 +264,125 @@ let aiMessages = [];         // running AI conversation history
 
 | Key | TTL | Contents |
 |-----|-----|----------|
-| `tol_cache_v2` | 6h | Current season rosters (only current season) |
-| `tol_theme` | permanent | User theme preference (`'dark'` or `'light'`) |
-| `tol_lids` | permanent | Past league IDs `{ 2025: id, 2024: id, 2023: id }` |
-| `tol_matchups_{year}` | permanent | All 17 weeks of matchup data for that season |
-| `tol_txn_{year}` | permanent | All completed transactions for that season |
-| `tol_drafts_{year}` | permanent | All draft picks for that season |
-| `tol_stats_{year}` | permanent | Season stats for all dynasty roster players (aggregated from 17 weeks) |
-| `tol_stats_wk_{year}_{week}` | permanent | Single-week stats for a specific year + week |
+| `tol_cache_v2` | 6h | Current season rosters |
+| `tol_theme` | permanent | User theme preference |
+| `tol_lids` | permanent | Past league IDs |
+| `tol_matchups_{year}` | permanent | All 17 weeks of matchup data |
+| `tol_txn_{year}` | permanent | All completed transactions |
+| `tol_drafts_{year}` | permanent | All draft picks |
+| `tol_stats_{year}` | permanent | Season stats aggregated from 17 weeks |
+| `tol_stats_wk_{year}_{week}` | permanent | Single-week stats |
+
+---
+
+## VISUAL THEME — Retro Neon Sports Broadcast
+
+Aesthetic: late-90s ESPN2 / NFL Blitz / neon arcade sports. Dark UI with neon glow accents.
+
+### Color Palette
+
+| Role | Variable | Value |
+|------|----------|-------|
+| Primary accent | `--accent` | `#16E0D6` Electric Teal |
+| Secondary accent | `--accent2` | `#7B2EFF` Neon Purple |
+| Tertiary accent | `--accent3` | `#FF4FD8` Hot Pink |
+| Dark background | `--bg` | `#0B1020` |
+| Panel surface | `--surface` | `#111827` Deep Navy |
+| Card background | `--card` | `#151B2F` |
+| Borders | `--border` | `#253652` |
+| Body text | `--text` | `#F9FAFB` Soft White |
+| Secondary text | `--text2` | `#c4d4e8` |
+| Muted text | `--muted` | `#aabdcf` (brightened — was `#8aa0be`) |
+
+### Typography System
+
+Three-level hierarchy — **no DM Mono for anything the user sees in main content**:
+
+| Use Case | Font | Notes |
+|----------|------|-------|
+| Section titles, stat values | **Bebas Neue** | All-caps display, sporty |
+| Display labels (stat pill labels, rivalry record labels, badge text) | **Bebas Neue** | Larger sizes (11–14px) with letter-spacing |
+| Nav tab labels | **DM Sans 700** | Bold uppercase, `letter-spacing: .14em` — Bebas Neue was too condensed |
+| Body text, table cells, player chips, buttons, form elements | **DM Sans** | Clean, readable |
+| Code/timestamps/KTC values (intentional monospace) | **DM Mono** | Used sparingly; never in main content areas |
+
+### Pink Usage (accent3 `#FF4FD8`)
+Pink should be prominent throughout dark mode. Currently pink is used on:
+- Stat pill labels (PAST CHAMPIONS, HIGHEST CAREER EARNINGS, etc.)
+- All table headers (`.dtbl th`, `.career-tbl th`) with glow
+- Section subtitles (`.sec-sub`)
+- Fun-card labels (`.fun-label`)
+- Section row labels (`.sec-row-label`)
+- Rivalry card record totals and labels
+- Rivalry card top border accent stripe
+- Scores tab H2H strip at bottom of each matchup card
+- "Open in Sleeper" link in header
+
+### Teal Usage (accent `#16E0D6`)
+- Active nav tab bottom border and label
+- Winning team left border stripe on matchup cards
+- Leading score highlight
+- Primary interactive hover states
+
+### Glow System
+All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and the `TYPOGRAPHY OVERHAUL` block near the end of `<style>`. Scoped to `[data-theme="dark"]`. Pattern: `text-shadow: 0 0 Xpx rgba(R,G,B,0.Y)`. Keep values subtle.
+
+### Logo Files (wired in)
+- `TOL Large Logo.png` — sticky header (52px tall) and home panel hero (max 420px)
+- `TOL Small Logo.png` — available if needed
+- `TOL Abbreviated Icon.png` — favicon + iOS add-to-homescreen icon
+
+### PWA / Mobile
+```html
+<link rel="icon" type="image/png" href="TOL Abbreviated Icon.png">
+<link rel="apple-touch-icon" href="TOL Abbreviated Icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Other League">
+<meta name="theme-color" content="#0B1020">
+```
 
 ---
 
 ## KEY DESIGN DECISIONS (don't change without asking)
 
-- **Non-PPR scoring** with TE premium (+0.5/rec) and distance bonuses — this affects all AI analysis context
-- **Dark/light theme toggle** — persists via `localStorage`
-- **LocalStorage caching** — Sleeper data cached for 6 hours to reduce API calls; cache key is `tol_cache_v2`
-- **CORS fallback chain** — always try direct fetch first, then two proxy fallbacks
-- **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red. Sections labeled separately (Starters / Bench / Taxi / IR)
-- **Rivalries computed from 2025 forward** — pre-2025 matchups not included in rivalry records
-- **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1 (worst-to-best finish every round)
+- **Non-PPR scoring** with TE premium (+0.5/rec) and distance bonuses
+- **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
+- **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent
+- **CORS fallback chain** — direct → corsproxy.io → allorigins.win; never remove
+- **Single-file architecture** — all HTML, CSS, JS in `the-other-league-FINAL.html`
+- **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red
+- **Rivalries from 2025 forward only** — pre-2025 matchups excluded from rivalry records
+- **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1
+- **Sidebar is permanently hidden** — `display: none !important`. `scrollToTeam()` and `buildSidebar()` exist in JS but sidebar is not visible.
+- **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
+- **Perpetual stats live in `panel-careers`** — the `.career-status-bar` inside `panel-careers` holds the stat pills. They are populated by `buildLeaderStats()` which is called at boot and after each background fetch.
+- **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
+- **"Ask Claude" tab removed from UI** — the panel and icon tab are gone, but the underlying JS (`sendAI`, `addMsg`, etc.) must remain because `getTradeAI()` calls them
 
 ---
 
-## LEAGUE CONTEXT SUMMARY (for AI features)
+## LEAGUE CONTEXT SUMMARY
 
-- 12 teams, dynasty format, ~Year 4
-- Commissioner/user: Matt Bova — team "Show Me Your Penix" (mid-tier, between contender and rebuild)
+- 12 teams, dynasty format, Year 4 (2026 upcoming)
+- Commissioner: Matt Bova — team "Show Me Your Penix"
 - 2025 Champion: Jake Blackwell ("Nacua Matata") — gets pick 1.12
 - 2025 Consolation: Nick Merkel ("Breeces Peanut ButterCups") — gets pick 1.13
-- Contenders: Chris Bova, Jake Bogardus
-- Active traders (best trade partners): Chris Merkel, Nick Merkel
-- 2027 rule change already voted in: 1 WRRB_FLEX → WR/RB/TE FLEX (increases TE value significantly)
-- Full context available in: `the-other-league-context.md`
-
----
-
-## BACKLOG / NOT YET BUILT
-
-- Post-playoff full bracket view (currently only regular-season final standings shown in Scores tab)
-- Live roster data passed into Claude API calls (currently only static `LEAGUE_CONTEXT` string is injected)
+- Contenders: Chris Bova ("Titsburg Feelers"), Jake Bogardus ("BoKnows723")
+- Active traders: Chris Merkel, Nick Merkel
+- 2027 rule change voted in: 1 WRRB_FLEX → WR/RB/TE FLEX (increases TE value)
+- Full context in: `the-other-league-context.md`
 
 ---
 
 ## WHAT NOT TO DO
 
-- Do not introduce React, Vue, npm, or any build tool without explicit discussion first
+- Do not introduce React, Vue, npm, or any build tool
 - Do not break the single-file structure
-- Do not remove the CORS fallback chain from API calls
-- Do not use `localStorage` for anything sensitive (API keys, personal data)
-- Do not rewrite large sections of working code to fix a small issue — patch surgically
+- Do not remove the CORS fallback chain
+- Do not delete `sendAI()`, `addMsg()`, `clearChat()`, `aiMessages`, or `LEAGUE_CONTEXT` — they are used by `getTradeAI()` in the Trade Evaluator
+- Do not remove the `.cache-bar` DOM or its child IDs — they are used programmatically by `setCacheBar()` and `refreshData()`
+- Do not revert to the old lime-green/blue/orange palette
+- Do not use DM Mono for main content — it belongs only for intentional code/timestamp contexts
+- Do not add the consolation winner card back to the home panel
+- Do not add the sidebar back without explicit request

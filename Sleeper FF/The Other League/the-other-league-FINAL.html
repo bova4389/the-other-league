@@ -3,44 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Other League — Dynasty Dashboard</title>
+<title>The Other League</title>
+<link rel="icon" type="image/png" href="TOL Abbreviated Icon.png">
+<link rel="apple-touch-icon" href="TOL Abbreviated Icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Other League">
+<meta name="theme-color" content="#0B1020">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 [data-theme="dark"] {
-  --bg:#0d0d14; --surface:#13131e; --card:#181826; --border:#26263a;
-  --accent:#b8f040; --accent2:#40b8f0; --accent3:#f07040;
-  --text:#eeeef8; --text2:#9090b0; --muted:#505068;
-  --win:#40d080; --loss:#f04040;
-  --chip-s-bg:rgba(184,240,64,0.13); --chip-s-fg:#b8f040;
-  --chip-t-bg:rgba(64,184,240,0.13); --chip-t-fg:#40b8f0;
-  --chip-ir-bg:rgba(240,112,64,0.13); --chip-ir-fg:#f07040;
-  --tag-you-bg:rgba(64,184,240,0.15); --tag-you-fg:#40b8f0;
-  --tag-str-bg:rgba(184,240,64,0.15); --tag-str-fg:#b8f040;
-  --tag-trd-bg:rgba(240,112,64,0.15); --tag-trd-fg:#f07040;
-  --note-bg:rgba(184,240,64,0.05); --note-bdr:#b8f040;
-  --shadow:0 2px 16px rgba(0,0,0,0.5);
-  --ai-bg:rgba(184,240,64,0.04); --ai-border:rgba(184,240,64,0.2);
-  --ai-resp-bg:#0f1a00; --ai-resp-border:rgba(184,240,64,0.3);
+  --bg:#0B1020; --surface:#111827; --card:#151B2F; --border:#253652;
+  --accent:#16E0D6; --accent2:#7B2EFF; --accent3:#FF4FD8;
+  --text:#F9FAFB; --text2:#c4d4e8; --muted:#8aa0be;
+  --win:#4ade80; --loss:#f87171;
+  --chip-s-bg:rgba(22,224,214,0.16); --chip-s-fg:#16E0D6;
+  --chip-t-bg:rgba(123,46,255,0.16); --chip-t-fg:#a78bfa;
+  --chip-ir-bg:rgba(255,79,216,0.16); --chip-ir-fg:#FF4FD8;
+  --tag-you-bg:rgba(123,46,255,0.2); --tag-you-fg:#c4b5fd;
+  --tag-str-bg:rgba(22,224,214,0.16); --tag-str-fg:#16E0D6;
+  --tag-trd-bg:rgba(255,79,216,0.16); --tag-trd-fg:#FF4FD8;
+  --note-bg:rgba(22,224,214,0.06); --note-bdr:#16E0D6;
+  --shadow:0 4px 24px rgba(0,0,0,0.7);
+  --ai-bg:rgba(22,224,214,0.06); --ai-border:rgba(22,224,214,0.25);
+  --ai-resp-bg:#0a1628; --ai-resp-border:rgba(22,224,214,0.35);
   --pos-qb:#c084fc; --pos-rb:#4ade80; --pos-wr:#60a5fa;
   --pos-te:#fb923c; --pos-k:#94a3b8; --pos-def:#f87171;
 }
 [data-theme="light"] {
-  --bg:#e6e6f0; --surface:#ffffff; --card:#ffffff; --border:#b0b0c8;
-  --accent:#336000; --accent2:#0044bb; --accent3:#b83800;
-  --text:#06060f; --text2:#252540; --muted:#525268;
-  --win:#004d20; --loss:#980000;
-  --chip-s-bg:rgba(51,96,0,0.11); --chip-s-fg:#284d00;
-  --chip-t-bg:rgba(0,68,187,0.11); --chip-t-fg:#003399;
-  --chip-ir-bg:rgba(184,56,0,0.11); --chip-ir-fg:#7a2400;
-  --tag-you-bg:rgba(0,68,187,0.1); --tag-you-fg:#003399;
-  --tag-str-bg:rgba(51,96,0,0.1); --tag-str-fg:#284d00;
-  --tag-trd-bg:rgba(184,56,0,0.1); --tag-trd-fg:#7a2400;
-  --note-bg:rgba(51,96,0,0.07); --note-bdr:#336000;
-  --shadow:0 2px 14px rgba(0,0,0,0.14);
-  --ai-bg:rgba(51,96,0,0.05); --ai-border:rgba(51,96,0,0.28);
-  --ai-resp-bg:#f2fbea; --ai-resp-border:rgba(51,96,0,0.38);
-  --pos-qb:#7c22d4; --pos-rb:#0f7a30; --pos-wr:#1a4fd6;
-  --pos-te:#c43c00; --pos-k:#4a5870; --pos-def:#b81414;
+  --bg:#e8eaf0; --surface:#ffffff; --card:#f4f5f8; --border:#c5cce0;
+  --accent:#0891b2; --accent2:#6d28d9; --accent3:#be185d;
+  --text:#0f172a; --text2:#334155; --muted:#64748b;
+  --win:#059669; --loss:#dc2626;
+  --chip-s-bg:rgba(8,145,178,0.1); --chip-s-fg:#0891b2;
+  --chip-t-bg:rgba(109,40,217,0.1); --chip-t-fg:#6d28d9;
+  --chip-ir-bg:rgba(190,24,93,0.1); --chip-ir-fg:#be185d;
+  --tag-you-bg:rgba(109,40,217,0.1); --tag-you-fg:#6d28d9;
+  --tag-str-bg:rgba(8,145,178,0.1); --tag-str-fg:#0891b2;
+  --tag-trd-bg:rgba(190,24,93,0.1); --tag-trd-fg:#be185d;
+  --note-bg:rgba(8,145,178,0.06); --note-bdr:#0891b2;
+  --shadow:0 2px 14px rgba(0,0,0,0.12);
+  --ai-bg:rgba(8,145,178,0.05); --ai-border:rgba(8,145,178,0.25);
+  --ai-resp-bg:#f0f9ff; --ai-resp-border:rgba(8,145,178,0.35);
+  --pos-qb:#7c3aed; --pos-rb:#15803d; --pos-wr:#1d4ed8;
+  --pos-te:#c2410c; --pos-k:#475569; --pos-def:#dc2626;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;transition:background .2s,color .2s;}
@@ -61,6 +67,9 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .sleeper-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 28px;display:flex;align-items:center;}
 .sleeper-link{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;opacity:.8;transition:opacity .15s;}
 .sleeper-link:hover{opacity:1;}
+.hdr-sleeper-link{border:1px solid var(--border);border-radius:20px;padding:5px 13px;color:var(--accent3);transition:all .2s;}
+.hdr-sleeper-link:hover{border-color:var(--accent3);opacity:1;}
+[data-theme="dark"] .hdr-sleeper-link{text-shadow:0 0 10px rgba(255,79,216,0.4);}
 .cache-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 28px;display:flex;align-items:center;gap:14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex-wrap:wrap;}
 .cache-bar .cb-status{display:flex;align-items:center;gap:6px;}
 .cache-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
@@ -83,7 +92,8 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 
 /* LAYOUT */
 .main{display:flex;min-height:calc(100vh - 180px);}
-.sidebar{width:220px;min-width:220px;border-right:1px solid var(--border);background:var(--surface);padding:12px 0;overflow-y:auto;}
+.sidebar{display:none !important;}
+
 .content{flex:1;padding:20px 24px;overflow-x:auto;min-width:0;}
 
 /* SIDEBAR */
@@ -255,7 +265,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .match-card{background:var(--card);border:1px solid var(--border);overflow:hidden;transition:border-color .2s;}
 .match-card:hover{border-color:var(--muted);}
 .match-side{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .15s;}
-.match-side.winner{background:rgba(184,240,64,0.04);}
+.match-side.winner{background:rgba(22,224,214,0.04);}
 .match-side+.match-side{border-top:1px solid var(--border);}
 .match-tm{flex:1;min-width:0;}
 .match-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -280,10 +290,10 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .txn-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
 .txn-date{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
 .txn-badge{font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:2px;text-transform:uppercase;letter-spacing:.07em;}
-.txn-add{background:rgba(184,240,64,0.12);color:var(--accent);}
-.txn-drop{background:rgba(240,112,64,0.12);color:var(--accent3);}
-.txn-waiver{background:rgba(64,184,240,0.12);color:var(--accent2);}
-.txn-trade-b{background:rgba(240,112,64,0.12);color:var(--accent3);}
+.txn-add{background:rgba(22,224,214,0.12);color:var(--accent);}
+.txn-drop{background:rgba(255,79,216,0.12);color:var(--accent3);}
+.txn-waiver{background:rgba(123,46,255,0.12);color:var(--accent2);}
+.txn-trade-b{background:rgba(255,79,216,0.12);color:var(--accent3);}
 .txn-team{font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .txn-detail{font-size:11px;color:var(--text2);line-height:1.6;}
 
@@ -330,7 +340,7 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .ai-wrap{max-width:860px;}
 .ai-prompt-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
 .ai-btn{background:var(--ai-bg);border:1px solid var(--ai-border);color:var(--accent2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:8px 14px;cursor:pointer;border-radius:2px;transition:all .15s;}
-.ai-btn:hover{background:rgba(64,184,240,0.12);border-color:var(--accent2);}
+.ai-btn:hover{background:rgba(123,46,255,0.12);border-color:var(--accent2);}
 .ai-btn:disabled{opacity:.4;cursor:not-allowed;}
 .ai-input-row{display:flex;gap:8px;margin-bottom:20px;}
 .ai-input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;border-radius:2px;transition:border-color .15s;}
@@ -356,38 +366,717 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
 .ai-context-note{background:var(--ai-bg);border:1px solid var(--ai-border);padding:10px 14px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);line-height:1.6;}
 
 @media(max-width:680px){.sidebar{display:none;}.content{padding:14px;}.status{overflow-x:auto;-webkit-overflow-scrolling:touch;}.s-pill{padding:8px 10px;}.cache-bar{padding:6px 14px;}}
+
+/* ══════════════════════════════════════════════
+   RETRO NEON SPORTS THEME — ENHANCEMENTS
+   Electric Teal #16E0D6 · Neon Purple #7B2EFF
+   Hot Pink #FF4FD8 · Deep Navy #0B1020
+   ══════════════════════════════════════════════ */
+
+/* Background ambient glow */
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(22,224,214,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 30% at 80% 100%, rgba(123,46,255,0.03) 0%, transparent 50%);
+}
+
+/* Header — sports broadcast bar */
+[data-theme="dark"] header {
+  background: linear-gradient(135deg, #111827 0%, rgba(123,46,255,0.07) 100%);
+  border-bottom: 1px solid rgba(22,224,214,0.35);
+  box-shadow: 0 0 30px rgba(22,224,214,0.07), 0 2px 16px rgba(0,0,0,0.6);
+}
+
+/* Title neon glow */
+[data-theme="dark"] .lg-title { text-shadow: 0 0 40px rgba(22,224,214,0.18); }
+[data-theme="dark"] .lg-title em { text-shadow: 0 0 20px rgba(22,224,214,0.55); }
+
+/* Header divider gradient line */
+[data-theme="dark"] header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(22,224,214,0.5) 30%, rgba(123,46,255,0.5) 70%, transparent 100%);
+  pointer-events: none;
+}
+header { position: relative; }
+
+/* Cache dot glows */
+.cache-dot.live   { box-shadow: 0 0 6px var(--win); }
+.cache-dot.cached { box-shadow: 0 0 6px var(--accent2); }
+
+/* Stat pill accent number glow */
+[data-theme="dark"] .s-pill .sv { text-shadow: 0 0 14px rgba(22,224,214,0.35); }
+
+/* Tabs */
+[data-theme="dark"] .tab:hover       { color: var(--text); text-shadow: 0 0 10px rgba(22,224,214,0.3); }
+[data-theme="dark"] .tab.active      { text-shadow: 0 0 12px rgba(22,224,214,0.45); }
+[data-theme="dark"] .tab.ai-tab.active { text-shadow: 0 0 12px rgba(123,46,255,0.55); }
+
+/* Sidebar hover */
+[data-theme="dark"] .t-item:hover { background: rgba(22,224,214,0.04); border-left-color: var(--accent); }
+
+/* Button glows */
+[data-theme="dark"] .toggle-btn:hover      { border-color: var(--accent); box-shadow: 0 0 16px rgba(22,224,214,0.22); }
+[data-theme="dark"] .refresh-btn:hover     { box-shadow: 0 0 14px rgba(22,224,214,0.22); }
+[data-theme="dark"] .wk-btn:hover          { box-shadow: 0 0 14px rgba(22,224,214,0.22); }
+[data-theme="dark"] .yr-btn.active         { box-shadow: 0 0 16px rgba(22,224,214,0.3); }
+[data-theme="dark"] .f-pill.active         { box-shadow: 0 0 16px rgba(123,46,255,0.32); }
+[data-theme="dark"] .trade-eval-btn:hover  { opacity: 1; box-shadow: 0 0 20px rgba(22,224,214,0.38); }
+[data-theme="dark"] .ai-btn:hover          { box-shadow: 0 0 14px rgba(123,46,255,0.3); }
+[data-theme="dark"] .ai-send:hover         { opacity: 1; box-shadow: 0 0 18px rgba(123,46,255,0.38); }
+[data-theme="dark"] .ai-input:focus        { border-color: var(--accent2); box-shadow: 0 0 12px rgba(123,46,255,0.2); }
+
+/* Card hover glows */
+[data-theme="dark"] .r-card:hover     { border-color: rgba(22,224,214,0.45); box-shadow: 0 0 22px rgba(22,224,214,0.09), var(--shadow); }
+[data-theme="dark"] .r-card.is-you    { border-color: var(--accent2); box-shadow: 0 0 22px rgba(123,46,255,0.15), var(--shadow); }
+[data-theme="dark"] .match-card:hover { border-color: rgba(22,224,214,0.4); box-shadow: 0 0 18px rgba(22,224,214,0.08); }
+[data-theme="dark"] .riv-card:hover   { border-color: rgba(255,79,216,0.5); box-shadow: 0 0 20px rgba(255,79,216,0.1), var(--shadow); }
+[data-theme="dark"] .fun-card:hover   { border-color: rgba(22,224,214,0.4); box-shadow: 0 0 16px rgba(22,224,214,0.08); }
+
+/* Scores & scores numbers */
+[data-theme="dark"] .wk-label        { text-shadow: 0 0 18px rgba(22,224,214,0.4); }
+[data-theme="dark"] .match-pts.leading { text-shadow: 0 0 14px rgba(22,224,214,0.4); }
+[data-theme="dark"] .match-side.winner { background: rgba(22,224,214,0.08); border-left: 3px solid var(--accent); }
+
+/* Rivalries VS badge */
+[data-theme="dark"] .vs-b { text-shadow: 0 0 14px rgba(255,79,216,0.55); }
+
+/* Careers fun cards */
+[data-theme="dark"] .fun-val { text-shadow: 0 0 12px rgba(22,224,214,0.3); }
+
+/* Section title subtle glow */
+[data-theme="dark"] .sec-title { text-shadow: 0 0 24px rgba(22,224,214,0.12); }
+
+/* Spinner glow */
+[data-theme="dark"] .spin { box-shadow: 0 0 10px rgba(22,224,214,0.2); }
+
+/* AI response label glow */
+[data-theme="dark"] .ai-msg.assistant::before { text-shadow: 0 0 8px rgba(22,224,214,0.4); }
+
+/* Rounded corners for that modern-retro card feel */
+.r-card,.match-card,.riv-card,.fun-card,.ic { border-radius: 4px; }
+.trade-panel-box,.trade-verdict,.trade-ai-box { border-radius: 4px; }
+.txn-row,.trade-card { border-radius: 3px; }
+
+@keyframes glow-pulse { 0%,100%{opacity:1} 50%{opacity:.65} }
+@keyframes countdown-tick { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
+
+/* ── HOME-ONLY LAYOUT: hide sidebar, utility bars, stat pills ── */
+body.is-home .sidebar { display: none !important; }
+body.is-home .status { display: none !important; }
+body.is-home .sleeper-bar { display: none !important; }
+body.is-home .cache-bar { display: none !important; }
+body.is-home .main { display: block !important; }
+body.is-home .content { padding: 0 !important; }
+body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 auto; }
+
+/* Champion card — centered column */
+.champ-card {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.champ-detail-row { justify-content: center; }
+
+/* Commissioner info row under champion */
+.home-league-meta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+.hlm-item {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 6px 16px;
+  border-radius: 3px;
+}
+.hlm-item span { color: var(--accent2); font-weight: 500; }
+
+/* Home nav grid — bigger, more impactful */
+.home-nav-grid {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 36px;
+}
+.home-nav-card { padding: 20px 14px; }
+.hnc-icon { font-size: 26px; margin-bottom: 8px; }
+.hnc-label { font-size: 10px; letter-spacing: .16em; }
+
+/* ── STICKY SHELL ── */
+.sticky-shell { position: sticky; top: 0; z-index: 100; }
+[data-theme="dark"] .sticky-shell { box-shadow: 0 4px 30px rgba(0,0,0,0.8); }
+
+/* ── HEADER LOGO ── */
+.hdr-logo { height: 52px; width: auto; object-fit: contain; display: block; }
+@media(max-width:680px){ .hdr-logo { height: 36px; } }
+
+/* ── TAB-BAR (sticky nav) ── */
+.tab-bar { background: var(--surface); overflow: hidden; }
+[data-theme="dark"] .tab-bar { border-bottom: 2px solid rgba(22,224,214,0.5); }
+[data-theme="light"] .tab-bar { border-bottom: 2px solid var(--accent); }
+.tab-bar .tabs { margin-bottom: 0; border-bottom: none; padding: 0 16px; }
+
+/* ── COLOR POP FIXES: body text brightening ── */
+/* Make general text2 instances pop more */
+.dtbl td { color: var(--text2); }
+.txn-team { font-size: 11px; font-weight: 600; color: var(--text); }
+.match-name { color: var(--text); font-weight: 600; }
+.rv-n { font-weight: 600; color: var(--text); }
+/* Sidebar team names */
+.ti-n { font-weight: 600; }
+/* Status pill labels — bold hot pink */
+.s-pill .sl { font-weight: 700; }
+[data-theme="dark"] .s-pill .sl { color: var(--accent3); opacity: 1; text-shadow: 0 0 10px rgba(255,79,216,0.4); }
+/* Table header colors overridden in the Typography Overhaul block below */
+/* Stronger background gradient for more color presence */
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(22,224,214,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 40% at 80% 100%, rgba(123,46,255,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 30% at 0% 50%, rgba(255,79,216,0.03) 0%, transparent 50%);
+}
+/* Accent separator bar under header — stronger */
+[data-theme="dark"] header::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(22,224,214,0.7) 25%, rgba(123,46,255,0.7) 75%, transparent 100%);
+}
+/* Border on cards slightly visible in dark mode */
+[data-theme="dark"] .r-card { border-color: #2d4070; }
+[data-theme="dark"] .ic { border-color: #2d4070; }
+[data-theme="dark"] .fun-card { border-color: #2d4070; }
+[data-theme="dark"] .match-card { border-color: #2d4070; }
+[data-theme="dark"] .riv-card { border-color: #2d4070; }
+
+/* ── HOME PANEL ── */
+.home-wrap { max-width: 900px; margin: 0 auto; padding: 0 4px; }
+
+/* Hero logo section */
+.home-hero {
+  text-align: center;
+  padding: 40px 20px 28px;
+  position: relative;
+}
+.home-hero-logo {
+  max-width: 420px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 16px;
+  filter: drop-shadow(0 0 24px rgba(22,224,214,0.35));
+}
+[data-theme="light"] .home-hero-logo { filter: none; }
+.home-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  opacity: .8;
+}
+
+/* Countdown */
+.home-countdown {
+  background: var(--card);
+  border: 1px solid rgba(22,224,214,0.35);
+  border-radius: 6px;
+  padding: 24px 28px;
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="dark"] .home-countdown {
+  background: linear-gradient(135deg, #151B2F 0%, rgba(22,224,214,0.04) 100%);
+  box-shadow: 0 0 30px rgba(22,224,214,0.08), inset 0 0 60px rgba(22,224,214,0.02);
+}
+.home-countdown::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent3));
+}
+.cd-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.cd-label span { color: var(--accent); }
+.cd-timer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cd-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+}
+.cd-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(42px, 8vw, 72px);
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: .04em;
+}
+[data-theme="dark"] .cd-num { text-shadow: 0 0 20px rgba(22,224,214,0.5); }
+.cd-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.cd-sep {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(36px, 6vw, 56px);
+  color: var(--accent2);
+  line-height: 1.1;
+  opacity: .7;
+  align-self: flex-start;
+  padding-top: 4px;
+}
+[data-theme="dark"] .cd-sep { text-shadow: 0 0 10px rgba(123,46,255,0.5); }
+.cd-live {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--win);
+  letter-spacing: .08em;
+}
+[data-theme="dark"] .cd-live { text-shadow: 0 0 20px rgba(74,222,128,0.5); }
+.cd-subline {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--accent3);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  margin-top: 14px;
+  opacity: .9;
+}
+[data-theme="dark"] .cd-subline { text-shadow: 0 0 10px rgba(255,79,216,0.3); }
+
+/* 2025 Champion card */
+.home-section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: .1em;
+  color: var(--text2);
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.home-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 20px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+[data-theme="dark"] .home-section-title { color: var(--text2); }
+
+.champ-card {
+  background: var(--card);
+  border: 1px solid rgba(22,224,214,0.3);
+  border-radius: 6px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="dark"] .champ-card {
+  background: linear-gradient(135deg, #151B2F 0%, rgba(22,224,214,0.05) 100%);
+  box-shadow: 0 0 30px rgba(22,224,214,0.07);
+}
+.champ-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.champ-belt {
+  font-size: 52px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(22,224,214,0.3));
+}
+.champ-info { flex: 1; }
+.champ-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 5vw, 44px);
+  letter-spacing: .05em;
+  color: var(--text);
+  line-height: 1;
+}
+[data-theme="dark"] .champ-name { text-shadow: 0 0 20px rgba(22,224,214,0.2); }
+.champ-team {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  margin: 4px 0 8px;
+  letter-spacing: .04em;
+}
+[data-theme="dark"] .champ-team { text-shadow: 0 0 10px rgba(22,224,214,0.35); }
+.champ-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.champ-detail {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+.champ-consolation {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.cons-icon { font-size: 24px; }
+.cons-info .cons-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: .05em;
+  color: var(--text);
+}
+.cons-info .cons-team {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  margin-top: 2px;
+}
+
+/* Home quick-nav grid */
+.home-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 32px;
+}
+.home-nav-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 14px;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+}
+.home-nav-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+[data-theme="dark"] .home-nav-card:hover { box-shadow: 0 0 20px rgba(22,224,214,0.12); }
+.hnc-icon { font-size: 22px; margin-bottom: 6px; }
+.hnc-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--text2);
+}
+@media(max-width:680px){
+  .home-hero { padding: 24px 12px 16px; }
+  .home-hero-logo { max-width: 280px; }
+  .home-countdown { padding: 16px; }
+  .champ-card { flex-direction: column; text-align: center; gap: 12px; }
+  .champ-detail-row { justify-content: center; }
+}
+
+/* ── ICON NAV (replaces text tabs) ── */
+.icon-nav {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--surface);
+}
+.icon-nav::-webkit-scrollbar { display: none; }
+[data-theme="dark"] .icon-nav { border-bottom: 2px solid rgba(22,224,214,0.45); }
+[data-theme="light"] .icon-nav { border-bottom: 2px solid var(--accent); }
+
+.icon-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all .18s;
+  flex: 1;
+  min-width: 68px;
+  max-width: 108px;
+  user-select: none;
+}
+.icon-tab:hover { background: rgba(22,224,214,0.05); }
+.icon-tab.active { border-bottom-color: var(--accent); background: rgba(22,224,214,0.04); }
+[data-theme="dark"] .icon-tab:hover .itab-label { color: var(--text2); }
+
+.itab-icon { font-size: 18px; line-height: 1; }
+.itab-label {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color .18s;
+}
+.icon-tab.active .itab-label { color: var(--accent); }
+[data-theme="dark"] .icon-tab.active .itab-label { text-shadow: 0 0 8px rgba(22,224,214,0.5); }
+.nav-refresh-btn { border-left: 1px solid var(--border); flex: 0 0 auto; min-width: 52px; max-width: 68px; }
+.nav-refresh-btn .itab-icon { color: var(--muted); transition: color .18s; }
+.nav-refresh-btn:hover .itab-icon { color: var(--accent); }
+.nav-refresh-btn:hover .itab-label { color: var(--accent); }
+/* Career leaders bar inside panel */
+.career-status-bar { margin: 12px -24px 24px; border-top: 1px solid var(--border); border-radius: 0; }
+[data-theme="dark"] .icon-tab.active { box-shadow: inset 0 -2px 12px rgba(22,224,214,0.08); }
+
+/* Logo as home link */
+.hdr-logo-link { cursor: pointer; display: block; line-height: 0; }
+
+/* Home hero — brighter extended glow */
+.home-hero { position: relative; }
+[data-theme="dark"] .home-hero::before {
+  content: '';
+  position: absolute;
+  inset: -40px -60px;
+  background: radial-gradient(ellipse 75% 90% at 50% 50%,
+    rgba(22,224,214,0.18) 0%,
+    rgba(123,46,255,0.12) 40%,
+    rgba(255,79,216,0.06) 65%,
+    transparent 80%);
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 0;
+}
+[data-theme="dark"] .home-hero > * { position: relative; z-index: 1; }
+[data-theme="dark"] .home-hero-logo {
+  filter:
+    drop-shadow(0 0 24px rgba(22,224,214,0.65))
+    drop-shadow(0 0 60px rgba(123,46,255,0.35))
+    drop-shadow(0 0 100px rgba(255,79,216,0.2));
+}
+
+@media(max-width:680px){
+  .icon-tab { padding: 8px 10px; min-width: 54px; }
+  .itab-icon { font-size: 16px; }
+  .itab-label { font-size: 9px; }
+}
+
+/* ══════════════════════════════════════════════
+   TYPOGRAPHY OVERHAUL — 90s Sports Aesthetic
+   Replace DM Mono (code/digit look) throughout
+   ══════════════════════════════════════════════ */
+
+/* Labels → Bebas Neue (sporty, not computer terminal) */
+.s-pill .sl   { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .07em; }
+.fun-label    { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: .07em; }
+.trade-sec-lbl{ font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: .07em; }
+.sb-label     { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .07em; }
+.itab-label   { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: .14em; }
+.bdg          { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .05em; }
+
+/* Section subtitle → DM Sans, readable sentence-case */
+.sec-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+           text-transform: uppercase; letter-spacing: .05em; }
+
+/* Table headers → Bebas Neue, bigger, pink */
+.dtbl th      { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: .06em; padding: 10px 11px; }
+.career-tbl th{ font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: .06em; padding: 10px 10px; }
+
+/* Table cells → DM Sans (clean, legible, not code-like) */
+.dtbl td      { font-family: 'DM Sans', sans-serif; font-size: 12px; }
+.career-tbl td{ font-family: 'DM Sans', sans-serif; }
+.earn         { font-family: 'DM Sans', sans-serif; }
+
+/* Player chips → DM Sans (not monospace) */
+.chip         { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.chip .cp     { font-family: 'Bebas Neue', sans-serif; font-size: 10px; opacity: .9; margin-right: 3px; }
+.rch-own      { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+.lt           { font-family: 'DM Sans', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.err          { font-family: 'DM Sans', sans-serif; }
+
+/* Rivalries section → DM Sans for all text, Bebas Neue for labels */
+.rv-t         { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+.riv-rec-label{ font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: .07em; }
+.riv-rec-total{ font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: .04em; }
+.riv-rec-yr   { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.riv-at-nm    { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; }
+.riv-at-stat  { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.riv-at-sep   { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+.riv-wk-link  { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+
+/* Buttons & interactive controls → DM Sans */
+.toggle-btn      { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.wk-btn          { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.yr-btn          { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.refresh-btn     { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+.tab             { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.trade-eval-btn  { font-family: 'DM Sans', sans-serif; font-size: 12px; }
+.trade-team-sel  { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.trade-row-val   { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.trade-score-dim { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.trade-verdict-sub{ font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.sleeper-link    { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.ai-context-note { font-family: 'DM Sans', sans-serif; }
+
+/* ── PINK POP in dark mode ── */
+[data-theme="dark"] .dtbl th      { color: var(--accent3); opacity: 1; text-shadow: 0 0 10px rgba(255,79,216,0.28); }
+[data-theme="dark"] .career-tbl th{ color: var(--accent3); opacity: 1; text-shadow: 0 0 10px rgba(255,79,216,0.28); }
+[data-theme="dark"] .sec-sub      { color: var(--accent3); opacity: .9; }
+[data-theme="dark"] .fun-label    { color: var(--accent3); }
+[data-theme="dark"] .trade-sec-lbl{ color: var(--accent); }
+[data-theme="dark"] .sec-row-label{ color: var(--accent3); }
+
+/* Brighter muted text — fixes dark-blue-on-dark-bg readability */
+[data-theme="dark"] { --muted: #aabdcf; }
+
+/* ── OWNER / TEAM SIZE in careers table ── */
+.career-tbl td:first-child { font-size: 13px; font-weight: 600; color: var(--text); }
+.career-tbl td:nth-child(2) { font-size: 13px; font-weight: 400; color: var(--text2); }
+
+/* ── SCORES TAB — pink color blocking ── */
+.match-own  { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+.match-h2h  { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: .08em; }
+/* Winner side gets a bold teal left stripe */
+.match-side.winner { background: rgba(22,224,214,0.07); border-left: 3px solid var(--accent); }
+.match-side:not(.winner) { border-left: 3px solid transparent; }
+/* H2H strip becomes pink-tinted */
+[data-theme="dark"] .match-h2h {
+  background: rgba(255,79,216,0.07);
+  border-top: 1px solid rgba(255,79,216,0.25);
+  color: var(--accent3);
+}
+/* Card border accent on hover */
+[data-theme="dark"] .match-card { border-color: #253652; }
+
+/* ── RIVALRIES TAB — pink blocking, better hierarchy ── */
+/* Pink top accent stripe on each rivalry card */
+[data-theme="dark"] .riv-card { border-top: 2px solid rgba(255,79,216,0.6); }
+/* Record section gets a subtle pink background block */
+.riv-record {
+  background: rgba(255,79,216,0.05);
+  border: 1px solid rgba(255,79,216,0.15);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+/* All-time record headline — make it pop in pink */
+[data-theme="dark"] .riv-rec-total { color: var(--accent3); text-shadow: 0 0 12px rgba(255,79,216,0.45); }
+[data-theme="dark"] .riv-rec-label { color: var(--accent3); opacity: .85; }
+/* Name colors — left name teal, right name purple */
+[data-theme="dark"] .riv-at-col:first-child .riv-at-nm { color: var(--accent); }
+[data-theme="dark"] .riv-at-col:last-child .riv-at-nm  { color: var(--accent2); }
+/* VS badge stays pink */
+[data-theme="dark"] .vs-b { text-shadow: 0 0 12px rgba(255,79,216,0.5); }
+/* Fix remaining DM Mono in scores/rivalries */
+.match-own  { font-family: 'DM Sans', sans-serif; }
+.riv-at-stat{ font-family: 'DM Sans', sans-serif; }
+.riv-rec-yr { font-family: 'DM Sans', sans-serif; }
+.txn-date   { font-family: 'DM Sans', sans-serif; }
+.txn-badge  { font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: .06em; }
+.trade-hdr-date { font-family: 'DM Sans', sans-serif; }
+.trade-side-lbl { font-family: 'DM Sans', sans-serif; font-size: 10px; }
+.f-pill     { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: .08em; }
+.trade-item.is-pick { font-family: 'DM Sans', sans-serif; }
 </style>
 </head>
-<body>
+<body class="is-home">
 
+<div class="sticky-shell">
 <header>
-  <div>
-    <div class="lg-title">THE <em>OTHER</em> LEAGUE</div>
-    <div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;">
-      <span class="bdg bdg-g">Dynasty</span>
-      <span class="bdg bdg-b">2026 Season</span>
-      <span class="bdg bdg-m">Pre-Draft</span>
-    </div>
+  <div class="hdr-logo-link" onclick="showTab('home')">
+    <img src="TOL Large Logo.png" alt="The Other League" class="hdr-logo">
   </div>
   <div class="hdr-right">
     <div class="hdr-top">
+      <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="sleeper-link hdr-sleeper-link">Open in Sleeper ↗</a>
       <div class="toggle-btn" onclick="toggleTheme()">
         <span id="t-icon">🌙</span>
-        <span id="t-lbl">Dark Mode</span>
+        <span id="t-lbl">Dark</span>
       </div>
-    </div>
-    <div class="lg-meta">
-      12 Teams · $1,200 Pot · Commissioner: Matt Bova<br>
-      2025 Champ: Jake Blackwell 🏆 · Consolation: Nick Merkel 🥈
     </div>
   </div>
 </header>
-
-<div class="sleeper-bar">
-  <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="sleeper-link">Open in Sleeper ↗</a>
+<nav class="icon-nav">
+  <div class="icon-tab" onclick="showTab('careers',this)" data-tab="careers">
+    <span class="itab-icon">📊</span>
+    <span class="itab-label">Careers</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('league',this)" data-tab="league">
+    <span class="itab-icon">ℹ️</span>
+    <span class="itab-label">League</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('rivalries',this)" data-tab="rivalries">
+    <span class="itab-icon">⚔️</span>
+    <span class="itab-label">Rivalries</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('scores',this)" data-tab="scores">
+    <span class="itab-icon">🏈</span>
+    <span class="itab-label">Scores</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('rosters',this)" data-tab="rosters">
+    <span class="itab-icon">📋</span>
+    <span class="itab-label">Rosters</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('stats',this)" data-tab="stats">
+    <span class="itab-icon">📈</span>
+    <span class="itab-label">Stats</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('draft',this)" data-tab="draft">
+    <span class="itab-icon">🎯</span>
+    <span class="itab-label">Draft</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('transactions',this)" data-tab="transactions">
+    <span class="itab-icon">🔄</span>
+    <span class="itab-label">Transactions</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('trade',this)" data-tab="trade">
+    <span class="itab-icon">⚖️</span>
+    <span class="itab-label">Trade Eval</span>
+  </div>
+  <div class="icon-tab nav-refresh-btn" onclick="refreshData()" id="nav-refresh-btn" title="Refresh Data">
+    <span class="itab-icon">↺</span>
+    <span class="itab-label">Refresh</span>
+  </div>
+</nav>
 </div>
 
-<div class="cache-bar">
+<div class="cache-bar" style="display:none">
   <div class="cb-status">
     <div class="cache-dot" id="cache-dot"></div>
     <span id="cache-status-txt">Checking cache...</span>
@@ -395,42 +1084,6 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
   <button class="refresh-btn" id="refresh-btn" onclick="refreshData()" disabled>↺ Refresh Data</button>
 </div>
 
-<div class="status">
-  <div class="s-pill" style="min-width:155px">
-    <div class="sl">🏆 Past Champions</div>
-    <div id="stat-champs" style="font-size:11px;line-height:1.7;margin-top:3px;color:var(--text2)">—</div>
-  </div>
-  <div class="s-pill" style="min-width:120px">
-    <div class="sl">💰 Highest Career Earnings</div>
-    <div class="sv" id="stat-earn-val">—</div>
-    <div class="sn" id="stat-earn-sub"></div>
-  </div>
-  <div class="s-pill" style="min-width:115px">
-    <div class="sl">🏅 Most Career Wins</div>
-    <div class="sv" id="stat-wins-val">—</div>
-    <div class="sn" id="stat-wins-sub"></div>
-  </div>
-  <div class="s-pill" style="min-width:148px">
-    <div class="sl">🎯 Most Consistent Finisher</div>
-    <div class="sv" id="stat-cons-val" style="font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0;line-height:1.2;margin-top:2px">—</div>
-    <div class="sn" id="stat-cons-sub"></div>
-  </div>
-  <div class="s-pill" style="min-width:120px">
-    <div class="sl">📋 Most Draft Picks</div>
-    <div class="sv" id="stat-picks-val">—</div>
-    <div class="sn" id="stat-picks-sub"></div>
-  </div>
-  <div class="s-pill" style="min-width:138px">
-    <div class="sl">🔄 Most Trades Completed</div>
-    <div class="sv" id="stat-trades-val">—</div>
-    <div class="sn" id="stat-trades-sub"></div>
-  </div>
-  <div class="s-pill" style="min-width:135px;border-right:none">
-    <div class="sl">📉 Worst Average Finish</div>
-    <div class="sv" id="stat-worst-val" style="font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0;line-height:1.2;margin-top:2px">—</div>
-    <div class="sn" id="stat-worst-sub"></div>
-  </div>
-</div>
 
 <div class="main">
   <div class="sidebar">
@@ -438,17 +1091,54 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
     <div id="team-list"></div>
   </div>
   <div class="content">
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('careers',this)">Careers</button>
-      <button class="tab" onclick="showTab('league',this)">League Info</button>
-      <button class="tab" onclick="showTab('rivalries',this)">Rivalries</button>
-      <button class="tab" onclick="showTab('scores',this)">Scores</button>
-      <button class="tab" onclick="showTab('rosters',this)">Rosters</button>
-      <button class="tab" onclick="showTab('stats',this)">Player Stats</button>
-      <button class="tab" onclick="showTab('draft',this)">Draft</button>
-      <button class="tab" onclick="showTab('transactions',this)">Transactions</button>
-      <button class="tab ai-tab" onclick="showTab('ai',this)">⚡ Ask Claude</button>
-      <button class="tab" onclick="showTab('trade',this)">⚖ Trade Eval</button>
+
+    <!-- HOME -->
+    <div class="panel active" id="panel-home">
+
+      <div class="home-wrap">
+        <!-- Hero logo -->
+        <div class="home-hero">
+          <img src="TOL Large Logo.png" alt="The Other League" class="home-hero-logo">
+          <div class="home-tagline">Dynasty · Year 4 · 12 Teams · $1,200 Pot</div>
+        </div>
+
+        <!-- NFL Countdown -->
+        <div class="home-countdown">
+          <div class="cd-label">2026 <span>NFL Season</span> Kickoff — Sep 10, 2026</div>
+          <div class="cd-timer" id="countdown-display">
+            <div class="cd-unit"><span class="cd-num" id="cd-days">--</span><span class="cd-lbl">Days</span></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-unit"><span class="cd-num" id="cd-hours">--</span><span class="cd-lbl">Hours</span></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-unit"><span class="cd-num" id="cd-mins">--</span><span class="cd-lbl">Min</span></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-unit"><span class="cd-num" id="cd-secs">--</span><span class="cd-lbl">Sec</span></div>
+          </div>
+          <div class="cd-subline">The Other League is ready — are you?</div>
+        </div>
+
+        <!-- 2025 Champion -->
+        <div class="home-section-title">2025 Champion</div>
+        <div class="champ-card">
+          <div class="champ-belt">🏆</div>
+          <div class="champ-info">
+            <div class="champ-name">Jake Blackwell</div>
+            <div class="champ-team">"Nacua Matata"</div>
+            <div class="champ-detail-row">
+              <span class="champ-detail">2025 Season</span>
+              <span class="champ-detail">Dynasty Champion</span>
+              <span class="champ-detail">2026 Pick 1.12</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commissioner & League info -->
+        <div class="home-league-meta">
+          <div class="hlm-item">Commissioner · <span>Matt Bova</span></div>
+          <div class="hlm-item">Est. <span>2023</span></div>
+          <div class="hlm-item">Dynasty · <span>12 Teams</span></div>
+        </div>
+      </div>
     </div>
 
     <!-- SCORES -->
@@ -729,42 +1419,49 @@ header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex
     </div>
 
     <!-- CAREERS -->
-    <div class="panel active" id="panel-careers">
-      <div class="sec-title">CAREER STATS</div>
-      <div class="sec-sub">2023–2025 · Earnings · Placements · Records</div>
-      <div id="careers-container"><div class="ld"><div class="spin"></div><div class="lt">Building career stats...</div></div></div>
+    <div class="panel" id="panel-careers">
+      <div class="sec-title">LEAGUE LEADERS</div>
+      <div class="sec-sub">2023–2025 · Career Records · All-Time Bests</div>
+      <div class="status career-status-bar">
+        <div class="s-pill" style="min-width:155px">
+          <div class="sl">🏆 Past Champions</div>
+          <div id="stat-champs" style="font-size:11px;line-height:1.7;margin-top:3px;color:var(--text2)">—</div>
+        </div>
+        <div class="s-pill" style="min-width:120px">
+          <div class="sl">💰 Highest Career Earnings</div>
+          <div class="sv" id="stat-earn-val">—</div>
+          <div class="sn" id="stat-earn-sub"></div>
+        </div>
+        <div class="s-pill" style="min-width:115px">
+          <div class="sl">🏅 Most Career Wins</div>
+          <div class="sv" id="stat-wins-val">—</div>
+          <div class="sn" id="stat-wins-sub"></div>
+        </div>
+        <div class="s-pill" style="min-width:148px">
+          <div class="sl">🎯 Most Consistent Finisher</div>
+          <div class="sv" id="stat-cons-val" style="font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0;line-height:1.2;margin-top:2px">—</div>
+          <div class="sn" id="stat-cons-sub"></div>
+        </div>
+        <div class="s-pill" style="min-width:120px">
+          <div class="sl">📋 Most Draft Picks</div>
+          <div class="sv" id="stat-picks-val">—</div>
+          <div class="sn" id="stat-picks-sub"></div>
+        </div>
+        <div class="s-pill" style="min-width:138px">
+          <div class="sl">🔄 Most Trades Completed</div>
+          <div class="sv" id="stat-trades-val">—</div>
+          <div class="sn" id="stat-trades-sub"></div>
+        </div>
+        <div class="s-pill" style="min-width:135px;border-right:none">
+          <div class="sl">📉 Worst Average Finish</div>
+          <div class="sv" id="stat-worst-val" style="font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0;line-height:1.2;margin-top:2px">—</div>
+          <div class="sn" id="stat-worst-sub"></div>
+        </div>
+      </div>
+      <div id="careers-container"></div>
     </div>
 
     <!-- AI TAB -->
-    <div class="panel" id="panel-ai">
-      <div class="sec-title">ASK CLAUDE</div>
-      <div class="sec-sub">AI Analysis · Full League Context Loaded · Powered by Claude Sonnet</div>
-      <div class="ai-context-note">
-        ⚡ Full league context injected — Claude knows all 12 teams, rosters, scoring rules, rivalries, pick ownership, history, and your team (Matt Bova / Show Me Your Penix). Ask anything.
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);">Quick Prompts</div>
-        <button class="ai-clear" onclick="clearChat()">Clear Chat</button>
-      </div>
-      <div class="ai-prompt-btns">
-        <button class="ai-btn" onclick="quickPrompt('draft')">📋 Draft Strategy</button>
-        <button class="ai-btn" onclick="quickPrompt('trade')">🔄 Trade Targets</button>
-        <button class="ai-btn" onclick="quickPrompt('roster')">📊 Roster Grades</button>
-        <button class="ai-btn" onclick="quickPrompt('waiver')">🎯 Waiver Targets</button>
-        <button class="ai-btn" onclick="quickPrompt('rivalry')">⚔️ Rivalry Prep</button>
-        <button class="ai-btn" onclick="quickPrompt('tes')">🏈 TE Strategy</button>
-        <button class="ai-btn" onclick="quickPrompt('contenders')">🔥 Contender Analysis</button>
-        <button class="ai-btn" onclick="quickPrompt('myteam')">🤖 My Team Outlook</button>
-      </div>
-      <div class="ai-wrap">
-        <div class="ai-input-row">
-          <input class="ai-input" id="ai-input" type="text" placeholder="Ask anything about The Other League..." onkeydown="if(event.key==='Enter')sendAI()">
-          <button class="ai-send" id="ai-send-btn" onclick="sendAI()">Send ↵</button>
-        </div>
-        <div class="ai-history" id="ai-history"></div>
-      </div>
-    </div>
-
     <!-- TRADE EVALUATOR -->
     <div class="panel" id="panel-trade">
       <div class="sec-title">⚖ TRADE EVALUATOR</div>
@@ -2303,6 +3000,7 @@ function sortCareerByCol(col){
 function buildCareers(){
   const c=document.getElementById('careers-container');
   c.dataset.loaded='1';
+  buildLeaderStats();
   const years=[2023,2024,2025];
   const owners=Object.keys(TEAMS);
   const earnings={};
@@ -2345,8 +3043,8 @@ function buildCareers(){
     {col:'avgF',label:'Avg Finish'},{col:'totalW',label:'Total W-L'},
     {col:'h2hW',label:'H2H W-L'},{col:'medW',label:'Median W-L'}
   ];
-  const theadHtml=`<thead id="career-thead"><tr>${careerCols.map(c=>
-    `<th data-col="${c.col}" onclick="sortCareerByCol('${c.col}')">${c.label}<span class="sort-arrow">${c.col==='earn'?' ↓':' ↕'}</span></th>`
+  const theadHtml=`<thead id="career-thead"><tr>${careerCols.map(col=>
+    `<th data-col="${col.col}" onclick="sortCareerByCol('${col.col}')">${col.label}<span class="sort-arrow">${col.col==='earn'?' ↓':' ↕'}</span></th>`
   ).join('')}</tr></thead>`;
   c.innerHTML=`<table class="career-tbl">${theadHtml}<tbody id="career-tbody">${renderCareerTbody()}</tbody></table>`;
   buildSeasonStandings(c);
@@ -2689,15 +3387,19 @@ function clearStatsComparison(){
 
 // ── TAB SWITCHER ──
 function showTab(tab,el){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.icon-tab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('panel-'+tab).classList.add('active');
+  if(!el) el=document.querySelector(`.icon-tab[data-tab="${tab}"]`);
+  if(el) el.classList.add('active');
+  const panel=document.getElementById('panel-'+tab);
+  if(panel) panel.classList.add('active');
+  document.body.classList.toggle('is-home', tab==='home');
+  history.replaceState(null,'','#'+tab);
   if(tab==='scores'&&!document.getElementById('scores-container').dataset.loaded)buildScores();
   if(tab==='transactions'&&!document.getElementById('txn-container').dataset.loaded){document.getElementById('txn-container').dataset.loaded='1';buildTransactions('all',2025);}
   if(tab==='careers'&&!document.getElementById('careers-container').dataset.loaded)buildCareers();
   if(tab==='stats'&&!document.getElementById('stats-container').dataset.loaded)buildPlayerStats(currentStatsYear,currentStatsPos);
-  if(tab==='rivalries')buildRivalries(); // re-render each visit so H2H records reflect latest cached data
+  if(tab==='rivalries')buildRivalries();
   if(tab==='trade'&&!_tradeInit)initTradeEval();
 }
 
@@ -3135,7 +3837,7 @@ async function init(){
   if(cachedRosters&&!loadPerm('tol_stats_2025')){
     fetchPlayerStats(2025).catch(()=>{});
   }
-  // Build careers tab (it's the default active tab)
+  // Prefetch careers data (lazy-loads on tab visit, but preload for speed)
   buildCareers();
   // Populate the 2026 draft order table immediately on load
   buildDraft2026();
@@ -3248,6 +3950,44 @@ buildSidebar();
 buildScoring();
 buildRivalries();
 init();
+
+// ── COUNTDOWN ──
+function startCountdown(){
+  // NFL 2026 season opener: Thursday Sept 10, 2026 8:20 PM ET
+  const target=new Date('2026-09-10T20:20:00-04:00');
+  function tick(){
+    const diff=target-new Date();
+    const el=document.getElementById('countdown-display');
+    if(!el)return;
+    if(diff<=0){el.innerHTML='<span class="cd-live">🏈 SEASON IS LIVE!</span>';return;}
+    const d=Math.floor(diff/86400000);
+    const h=Math.floor((diff%86400000)/3600000);
+    const m=Math.floor((diff%3600000)/60000);
+    const s=Math.floor((diff%60000)/1000);
+    const f=n=>String(n).padStart(2,'0');
+    const days=document.getElementById('cd-days');
+    const hours=document.getElementById('cd-hours');
+    const mins=document.getElementById('cd-mins');
+    const secs=document.getElementById('cd-secs');
+    if(days)days.textContent=f(d);
+    if(hours)hours.textContent=f(h);
+    if(mins)mins.textContent=f(m);
+    if(secs)secs.textContent=f(s);
+  }
+  tick();
+  setInterval(tick,1000);
+}
+startCountdown();
+
+// ── HASH ROUTING ──
+const VALID_TABS=['home','careers','league','rivalries','scores','rosters','stats','draft','transactions','trade'];
+function routeFromHash(){
+  const hash=window.location.hash.replace('#','');
+  if(hash&&VALID_TABS.includes(hash)) showTab(hash);
+  else if(!window.location.hash) history.replaceState(null,'','#home');
+}
+window.addEventListener('hashchange',routeFromHash);
+routeFromHash();
 </script>
 </body>
 </html>
