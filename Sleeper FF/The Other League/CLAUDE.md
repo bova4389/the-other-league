@@ -13,17 +13,21 @@ A personal fantasy football dashboard for "The Other League" — a 12-team dynas
 This is a **static HTML/JavaScript project** — no framework, no build step, no package manager. All files are plain `.html` with embedded CSS and JavaScript.
 
 ```
-the-other-league/
-├── CLAUDE.md                          — you are here
-├── index.html                         — 8-line stub that redirects to the-other-league-FINAL.html
-├── the-other-league-FINAL.html        — THE working file (3300+ lines, all logic embedded)
-├── the-other-league-context.md        — master league context document
-└── chunks/                            — prior standalone chunk files (reference only)
+the-other-league/                      — repo root
+├── index.html                         — THE working file (3300+ lines, all logic embedded)
+├── TOL Large Logo.png                 — hero image (home panel + sticky header)
+├── TOL Small Logo.png                 — available if needed
+├── TOL Abbreviated Icon.png           — favicon + iOS add-to-homescreen icon
+├── TOL iPhone background image.png    — iOS splash screen
+└── Sleeper FF/The Other League/
+    ├── CLAUDE.md                      — you are here
+    ├── index.html                     — redirect stub to root site
+    └── the-other-league-context.md    — master league context document
 ```
 
-**Current state:** `the-other-league-FINAL.html` is the **only** file to edit. It contains all HTML, CSS, and JavaScript in one file.
+**Current state:** `index.html` at the **repo root** is the **only** file to edit. It contains all HTML, CSS, and JavaScript in one file. The logo PNGs are also at the repo root alongside it.
 
-**Deployment:** GitHub Pages (static hosting). Push to `main` → site updates automatically.
+**Deployment:** GitHub Pages (static hosting). Push to `main` → site updates automatically. Live at `https://bova4389.github.io/the-other-league/`
 
 ---
 
@@ -372,6 +376,86 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 - Active traders: Chris Merkel, Nick Merkel
 - 2027 rule change voted in: 1 WRRB_FLEX → WR/RB/TE FLEX (increases TE value)
 - Full context in: `the-other-league-context.md`
+
+---
+
+## DEVELOPMENT ROADMAP
+
+### Phase 1 — All-Time Records & Career Stats
+**Goal:** New "Records" tab (or section within Careers) displaying all-time per-owner stats.
+- All-time W/L record per owner
+- Most championships, most playoff appearances
+- Highest single-week score (all-time + per season)
+- Biggest blowout margin, worst loss margin
+- Longest win/lose streak (current + all-time)
+- Most points scored in a season
+
+**Data source:** Already in dashboard — Sleeper API + `SEASON_HISTORY` hardcoded data. **Complexity: Low.**
+
+---
+
+### Phase 2 — Head-to-Head Rivalry History
+**Goal:** Expand the existing Rivalries tab with full all-time H2H detail.
+- All-time H2H record between any two managers (clickable matchup grid)
+- Full game log per rivalry (date, scores, winner)
+- Average margin of victory per matchup
+- "Nemesis" stat — who has the worst record against a specific opponent
+
+**Data source:** Sleeper matchup API by week — same data used by `buildH2HMap()`. **Complexity: Low-medium.**
+
+---
+
+### Phase 3 — Draft History + Draft Grade / ROI
+**Goal:** Expand Draft tab with historical class view and value grading.
+- Draft class by year (2023, 2024, 2025) — who drafted whom
+- Current KTC value of each pick (value at time of draft vs. today)
+- ROI grade per pick: bust / average / hit / home run (KTC delta + games started)
+- Best/worst draft class per manager all-time
+
+**Data source:** Sleeper draft API (partially built in `buildDraftHistory()`) + KTC values. **Complexity: Medium.**
+
+---
+
+### Phase 4 — Dynasty Prospect Tracker
+**Goal:** Tab or section showing all rostered rookies/young players with KTC trend.
+- Player name, age, position, team
+- KTC dynasty value + trend (up/down/flat)
+- Which TOL manager owns them
+- "Rising star" badge for players under 24 with climbing KTC value
+
+**Data source:** Sleeper rosters + KTC values (same as Phase 3). Build back-to-back with Phase 3. **Complexity: Medium.**
+
+---
+
+### Phase 5 — "Wrapped" Season Recaps
+**Goal:** One shareable recap card per season per manager.
+- Best week, worst week, luckiest win (won despite lower score via median system)
+- Most points left on bench, biggest over/underperformance vs. projections
+- "Your 2024 in one sentence" — AI-generated summary via `getTradeAI()` / Ask Claude layer
+
+**Data source:** Weekly matchup data (requires all weekly data loaded first). **Complexity: Medium-high — finish data pull before building this.**
+
+---
+
+### Phase 6 — Roster Grades & Outlook
+**Goal:** Per-team roster card showing dynasty health and outlook.
+- KTC total roster value (ranked 1–12)
+- Avg age of starters
+- Win-now / contender / rebuilding classification
+- Top 3 core assets
+- Letter grade (A–F) with brief rationale
+
+**Data source:** Sleeper rosters + KTC values (same as Phases 3–4). **Complexity: Medium — KTC integration is the key dependency.**
+
+---
+
+### Phase 7 — Trade Evaluator Enhancements *(already partially built)*
+**Goal:** Extend the existing Trade Evaluator with deeper analysis.
+- Two-panel input already exists; add scoring matrix detail view
+- AI summary layer already wired via `getTradeAI()`; improve prompt quality
+- Visitor-supplied API key flow for public users
+
+**Data source:** Live Sleeper rosters + KTC + Anthropic API. **Complexity: High — build after Phases 3–6 establish KTC integration pattern.**
 
 ---
 

@@ -18,7 +18,7 @@ All projects are **static HTML / Vanilla JS** sites. No npm, no Node, no build s
 
 - **Majors Golf Pool** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-pga-pickems.com
 - **Basic Bros Ryder Cup** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-ryder-cup.com
-- **Sleeper FF** is hosted on **GitHub Pages** — push to `main` and the site updates automatically.
+- **Sleeper FF** is hosted on **GitHub Pages** — push to `main` and the site updates automatically. Live at https://bova4389.github.io/the-other-league/
 
 ## Cache Busting (Required on All DreamHost Projects)
 
@@ -51,4 +51,4 @@ Never `git add Majors Golf Pool/` from the outer repo — it will be treated as 
 
 **Majors Golf Pool** — Masters 2026 ✅, PGA Championship 2026 ✅, Masters 2025 ✅, PGA Championship 2025 ✅, and U.S. Open 2025 ✅ are all fully hardcoded in `standings.js` (Total, R1–R4, Payouts). The Open Championship 2025 scoreboard is hardcoded but pool standings (`THEOPEN_2025_TOTAL` + rounds) are not yet entered. U.S. Open 2026 is the next upcoming tournament (ESPN event ID `401811952`).
 
-**Sleeper FF / The Other League** — Active development project. The working file is `the-other-league-FINAL.html` (3200+ lines); `index.html` is an 8-line stub. Full feature set for roster management, trade evaluation (with live KTC values), draft picks, and standings. See its CLAUDE.md for the complete function and data reference.
+**Sleeper FF / The Other League** — Active development project. The working file is `index.html` at the repo root (3300+ lines); logo PNGs are also at root. Full feature set for roster management, trade evaluation (with live KTC values), draft picks, and standings. See its CLAUDE.md for the complete function and data reference.
