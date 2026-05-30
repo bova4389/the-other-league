@@ -939,7 +939,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
    ══════════════════════════════════════════════ */
 
 /* Labels → Bebas Neue (sporty, not computer terminal) */
-.s-pill .sl   { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .07em; }
+.s-pill .sl   { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: .07em; }
 .fun-label    { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: .07em; }
 .trade-sec-lbl{ font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: .07em; }
 .sb-label     { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .07em; }
@@ -1050,6 +1050,24 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .trade-side-lbl { font-family: 'DM Sans', sans-serif; font-size: 10px; }
 .f-pill     { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: .08em; }
 .trade-item.is-pick { font-family: 'DM Sans', sans-serif; }
+
+/* ── HEADER IDENTITY ── */
+.hdr-identity { flex: 1; padding-left: 18px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.hdr-league-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: .06em; line-height: 1; color: var(--text); }
+.hdr-sub1 { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .13em; color: var(--accent); }
+.hdr-sub2 { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+[data-theme="dark"] .hdr-league-name { color: var(--accent3); text-shadow: 0 0 24px rgba(255,79,216,0.45); }
+@media(max-width:680px){ .hdr-identity { display: none; } }
+
+/* ── SITE FOOTER ── */
+.site-footer { border-top: 1px solid var(--border); background: var(--surface); padding: 14px 28px 18px; text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .05em; }
+.site-footer .sf-row { margin-bottom: 5px; }
+.site-footer .sf-row:last-child { margin-bottom: 0; }
+.sf-r1 { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: .1em; color: var(--text2); }
+.sf-link { color: var(--accent3); text-decoration: none; transition: opacity .15s; }
+.sf-link:hover { opacity: .75; }
+[data-theme="dark"] .site-footer { border-top: 1px solid rgba(22,224,214,0.2); background: linear-gradient(135deg,#111827 0%,rgba(123,46,255,0.05) 100%); }
+[data-theme="dark"] .sf-r1 { color: var(--accent3); text-shadow: 0 0 12px rgba(255,79,216,0.3); }
 </style>
 </head>
 <body class="is-home">
@@ -1058,6 +1076,11 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 <header>
   <div class="hdr-logo-link" onclick="showTab('home')">
     <img src="TOL Large Logo.png" alt="The Other League" class="hdr-logo">
+  </div>
+  <div class="hdr-identity">
+    <div class="hdr-league-name">The Other League</div>
+    <div class="hdr-sub1">Dynasty Football</div>
+    <div class="hdr-sub2">Established 2023 &nbsp;|&nbsp; NFL Kickoff &mdash; September 9, 2026</div>
   </div>
   <div class="hdr-right">
     <div class="hdr-top">
@@ -1575,6 +1598,12 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 
   </div>
 </div>
+
+<footer class="site-footer">
+  <div class="sf-row sf-r1">The Other League &mdash; Dynasty &copy; <span id="footer-year"></span></div>
+  <div class="sf-row">Website designed by: Matt Bova</div>
+  <div class="sf-row">&#9965; Like gambling on golf?! Submit a lineup at <a href="https://www.basic-bros-pga-pickems.com/" target="_blank" rel="noopener" class="sf-link">Basic Bros Majors Pick'em ↗</a></div>
+</footer>
 
 <script>
 // ── CONSTANTS ──
@@ -4415,6 +4444,17 @@ function routeFromHash(){
 }
 window.addEventListener('hashchange',routeFromHash);
 routeFromHash();
+
+// ── FOOTER YEAR ──
+(function(){
+  const el=document.getElementById('footer-year');
+  if(!el)return;
+  try{
+    const raw=localStorage.getItem(CACHE_KEY);
+    const d=raw?JSON.parse(raw):null;
+    el.textContent=d&&d.ts?new Date(d.ts).getFullYear():new Date().getFullYear();
+  }catch(e){el.textContent=new Date().getFullYear();}
+})();
 </script>
 </body>
 </html>
