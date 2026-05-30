@@ -24,12 +24,12 @@
 | 3 | **Jared Hayes** | SirWinsAlot | |
 | 4 | **Chris Bova** | Titsburg Feelers | Matt's brother · Contender |
 | 5 | **Nick Bova** | Nabers in Paris | Matt's brother |
-| 6 | **Erin Jacobs** | eejacobs | Only woman in league · Wife of Chris Jacobs |
+| 6 | **Erin Jacobs** | eejacobs | Only woman in league |
 | 7 | **Jake Blackwell** | Nacua Matata | 2025 Champion 🏆 · Brother of Mitch |
 | 8 | **Chris Merkel** | Your Team is the PITTsMAN | Brother of Nick Merkel · Heavy trader |
 | 9 | **Mitch Blackwell** | i LOVE mendoza | Co-owner: Andrew Evans · Brother of Jake |
 | 10 | **Nick Merkel** | Breeces Peanut ButterCups | Brother of Chris Merkel · Heavy trader · 2025 Consolation 🎖️ |
-| 11 | **Chris Jacobs** | Joshin Around | Husband of Erin Jacobs |
+| 11 | **Andrew Bova** | Joshin Around | Sleeper: @TurtleNeckTie · Took over roster from Chris Jacobs (2026) |
 | 12 | **Duane Gillenwater** | Enter the Maye-Trix | |
 
 **Key relationships:**
@@ -37,7 +37,6 @@
 - Chris Bova and Nick Bova are Matt's brothers
 - Jake Blackwell and Mitch Blackwell are brothers
 - Chris Merkel and Nick Merkel are brothers
-- Erin Jacobs and Chris Jacobs are married to each other
 - Jake Bogardus co-owns with wife Katie
 
 **Tier assessment (as of 2026 pre-draft):**
@@ -56,7 +55,7 @@ Each pair plays twice per season. Rivalry weeks are H2H only — no league media
 |---------|---------|
 | Matt Bova | Duane Gillenwater |
 | Jake Blackwell | Mitch Blackwell |
-| Erin Jacobs | Chris Jacobs |
+| Erin Jacobs | Andrew Bova |
 | Chris Bova | Nick Bova |
 | Chris Merkel | Nick Merkel |
 | Jared Hayes | Jake Bogardus (Bo) |
