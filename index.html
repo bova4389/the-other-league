@@ -129,8 +129,8 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .trade-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;}
 .trade-row:last-child{border-bottom:none;}
 .trade-row input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
-.trade-row-lbl{flex:1;font-size:11px;color:var(--text);line-height:1.4;}
-.trade-row-val{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0;}
+.trade-row-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text);line-height:1.4;}
+.trade-row-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);flex-shrink:0;font-weight:600;padding-left:4px;}
 .trade-eval-btn{background:var(--accent);color:var(--bg);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 24px;border:none;cursor:pointer;transition:opacity .15s;margin-top:4px;}
 .trade-eval-btn:hover{opacity:.85;}
 .trade-eval-btn:disabled{opacity:.4;cursor:not-allowed;}
@@ -321,6 +321,17 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .f-pill.rivalry{border-color:var(--accent3);color:var(--accent3);}
 .f-pill.rivalry:hover{border-color:var(--accent3);color:var(--accent3);}
 .f-pill.rivalry.active{background:var(--accent3);border-color:var(--accent3);color:var(--bg);}
+/* Position-colored filter pills (Trade Evaluator) */
+.f-pill.pos-qb:hover,.f-pill.pos-qb.active{border-color:var(--pos-qb);color:var(--pos-qb);}
+.f-pill.pos-qb.active{background:var(--pos-qb-bg);}
+.f-pill.pos-rb:hover,.f-pill.pos-rb.active{border-color:var(--pos-rb);color:var(--pos-rb);}
+.f-pill.pos-rb.active{background:var(--pos-rb-bg);}
+.f-pill.pos-wr:hover,.f-pill.pos-wr.active{border-color:var(--pos-wr);color:var(--pos-wr);}
+.f-pill.pos-wr.active{background:var(--pos-wr-bg);}
+.f-pill.pos-te:hover,.f-pill.pos-te.active{border-color:var(--pos-te);color:var(--pos-te);}
+.f-pill.pos-te.active{background:var(--pos-te-bg);}
+.f-pill.pos-rdp:hover,.f-pill.pos-rdp.active{border-color:var(--muted);color:var(--muted);}
+.f-pill.pos-rdp.active{background:rgba(255,255,255,.08);}
 .rivalry-banner{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.06em;padding:7px 12px;border:1px solid var(--border);border-left:3px solid var(--accent3);margin-bottom:12px;}
 
 /* ── TRANSACTIONS ── */
@@ -4197,73 +4208,79 @@ function updatePickScaler(val){
 
 // ── KTC VALUES TABLE ──
 
-// Normalize a name for fuzzy matching: lowercase, strip punctuation/apostrophes
-function normalizeName(n){return n.toLowerCase().replace(/[''`'.]/g,'').replace(/\s+/g,' ').trim();}
+// Normalize a name for fuzzy matching: lowercase, strip apostrophes/periods
+function normalizeName(n){return n.toLowerCase().replace(/['‘’ʼ`.]/g,'').replace(/\s+/g,' ').trim();}
 
-// Build _ktcAllPlayers from KTC values + Sleeper roster data
+// KTC entry lookup with fuzzy fallback (exact → normalized → skip)
+function getKTCEntryFuzzy(name){
+  const src=_ktcValues||KTC_SNAPSHOT;
+  if(src[name]!=null)return getKTCEntry(name);
+  const norm=normalizeName(name);
+  const normKey=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&normalizeName(k)===norm);
+  return normKey?getKTCEntry(normKey):null;
+}
+
+// Build _ktcAllPlayers — starts from Sleeper rosters for guaranteed ownership,
+// then appends unrostered KTC entries (free agents + future picks)
 function buildKTCPlayerList(){
   const src=_ktcValues||KTC_SNAPSHOT;
+  const rows=[];
+  const seenNorm=new Set();
 
-  // name → roster_id from Sleeper — exact AND normalized for fuzzy match
-  const nameToRid={};
-  const nameToRidNorm={};
-  const sleepInfo={};
-  const sleepInfoNorm={};
-  if(cachedPlayers&&cachedRosters){
-    const pidToRid={};
-    cachedRosters.forEach(r=>{(r.players||[]).forEach(pid=>{pidToRid[String(pid)]=parseInt(r.roster_id);});});
-    Object.entries(cachedPlayers).forEach(([pid,p])=>{
-      const nm=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
-      if(!nm)return;
-      const norm=normalizeName(nm);
-      const rid=pidToRid[String(pid)];
-      if(rid){nameToRid[nm]=rid;nameToRidNorm[norm]=rid;}
-      if(!sleepInfo[nm])sleepInfo[nm]={pos:p.position||'',nflTeam:p.team||'FA',age:p.age||0};
-      if(!sleepInfoNorm[norm])sleepInfoNorm[norm]={pos:p.position||'',nflTeam:p.team||'FA',age:p.age||0};
+  // Phase 1: All rostered Sleeper players (rid guaranteed correct)
+  if(cachedRosters&&cachedPlayers){
+    cachedRosters.forEach(r=>{
+      const rid=parseInt(r.roster_id);
+      (r.players||[]).forEach(pid=>{
+        const p=cachedPlayers[String(pid)];
+        if(!p||!p.position||['K','DEF'].includes(p.position))return;
+        const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
+        if(!name)return;
+        const norm=normalizeName(name);
+        if(seenNorm.has(norm))return;
+        seenNorm.add(norm);
+        const entry=getKTCEntryFuzzy(name);
+        const rawValue=entry?entry.value:getDynastyValue(String(pid));
+        if(!rawValue)return;
+        rows.push({name,position:p.position||'',nflTeam:p.team||'FA',age:p.age||0,rank:entry?entry.rank:999,trend:entry?entry.trend:0,rawValue,isPick:false,pickYear:null,pickRound:null,pickTier:null,rid});
+      });
     });
   }
 
-  _ktcAllPlayers=Object.entries(src).map(([name,entry])=>{
+  // Phase 2: KTC entries not already rostered (free agents + future picks)
+  Object.entries(src).forEach(([name,entry])=>{
     const isObj=typeof entry==='object';
     const rawValue=isObj?entry.value:entry;
-    if(!rawValue||rawValue<=0)return null;
+    if(!rawValue||rawValue<=0)return;
     const isPick=/^20\d\d (Early|Mid|Late) [1-4](st|nd|rd|th)$/.test(name);
-    let pickYear=null,pickRound=null,pickTier=null;
-    if(isPick){const m=name.match(/^(\d{4}) (Early|Mid|Late) (\d)/);if(m){pickYear=+m[1];pickTier=m[2];pickRound=+m[3];}}
-    // Skip 2026 picks — that draft is complete
-    if(isPick&&pickYear&&pickYear<2027)return null;
-    let position=isObj?entry.position:'';
-    let nflTeam=isObj?entry.nflTeam:'FA';
-    let age=isObj?entry.age:0;
-    let rank=isObj?entry.rank:999;
-    let trend=isObj?entry.trend:0;
-    if(!isPick){
+    if(isPick){
+      let pickYear=null,pickRound=null,pickTier=null;
+      const m=name.match(/^(\d{4}) (Early|Mid|Late) (\d)/);
+      if(m){pickYear=+m[1];pickTier=m[2];pickRound=+m[3];}
+      if(pickYear&&pickYear<2027)return;
+      rows.push({name,position:'RDP',nflTeam:'',age:0,rank:isObj?entry.rank:999,trend:isObj?entry.trend:0,rawValue,isPick:true,pickYear,pickRound,pickTier,rid:0});
+    }else{
       const norm=normalizeName(name);
-      const si=sleepInfo[name]||sleepInfoNorm[norm];
-      if(si){
-        if(!position)position=si.pos;
-        if(!nflTeam||nflTeam==='FA')nflTeam=si.nflTeam||'FA';
-        if(!age)age=si.age;
-      }
+      if(seenNorm.has(norm))return;
+      seenNorm.add(norm);
+      rows.push({name,position:isObj?entry.position:'',nflTeam:isObj?entry.nflTeam:'FA',age:isObj?entry.age:0,rank:isObj?entry.rank:999,trend:isObj?entry.trend:0,rawValue,isPick:false,pickYear:null,pickRound:null,pickTier:null,rid:0});
     }
-    if(isPick){position='RDP';nflTeam='';}
-    // Roster assignment: normalize name for fuzzy match; picks have no single owner in table
-    const rid=isPick?0:(nameToRid[name]||nameToRidNorm[normalizeName(name)]||0);
-    return{name,position:position||'',nflTeam:nflTeam||'FA',age:age||0,rank,trend,rawValue,isPick,pickYear,pickRound,pickTier,rid};
-  }).filter(Boolean).sort((a,b)=>a.rank-b.rank||b.rawValue-a.rawValue);
+  });
+
+  _ktcAllPlayers=rows.sort((a,b)=>a.rank-b.rank||b.rawValue-a.rawValue);
 }
 
 function buildKTCPosChips(){
   const c=document.getElementById('ktc-pos-chips');
   if(!c||c.dataset.built)return;
   c.dataset.built='1';
-  const defs=[['all','All'],['QB','QB'],['RB','RB'],['WR','WR'],['TE','TE'],['RDP','Picks']];
-  c.innerHTML=defs.map(([pos,lbl])=>`<button class="chip-btn${pos==='all'?' active':''}" data-pos="${pos}" onclick="setKTCPos('${pos}',this)">${lbl}</button>`).join('');
+  const defs=[['all','All',null],['QB','QB','pos-qb'],['RB','RB','pos-rb'],['WR','WR','pos-wr'],['TE','TE','pos-te'],['RDP','Picks','pos-rdp']];
+  c.innerHTML=defs.map(([pos,lbl,cls])=>`<button class="f-pill${cls?' '+cls:''}${pos==='all'?' active':''}" data-pos="${pos}" onclick="setKTCPos('${pos}',this)">${lbl}</button>`).join('');
 }
 
 function setKTCPos(pos,el){
   _ktcFilterPos=pos;
-  document.querySelectorAll('#ktc-pos-chips .chip-btn').forEach(b=>b.classList.toggle('active',b===el));
+  document.querySelectorAll('#ktc-pos-chips .f-pill').forEach(b=>b.classList.toggle('active',b===el));
   renderKTCTable();
 }
 
@@ -4271,24 +4288,24 @@ function buildKTCTeamChips(){
   const c=document.getElementById('ktc-team-chips');
   if(!c||c.dataset.built)return;
   c.dataset.built='1';
-  let html=`<button class="chip-btn active" data-rid="all" onclick="toggleKTCTeam('all',this)">All Teams</button>`;
+  let html=`<button class="f-pill active" data-rid="all" onclick="toggleKTCTeam('all',this)">All Teams</button>`;
   Object.entries(TEAMS).map(([uid,info])=>({uid,name:info.name,rid:RMR[uid]}))
     .sort((a,b)=>a.name.localeCompare(b.name))
     .forEach(({name,rid})=>{
-      html+=`<button class="chip-btn" data-rid="${rid}" onclick="toggleKTCTeam(${rid},this)">${name}</button>`;
+      html+=`<button class="f-pill" data-rid="${rid}" onclick="toggleKTCTeam(${rid},this)">${name}</button>`;
     });
-  html+=`<button class="chip-btn" data-rid="0" onclick="toggleKTCTeam(0,this)">Free Agents</button>`;
+  html+=`<button class="f-pill" data-rid="0" onclick="toggleKTCTeam(0,this)">Free Agents</button>`;
   c.innerHTML=html;
 }
 
 function toggleKTCTeam(rid,el){
   if(rid==='all'){
     _ktcFilterTeams.clear();
-    document.querySelectorAll('#ktc-team-chips .chip-btn').forEach(b=>b.classList.toggle('active',b.dataset.rid==='all'));
+    document.querySelectorAll('#ktc-team-chips .f-pill').forEach(b=>b.classList.toggle('active',b.dataset.rid==='all'));
   }else{
     const n=parseInt(rid);
     if(_ktcFilterTeams.has(n))_ktcFilterTeams.delete(n);else _ktcFilterTeams.add(n);
-    const allBtn=document.querySelector('#ktc-team-chips .chip-btn[data-rid="all"]');
+    const allBtn=document.querySelector('#ktc-team-chips .f-pill[data-rid="all"]');
     if(allBtn)allBtn.classList.toggle('active',_ktcFilterTeams.size===0);
     el.classList.toggle('active',_ktcFilterTeams.has(n));
   }
