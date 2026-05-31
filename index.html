@@ -129,8 +129,9 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .trade-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;}
 .trade-row:last-child{border-bottom:none;}
 .trade-row input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
-.trade-row-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text);line-height:1.4;}
-.trade-row-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);flex-shrink:0;font-weight:600;padding-left:4px;}
+.trade-row-lbl{flex:1;min-width:0;font-size:11px;color:var(--text);line-height:1.4;display:flex;align-items:center;gap:5px;overflow:hidden;}
+.trade-row-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.trade-row-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);flex-shrink:0;font-weight:600;white-space:nowrap;}
 .trade-eval-btn{background:var(--accent);color:var(--bg);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 24px;border:none;cursor:pointer;transition:opacity .15s;margin-top:4px;}
 .trade-eval-btn:hover{opacity:.85;}
 .trade-eval-btn:disabled{opacity:.4;cursor:not-allowed;}
@@ -4437,8 +4438,7 @@ function loadTradeTeam(side){
     const age=p.age?` · ${p.age}yo`:'';
     html+=`<label class="trade-row">
       <input type="checkbox" class="trade-chk" data-side="${side}" data-pid="${pid}" data-val="${val}" data-pos="${pos}" data-age="${p.age||0}">
-      <span class="trade-row-lbl"><span class="cp pos-${pos.toLowerCase()}">${pos}</span> ${name}${age}</span>
-      <span class="trade-row-val">${val.toLocaleString()}</span>
+      <span class="trade-row-lbl"><span class="cp pos-${pos.toLowerCase()}">${pos}</span><span class="trade-row-name">${name}${age}</span><span class="trade-row-val">${val.toLocaleString()}</span></span>
     </label>`;
   });
   // 2027+ future picks only (2026 draft is complete)
@@ -4453,8 +4453,7 @@ function loadTradeTeam(side){
       const fromStr=pk.fromUid?` <span style="color:var(--muted);font-size:9px;">(from ${abbrev(t(pk.fromUid).name)})</span>`:'';
       html+=`<label class="trade-row">
         <input type="checkbox" class="trade-chk" data-side="${side}" data-pick="${pk.year}.${pk.round}.${i}" data-val="${adjVal}" data-raw-val="${rawVal}" data-year="${pk.year}" data-round="${pk.round}">
-        <span class="trade-row-lbl">${pk.year} ${roundLbl} (mid-tier est.)${fromStr}</span>
-        <span class="trade-row-val">${adjVal.toLocaleString()}</span>
+        <span class="trade-row-lbl"><span class="trade-row-name">${pk.year} ${roundLbl} (mid-tier est.)${fromStr}</span><span class="trade-row-val">${adjVal.toLocaleString()}</span></span>
       </label>`;
     });
   }else if(!futureMap){
