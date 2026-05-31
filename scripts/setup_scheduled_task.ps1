@@ -20,11 +20,13 @@ $action = New-ScheduledTaskAction `
     -Execute "cmd.exe" `
     -Argument "/c `"$batchFile`""
 
-# Trigger: every Tuesday at 9:00 AM
+# Trigger: every Tuesday at 9:00 AM, starting September 9, 2026 (first NFL game day).
+# The task is dormant until that date — nothing will fire before the season.
 $trigger = New-ScheduledTaskTrigger `
     -Weekly `
     -DaysOfWeek Tuesday `
     -At "9:00AM"
+$trigger.StartBoundary = "2026-09-09T09:00:00"
 
 # Settings:
 #   -StartWhenAvailable  → if PC was off at 9am, run as soon as it next boots
@@ -48,8 +50,9 @@ Register-ScheduledTask `
 Write-Host ""
 Write-Host "✓ Task '$taskName' registered successfully."
 Write-Host ""
-Write-Host "It will run every Tuesday at 9:00 AM."
-Write-Host "If your PC is off at 9am, it runs the next time you turn it on."
+Write-Host "It will run every Tuesday at 9:00 AM, starting September 9, 2026."
+Write-Host "The task is dormant until then — nothing will fire before the NFL season."
+Write-Host "If your PC is off at 9am on a given Tuesday, it runs the next time you turn it on."
 Write-Host ""
 Write-Host "Output logs: scripts\tuesday_update.log (in your repo folder)"
 Write-Host ""

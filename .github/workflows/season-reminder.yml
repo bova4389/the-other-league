@@ -1,0 +1,45 @@
+name: NFL Season Start Reminder
+
+on:
+  schedule:
+    # September 2, 2026 at noon UTC — one week before the first game
+    - cron: '0 12 2 9 *'
+  workflow_dispatch:  # manual trigger for testing
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Create reminder issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🏈 NFL Season starts Sep 9 — activate the Tuesday bot!',
+              labels: [],
+              body: [
+                '## Action needed before the season starts',
+                '',
+                'The 2026 NFL season kicks off **Wednesday, September 9 at 8:20 PM ET**.',
+                '',
+                '### If you haven\'t already, run the setup script to register the Windows scheduled task:',
+                '```',
+                'powershell -ExecutionPolicy Bypass -File "scripts\\setup_scheduled_task.ps1"',
+                '```',
+                'The task is already set to stay dormant until Sep 9, so it\'s safe to run any time.',
+                '',
+                '### After the first Tuesday (Sep 16):',
+                '- Check `scripts/tuesday_update.log` to confirm Week 1 ran successfully',
+                '- Or trigger it manually: `Start-ScheduledTask -TaskName TOL-Tuesday-H2H-Update`',
+                '',
+                '### Reminder for later in the season:',
+                '- **Week 14 complete** → update `PLAYOFF_BRACKET_INFO[2026]` in `index.html` once playoff brackets are set',
+                '',
+                '*Close this issue once the bot is confirmed running. 🤖*',
+              ].join('\n')
+            });
