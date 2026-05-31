@@ -1,6 +1,6 @@
 # THE OTHER LEAGUE — MASTER CONTEXT DOCUMENT
 *Dynasty Fantasy Football · Sleeper Platform · Commissioner: Matt Bova*
-*Last updated: May 31, 2026 · 2026 Rookie Draft Complete*
+*Last updated: June 2026 · 2026 Rookie Draft Complete · Tuesday Bot active Sep 9*
 
 ---
 
