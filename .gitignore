@@ -1,0 +1,4 @@
+scripts/tuesday_update.log
+__pycache__/
+*.pyc
+.claude/
