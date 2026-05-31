@@ -3372,11 +3372,31 @@ function isRookieInYear(pid,year){
 }
 
 let _stats2026Cache=null;
+let _statsHistoryCache=null; // in-memory cache for stats-history.json
+
+async function loadStatsHistory(){
+  if(_statsHistoryCache)return _statsHistoryCache;
+  try{
+    const r=await fetch('stats-history.json');
+    if(!r.ok)throw new Error('not found');
+    _statsHistoryCache=await r.json();
+  }catch(e){
+    _statsHistoryCache={};
+  }
+  return _statsHistoryCache;
+}
 
 async function fetchPlayerStats(year){
   const key=`tol_stats_${year}`;
   const cached=loadPerm(key);
   if(cached)return cached;
+  // Try stats-history.json first (fast, no CORS, includes all historical players)
+  const history=await loadStatsHistory();
+  if(history[year]&&history[year].season&&Object.keys(history[year].season).length){
+    savePerm(key,history[year].season);
+    return history[year].season;
+  }
+  // Fall back to Sleeper API
   const rosterPlayerIds=new Set();
   (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
   if(!rosterPlayerIds.size)return{};
@@ -3403,6 +3423,15 @@ async function fetchWeekStats(year,week){
   const key=`tol_stats_wk_${year}_${week}`;
   const cached=loadPerm(key);
   if(cached)return cached;
+  // Try stats-history.json first
+  const history=await loadStatsHistory();
+  const wkStr=String(week);
+  if(history[year]&&history[year].weeks&&history[year].weeks[wkStr]){
+    const data=history[year].weeks[wkStr];
+    savePerm(key,data);
+    return data;
+  }
+  // Fall back to Sleeper API
   const rosterPlayerIds=new Set();
   (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
   if(!rosterPlayerIds.size)return{};
