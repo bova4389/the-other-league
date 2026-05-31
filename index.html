@@ -932,7 +932,12 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .icon-tab { padding: 8px 4px; min-width: 0; width: 20%; flex: 0 0 20%; box-sizing: border-box; }
   .nav-refresh-btn { border-left: none; width: 20%; flex: 0 0 20%; min-width: 0; max-width: none; }
   .itab-icon { font-size: 16px; }
-  .itab-label { font-size: 9px; }
+  .itab-label { font-size: 8px; letter-spacing: .1em; }
+  .home-tagline { font-size: 9px; letter-spacing: .06em; white-space: nowrap; }
+  .cd-timer { gap: 4px; flex-wrap: nowrap; }
+  .cd-unit { min-width: 46px; }
+  .cd-num { font-size: clamp(28px, 7vw, 42px); }
+  .cd-sep { font-size: clamp(22px, 5vw, 36px); }
 }
 
 /* ══════════════════════════════════════════════
@@ -1125,7 +1130,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   </div>
   <div class="icon-tab" onclick="showTab('transactions',this)" data-tab="transactions">
     <span class="itab-icon">🔄</span>
-    <span class="itab-label">Transactions</span>
+    <span class="itab-label">Txns</span>
   </div>
   <div class="icon-tab" onclick="showTab('trade',this)" data-tab="trade">
     <span class="itab-icon">⚖️</span>
@@ -1166,7 +1171,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 
         <!-- NFL Countdown -->
         <div class="home-countdown">
-          <div class="cd-label">2026 <span>NFL Season</span> Kickoff — Sep 10, 2026</div>
+          <div class="cd-label">2026 <span>NFL Season</span> Kickoff — Sep 9, 2026</div>
           <div class="cd-timer" id="countdown-display">
             <div class="cd-unit"><span class="cd-num" id="cd-days">--</span><span class="cd-lbl">Days</span></div>
             <div class="cd-sep">:</div>
@@ -1281,6 +1286,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         <button class="f-pill active" id="sg-rush" onclick="toggleStatGroup('rush',this)">Rushing</button>
         <button class="f-pill active" id="sg-rec" onclick="toggleStatGroup('rec',this)">Receiving</button>
       </div>
+      <div id="stats-team-chips" class="filter-bar" style="margin-bottom:14px;"></div>
       <div style="margin-bottom:14px;">
         <div class="filter-bar" id="stats-wk-filter" style="overflow-x:auto;flex-wrap:nowrap;max-width:100%;">
           <button class="f-pill active" onclick="setStatsWeek('season',this)">Season</button>
@@ -1787,6 +1793,7 @@ let currentStatsYear = 2026;
 let currentStatsPos = 'all';
 let currentStatsWeek = 'season';
 let statsShowPass=true,statsShowRush=true,statsShowRec=true;
+let currentStatsTeams = new Set(); // roster_ids; 0 = free agents; empty = all teams
 let statsPlayerSearch = '';
 let statsSelectedPlayers = new Map();
 let currentScoresYear = 2026;
@@ -2624,6 +2631,44 @@ function syncTeamChips(containerId,teamSet){
 function uidToRid(uid){
   const e=Object.entries(RM).find(([,u])=>u===uid);
   return e?parseInt(e[0]):0;
+}
+
+function buildStatsTeamChips(){
+  const container=document.getElementById('stats-team-chips');
+  if(!container||container.dataset.built)return;
+  container.dataset.built='1';
+  const teams=Object.entries(RM).map(([rid,uid])=>({rid:parseInt(rid),td:t(uid)}));
+  teams.sort((a,b)=>a.td.name.localeCompare(b.td.name));
+  // All Teams
+  const allBtn=document.createElement('button');
+  allBtn.className='f-pill'+(currentStatsTeams.size===0?' active':'');
+  allBtn.textContent='All Teams';
+  allBtn.onclick=()=>{currentStatsTeams.clear();syncTeamChips('stats-team-chips',currentStatsTeams);applyStatsFilters();};
+  container.appendChild(allBtn);
+  // Free Agents (rid = 0)
+  const faBtn=document.createElement('button');
+  faBtn.className='f-pill'+(currentStatsTeams.has(0)?' active':'');
+  faBtn.dataset.rid=0;
+  faBtn.textContent='Free Agents';
+  faBtn.onclick=()=>{
+    if(currentStatsTeams.has(0))currentStatsTeams.delete(0);else currentStatsTeams.add(0);
+    syncTeamChips('stats-team-chips',currentStatsTeams);
+    applyStatsFilters();
+  };
+  container.appendChild(faBtn);
+  // One chip per team
+  teams.forEach(({rid,td})=>{
+    const btn=document.createElement('button');
+    btn.className='f-pill'+(currentStatsTeams.has(rid)?' active':'');
+    btn.dataset.rid=rid;
+    btn.textContent=td.name;
+    btn.onclick=()=>{
+      if(currentStatsTeams.has(rid))currentStatsTeams.delete(rid);else currentStatsTeams.add(rid);
+      syncTeamChips('stats-team-chips',currentStatsTeams);
+      applyStatsFilters();
+    };
+    container.appendChild(btn);
+  });
 }
 
 function applyRosterFilter(){
@@ -3637,7 +3682,7 @@ async function build2026Stats(c,pos){
       const rawProjPts=is2026Season?calcPts(projStats,position):0;
       const projPts=rawProjPts||(is2026Season?Math.round(((projStats.pts_std||projStats.pts_half_ppr||projStats.pts_ppr||0))*10)/10:0);
       const pts=is2026Season?actPts+projPts:actPts;
-      rows.push({pid,name,position,nflTeam,owner:teamData.name,you:teamData.you,stats:actualStats,projStats,actPts,projPts,pts,fmtActPts:fmtPts(actPts),fmtProjPts:fmtPts(projPts)});
+      rows.push({pid,name,position,nflTeam,rid:rid||0,owner:teamData.name,you:teamData.you,stats:actualStats,projStats,actPts,projPts,pts,fmtActPts:fmtPts(actPts),fmtProjPts:fmtPts(projPts)});
     });
     const filtered=pos==='rookie'
       ?rows.filter(r=>['QB','RB','WR','TE'].includes(r.position)&&isRookieInYear(r.pid,2026))
@@ -3689,7 +3734,7 @@ async function build2026Stats(c,pos){
         ?`<td>${fmt(r.stats.rec)}</td><td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>${showTEPrem?`<td style="color:var(--pos-te)">${tePrem||'—'}</td>`:''}`
         :`<td>—</td><td>—</td><td>—</td>${showTEPrem?'<td>—</td>':''}`):'';
       const tdTeam=isAllView?`<td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>`:'';
-      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
+      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" data-rid="${r.rid}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
     };
     const weekLabel=currentStatsWeek==='season'?'season':`week ${currentStatsWeek}`;
     const sortLabel=is2026Season?'total (actual+proj) pts':'est. pts';
@@ -3699,6 +3744,7 @@ async function build2026Stats(c,pos){
       <div style="overflow-x:auto"><table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table></div>
       <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses, rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.${is2026Season?' Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections for remaining weeks.':''}</div>
       ${hasRookies2026?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
+    buildStatsTeamChips();
     applyStatsFilters();
   }catch(e){
     c.innerHTML=`<div class="err">&#9888; Could not load 2026 stats.<br><small>${e.message}</small></div>`;
@@ -3729,7 +3775,7 @@ async function buildPlayerStats(year,posFilter){
       const rid=pidToRoster[String(pid)];
       const teamData=rid?rToTeam(rid):{name:'—',you:false};
       const pts=calcPts(stats,position);
-      rows.push({pid,name,position,nflTeam,owner:teamData.name,you:teamData.you,stats,pts});
+      rows.push({pid,name,position,nflTeam,rid:rid||0,owner:teamData.name,you:teamData.you,stats,pts});
     });
     // Filter by position
     const filtered=pos==='rookie'
@@ -3770,7 +3816,7 @@ async function buildPlayerStats(year,posFilter){
         ?`<td>${fmt(r.stats.rec)}</td><td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>${showTEPrem?`<td style="color:var(--pos-te)">${tePrem||'—'}</td>`:''}`
         :`<td>—</td><td>—</td><td>—</td>${showTEPrem?'<td>—</td>':''}`):'';
       const tdTeam=isAllView?`<td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>`:'';
-      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
+      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" data-rid="${r.rid}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
     };
     const hasRookies=filtered.some(r=>isRookieInYear(r.pid,currentStatsYear));
     c.innerHTML=`
@@ -3780,6 +3826,7 @@ async function buildPlayerStats(year,posFilter){
       </div>
       <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>
       ${hasRookies?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
+    buildStatsTeamChips();
     applyStatsFilters();
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load player stats.<br><small>${e.message}</small></div>`;
@@ -3872,11 +3919,15 @@ function onStatsPlayerSearch(val){
 function applyStatsFilters(){
   const q=statsPlayerSearch;
   const hasSel=statsSelectedPlayers.size>0;
+  const hasTeamFilter=currentStatsTeams.size>0;
   document.querySelectorAll('#stats-container tr[data-pid]').forEach(row=>{
     const name=row.dataset.name||'';
     const pid=row.dataset.pid;
+    const rid=parseInt(row.dataset.rid||'0');
     const selected=statsSelectedPlayers.has(pid);
-    const show=hasSel?selected:(!q||name.includes(q));
+    const teamMatch=!hasTeamFilter||currentStatsTeams.has(rid);
+    const searchMatch=hasSel?selected:(!q||name.includes(q));
+    const show=teamMatch&&searchMatch;
     row.style.display=show?'':'none';
     row.style.background=selected?'var(--surface2)':'';
   });
@@ -4486,8 +4537,8 @@ init();
 
 // ── COUNTDOWN ──
 function startCountdown(){
-  // NFL 2026 season opener: Thursday Sept 10, 2026 8:20 PM ET
-  const target=new Date('2026-09-10T20:20:00-04:00');
+  // NFL 2026 season opener: Wednesday Sept 9, 2026 8:20 PM ET
+  const target=new Date('2026-09-09T20:20:00-04:00');
   function tick(){
     const diff=target-new Date();
     const el=document.getElementById('countdown-display');
