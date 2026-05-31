@@ -14,7 +14,7 @@ This is a **static HTML/JavaScript project** — no framework, no build step, no
 
 ```
 the-other-league/                      — repo root
-├── index.html                         — THE working file (3300+ lines, all logic embedded)
+├── index.html                         — THE working file (4700+ lines, all logic embedded)
 ├── TOL Large Logo.png                 — hero image (home panel + sticky header)
 ├── TOL Small Logo.png                 — available if needed
 ├── TOL Abbreviated Icon.png           — favicon + iOS add-to-homescreen icon
@@ -50,9 +50,9 @@ the-other-league/                      — repo root
 - CORS note: Direct browser fetch may fail. Fallback proxies in order: `corsproxy.io`, `api.allorigins.win`
 
 ### Anthropic API
-- Used **only** by `getTradeAI()` inside the Trade Evaluator panel
 - The "Ask Claude" tab was removed from the UI (panel and icon tab are gone)
-- `sendAI()`, `addMsg()`, `clearChat()`, `aiMessages`, `LEAGUE_CONTEXT`, `QUICK_PROMPTS` remain in JS because `getTradeAI()` calls them — do not delete them
+- `getTradeAI()` was also removed in the June 2026 Trade Evaluator overhaul
+- `sendAI()`, `addMsg()`, `clearChat()`, `aiMessages`, `LEAGUE_CONTEXT`, `QUICK_PROMPTS` remain in JS as dead code — safe to clean up in a future pass but do not remove without confirming no other callers exist
 
 ---
 
@@ -70,7 +70,7 @@ Each tab is `<div class="icon-tab" onclick="showTab('id',this)" data-tab="id">` 
 
 The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick="refreshData()">` — styled with a left border separator; it never gets the active class.
 
-**Mobile layout (≤ 680px):** The nav wraps into two rows of 5 using `flex-wrap: wrap` with each tab at `width: 20%`. Row 1: Careers, League, Rivalries, Scores, Rosters. Row 2: Stats, Draft, **Txns** (label shortened from "Transactions"), Trade Eval, Refresh. Labels use 8px font with tighter letter-spacing on mobile. Desktop remains a single scrollable row.
+**Mobile layout (≤ 680px):** The nav wraps into two rows of 5 using `flex-wrap: wrap` with each tab at `width: 20%`. Row 1: Scores, Careers, Rosters, Draft, Stats. Row 2: **Trade Eval** (first), Rivalries, **Txns** (label shortened from "Transactions"), League, Refresh. Labels use 8px font with tighter letter-spacing on mobile. Desktop remains a single scrollable row with the same left-to-right order.
 
 ### URL Hash Routing
 `showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash` and navigates to the matching tab. `hashchange` event is also wired. Valid tab IDs are in `VALID_TABS` array in JS.
@@ -80,21 +80,23 @@ The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick=
 
 ### Tabs and Panels
 
-| Icon | Tab Label | `showTab` ID | Panel ID | Lazy load? |
-|------|-----------|--------------|----------|-----------|
-| (logo click) | Home | `home` | `panel-home` | No — static HTML with countdown JS |
-| 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
-| ℹ️ | League | `league` | `panel-league` | No — static HTML |
-| ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
-| 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit. Year tabs: 2026 (default), 2025, 2024, 2023. W15–W17 marked "PLAYOFFS". W4/W13 pills turn pink for rivalry years. |
-| 📋 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
-| 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
-| 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
-| 🔄 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
-| ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit |
-| ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
+Tab order (desktop L→R; mobile row 1 then row 2):
 
-**Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI. The underlying JS functions are kept because `getTradeAI()` uses them.
+| # | Icon | Tab Label | `showTab` ID | Panel ID | Lazy load? |
+|---|------|-----------|--------------|----------|-----------|
+| — | (logo click) | Home | `home` | `panel-home` | No — static HTML with countdown JS |
+| 1 | 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit. Year tabs: 2026 (default), 2025, 2024, 2023. W15–W17 marked "PLAYOFFS". W4/W13 pills turn pink for rivalry years. |
+| 2 | 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
+| 3 | 📋 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
+| 4 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
+| 5 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
+| 6 | ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit. **First on mobile row 2.** |
+| 7 | ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
+| 8 | 🔄 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
+| 9 | ℹ️ | League | `league` | `panel-league` | No — static HTML |
+| 10 | ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
+
+**Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI. The underlying JS functions are dead code (see Anthropic API section).
 
 ### Home Panel (`panel-home`)
 Contains:
@@ -170,8 +172,20 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 ### Careers Panel
 - `careers-container` — career stats table + season standings
 
-### Trade Evaluator Panel
-- `ktc-badge` — shows live vs snapshot KTC values status
+### Trade Evaluator Panel (`panel-trade`)
+- `ktc-badge` — green = live/cached KTC values; yellow = snapshot fallback
+- `ktc-updated` — "Cached Xh ago" or "Updated just now"
+- `pick-scaler` — range input (-50 to +25); 0 = Balanced = 80% of KTC raw pick value
+- `pick-scaler-val` — badge label for current slider position
+- `trade-give-team`, `trade-receive-team` — team select dropdowns
+- `trade-give-content`, `trade-receive-content` — player+pick checkbox lists
+- `trade-results` — result box (hidden until Evaluate Trade clicked)
+- `ktc-table-section` — collapsible Player Values section (hidden by default)
+- `ktc-toggle-btn` — Show/Hide toggle for `ktc-table-section`
+- `ktc-search` — player name search input
+- `ktc-pos-chips` — position filter pills (All/QB/RB/WR/TE/Picks) using `f-pill pos-*` classes
+- `ktc-team-chips` — team filter pills (All Teams + 12 owners + Free Agents) using `f-pill`
+- `ktc-table-container` — rendered `.ktc-tbl` table
 
 ### Countdown (Home Panel)
 - `countdown-display`, `cd-days`, `cd-hours`, `cd-mins`, `cd-secs`
@@ -267,10 +281,29 @@ State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `
 - `showTab(tab, el)` — activates tab + panel; triggers lazy-load on first visit; toggles `body.is-home`; updates URL hash
 
 ### Trade Evaluator
-- `initTradeEval()` — lazy-init: populates team dropdowns, kicks off `fetchKTCValues()`
-- `fetchKTCValues()` — tries live KTC JSON; falls back to `KTC_SNAPSHOT` if < 50 players returned
-- `evaluateTrade()` — computes value delta using KTC values, renders result card
-- `getTradeAI(giveUid, receiveUid)` — calls Claude API with trade details
+- `initTradeEval()` — lazy-init: populates team dropdowns, builds pos/team chips, calls `fetchKTCValues()`, then builds player list and renders table; calls `buildFuturePicksMap()` after
+- `fetchKTCValues()` — fetches `https://keeptradecut.com/dynasty-rankings?format=1&tep=1` HTML, parses `var playersArray = [...]` via bracket-counting, extracts `superflexValues.tep.value` per player; tries direct then two CORS proxies; falls back to `KTC_SNAPSHOT` if all fail. 24h localStorage cache under `tol_ktc_v3`.
+- `loadKTCCache()` — checks `tol_ktc_v3` for a valid 24h cache; sets `_ktcValues` and `_ktcSource`
+- `getKTCEntry(name)` — exact-name lookup in `_ktcValues` or `KTC_SNAPSHOT`; returns `{value, position, nflTeam, age, rank, trend}` or null
+- `getKTCEntryFuzzy(name)` — exact match → normalized match (strips apostrophes/periods, lowercases) → null; used for Sleeper→KTC name mapping
+- `normalizeName(n)` — strips apostrophes, backticks, periods; lowercases; collapses spaces; used for fuzzy name matching
+- `getDynastyValue(pid)` — resolves a Sleeper player_id → KTC value via name lookup + last-name fallback; returns 800 if not found
+- `buildKTCPlayerList()` — builds `_ktcAllPlayers` array: Phase 1 iterates Sleeper rosters (ownership guaranteed, uses `getKTCEntryFuzzy`); Phase 2 appends unrostered KTC entries + future picks (2027+, 2026 excluded). Sorted by rank.
+- `buildKTCPosChips()` — builds All/QB/RB/WR/TE/Picks filter pills using `f-pill pos-*` classes; guarded by `dataset.built`
+- `buildKTCTeamChips()` — builds All Teams + 12 owners + Free Agents filter pills using `f-pill`; guarded by `dataset.built`
+- `setKTCPos(pos, el)` — sets `_ktcFilterPos`, updates active chip, re-renders table
+- `toggleKTCTeam(rid, el)` — toggles `rid` in `_ktcFilterTeams` Set; "all" clears the Set
+- `renderKTCTable()` — renders `.ktc-tbl` from `_ktcAllPlayers` applying current pos/team/search filters and sort; TOL Owner column uses pink (`var(--accent3)`)
+- `ktcSortBy(col)` — toggles sort direction on rank/name/position/age/value columns
+- `toggleKTCTable()` — shows/hides `#ktc-table-section`; updates `#ktc-toggle-btn` label
+- `getPickMultiplier()` — returns `0.8 + _pickSlider × 0.008` (slider 0 = 80% of KTC; slider +25 = 100%)
+- `getAdjustedPickValue(rawVal)` — applies pick multiplier to a raw KTC pick value
+- `getKTCPickValue(year, round, slot)` — maps slot→tier (Early/Mid/Late), looks up "2027 Mid 1st" style name in KTC data
+- `getPickValue(year, round, slot)` — `getAdjustedPickValue(getKTCPickValue(...))`
+- `updatePickScaler(val)` — updates `_pickSlider`, refreshes trade panels and table
+- `loadTradeTeam(side)` — renders player+pick checkbox list for a team; 2027/2028 picks only (2026 draft complete)
+- `getTradeAssets(side)` — collects checked players/picks from a side
+- `evaluateTrade()` — sums values, computes delta/pct, renders verdict card (Even/Slight/Clear/Strong Win/Loss)
 
 ### Boot
 - `startCountdown()` — countdown timer to **Sep 9, 2026 8:20 PM ET**; ticks every 1s
@@ -306,9 +339,8 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 ### `SEASON_HISTORY` — past season results (2023–2025)
 ### `SDATA` / `SLABELS` — scoring values and display names
 ### `DRAFT_ORDER_2026` — 2026 round 1 order (13 picks — includes consolation bonus pick 1.13)
-### `KTC_SNAPSHOT` — hardcoded dynasty player values (snapshot April 2026)
-### `KTC_PICK_VALUES` — pick values by year + round
-### `LEAGUE_CONTEXT` — static context string injected into AI calls
+### `KTC_SNAPSHOT` — hardcoded dynasty player values (Superflex + PPR + TE Premium, June 2026). ~80 players + all 2027/2028 pick tiers (Early/Mid/Late × 4 rounds). Used as fallback when live KTC fetch fails. Pick values represent the +25% slider position (full KTC). Format: `name → value (number)` for snapshot; `name → {value, position, nflTeam, age, rank, trend}` for live cached data.
+### `LEAGUE_CONTEXT` — static context string (dead code — `getTradeAI()` was removed)
 ### `RIVALRY_WEEKS` — rivalry week numbers per year: `{ 2025: [4, 13], 2026: [4, 13] }`. Controls pink pill styling on Scores tab and rivalry banner on matchup cards.
 ### `PLAYOFF_BRACKET_INFO` — playoff bracket labels for W15/W16/W17. Keyed `year → week → { "NameA|NameB" → { label, style } }`. Names are sorted alphabetically before joining with `|`. Covers 2023, 2024, 2025 fully. Add 2026 data here once playoff matchup pairings are known. Styles: `'gold'` (championship), `'bronze'` (3rd/5th place), `'silver'` (consolation final), omit for regular bracket rounds.
 
@@ -319,6 +351,7 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 | Key | TTL | Contents |
 |-----|-----|----------|
 | `tol_cache_v2` | 6h | Current season rosters |
+| `tol_ktc_v3` | 24h | Live KTC player values (Superflex+PPR+TEP) — map of `{playerName: {value,position,nflTeam,age,rank,trend}}` |
 | `tol_theme` | permanent | User theme preference |
 | `tol_lids` | permanent | Past league IDs |
 | `tol_matchups_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All 17 weeks of matchup data |
@@ -403,7 +436,8 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 
 ## KEY DESIGN DECISIONS (don't change without asking)
 
-- **PPR scoring** with TE premium (+0.5/rec) and distance bonuses
+- **PPR scoring** with TE premium (+0.5/rec) and distance bonuses. `SDATA` has `rec: 1.0` (PPR). Do not set back to 0.0.
+- **Trade Evaluator uses KTC Superflex + PPR + TE Premium** (`format=1&tep=1` → `superflexValues.tep.value`). Pick values are KTC raw at slider +25%; default 0% = 80% of KTC. 2026 picks excluded (draft complete). Player Values table builds from Sleeper rosters first for guaranteed ownership, then adds unrostered KTC entries.
 - **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
 - **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent
 - **CORS fallback chain** — direct → corsproxy.io → allorigins.win; never remove
@@ -505,13 +539,18 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 
 ---
 
-### Phase 7 — Trade Evaluator Enhancements *(already partially built)*
-**Goal:** Extend the existing Trade Evaluator with deeper analysis.
-- Two-panel input already exists; add scoring matrix detail view
-- AI summary layer already wired via `getTradeAI()`; improve prompt quality
-- Visitor-supplied API key flow for public users
+### Phase 7 — Trade Evaluator Enhancements *(substantially complete as of June 2026)*
+The June 2026 overhaul completed the core feature set:
+- ✅ Live KTC values (HTML parse, CORS proxy chain, 24h cache)
+- ✅ Player Values table (sortable/filterable by position + team multi-select)
+- ✅ Pick value scaler (-50% to +25%)
+- ✅ 2027/2028 future picks only; 2026 picks excluded
+- ✅ Clean value totals + verdict output
 
-**Data source:** Live Sleeper rosters + KTC + Anthropic API. **Complexity: High — build after Phases 3–6 establish KTC integration pattern.**
+**Remaining enhancements (optional):**
+- Draft ROI view (cross-reference with Phase 3)
+- Trade history log (show past trades and what they were worth at the time)
+- Roster grade context in trade verdict (win-now vs. rebuild framing)
 
 ---
 
@@ -520,7 +559,7 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 - Do not introduce React, Vue, npm, or any build tool
 - Do not break the single-file structure
 - Do not remove the CORS fallback chain
-- Do not delete `sendAI()`, `addMsg()`, `clearChat()`, `aiMessages`, or `LEAGUE_CONTEXT` — they are used by `getTradeAI()` in the Trade Evaluator
+- Do not add back `getTradeAI()` or AI scoring dimensions to the Trade Evaluator — the June 2026 overhaul replaced them with KTC values intentionally
 - Do not remove the `.cache-bar` DOM or its child IDs — they are used programmatically by `setCacheBar()` and `refreshData()`
 - Do not revert to the old lime-green/blue/orange palette
 - Do not use DM Mono for main content — it belongs only for intentional code/timestamp contexts
