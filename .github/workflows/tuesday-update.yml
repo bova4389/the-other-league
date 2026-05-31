@@ -1,0 +1,78 @@
+name: Tuesday Weekly H2H Update
+
+on:
+  schedule:
+    # Every Tuesday at 1:00 PM UTC (9:00 AM ET) — after Monday Night Football
+    - cron: '0 13 * * 2'
+  workflow_dispatch:
+    # Manual trigger from GitHub Actions UI — useful for testing or catch-up runs
+    inputs:
+      week:
+        description: 'NFL week to process (leave blank to auto-detect from Sleeper)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Dry run — print changes without writing files'
+        required: false
+        default: 'false'
+        type: boolean
+      force:
+        description: 'Force re-processing even if week was already applied'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  update-h2h:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to commit and push h2h-records.md
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Tuesday update script
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.week }}" ]; then
+            ARGS="$ARGS --week ${{ github.event.inputs.week }}"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          python scripts/tuesday_update.py $ARGS
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "tuesday-bot"
+          git config user.email "tuesday-bot@the-other-league"
+          git add "Sleeper FF/The Other League/h2h-records.md" scripts/bot_state.json
+          if git diff --staged --quiet; then
+            echo "✓ No changes — h2h-records.md is already up to date."
+          else
+            WEEK=$(python -c "
+import json, os
+f = 'scripts/bot_state.json'
+if os.path.exists(f):
+    d = json.load(open(f))
+    weeks = d.get('applied_weeks', [])
+    print(max(weeks) if weeks else '?')
+else:
+    print('?')
+")
+            git commit -m "chore(bot): H2H records update — 2026 Week ${WEEK} [automated]"
+            git push
+            echo "✓ Pushed H2H records update for Week ${WEEK}."
+          fi
