@@ -928,7 +928,9 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 }
 
 @media(max-width:680px){
-  .icon-tab { padding: 8px 10px; min-width: 54px; }
+  .icon-nav { flex-wrap: wrap; overflow-x: visible; justify-content: stretch; }
+  .icon-tab { padding: 8px 4px; min-width: 0; width: 20%; flex: 0 0 20%; box-sizing: border-box; }
+  .nav-refresh-btn { border-left: none; width: 20%; flex: 0 0 20%; min-width: 0; max-width: none; }
   .itab-icon { font-size: 16px; }
   .itab-label { font-size: 9px; }
 }
@@ -1249,6 +1251,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         <span class="chip pos-rb"><span class="cp">RB</span>Running Back</span>
         <span class="chip pos-te"><span class="cp">TE</span>Tight End</span>
       </div>
+      <div id="roster-team-chips" class="filter-bar"></div>
       <div id="rosters-container"><div class="ld"><div class="spin"></div><div class="lt">Connecting to Sleeper...</div></div></div>
     </div>
 
@@ -1467,7 +1470,8 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         <button class="yr-btn" onclick="setDraftYear('2024',this)">2024 Results</button>
         <button class="yr-btn" onclick="setDraftYear('2023',this)">2023 Results</button>
       </div>
-      <div id="draft-view-2026">
+      <div id="draft-team-chips" class="filter-bar"></div>
+      <div id="draft-view-2026" style="display:none">
         <div class="note green"><strong>Pick 1.13 — Consolation Winner:</strong> Manually inserted after pick 12. Draft paused in Sleeper app — winner texts Matt their selection — assigned manually in round 5 row, then draft resumes.</div>
         <div class="draft-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
           <button class="yr-btn active" id="d26-list-btn" onclick="setDraft26View('list',this)">List</button>
@@ -1481,7 +1485,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         </div>
         <div id="d26-board-view" style="display:none"></div>
       </div>
-      <div id="draft-view-past" style="display:none">
+      <div id="draft-view-past">
         <div class="draft-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
           <button class="yr-btn active" id="dpast-list-btn" onclick="setDraftPastView('list',this)">List</button>
           <button class="yr-btn" id="dpast-board-btn" onclick="setDraftPastView('board',this)">Board</button>
@@ -1508,10 +1512,8 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         <button class="f-pill" onclick="setTxnFilter('waiver',this)">Waivers</button>
         <button class="f-pill" onclick="setTxnFilter('free_agent',this)">Free Agent</button>
         <button class="f-pill" onclick="setTxnFilter('trade',this)">Trades</button>
-        <select id="txn-team-filter" onchange="setTxnTeam(this.value)" style="margin-left:8px;font-family:'DM Mono',monospace;font-size:10px;background:var(--card);color:var(--text2);border:1px solid var(--border);padding:4px 8px;border-radius:2px;cursor:pointer;">
-          <option value="">All Teams</option>
-        </select>
       </div>
+      <div id="txn-team-chips" class="filter-bar" style="margin-top:-8px;"></div>
       <div style="margin-bottom:12px">
         <input id="txn-player-search" type="text" placeholder="Search player history across all seasons..." oninput="onTxnPlayerSearch(this.value)" style="width:100%;font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:2px;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px">Type a player name to see their full league history. Visit Rosters tab first to enable search.</div>
@@ -1778,7 +1780,9 @@ let cachedLeague = null;       // league info (current week etc.)
 let cachedLeagueIds = null;    // { 2025: id, 2024: id, 2023: id }
 let currentTxnYear = 2025;
 let currentTxnFilter = 'all';
-let currentTxnTeam = null; // roster_id (number) or null for all teams
+let currentTxnTeams = new Set(); // roster_ids; empty = all teams
+let currentRosterTeams = new Set(); // roster_ids; empty = all teams
+let currentDraftTeams = new Set(); // roster_ids; empty = all teams
 let currentStatsYear = 2026;
 let currentStatsPos = 'all';
 let currentStatsWeek = 'season';
@@ -2387,6 +2391,8 @@ async function buildRosters(rostersData,playersData){
       </div>`;
     });
     c.appendChild(g);
+    buildTeamFilterChips('roster-team-chips',currentRosterTeams,applyRosterFilter);
+    applyRosterFilter();
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not connect to Sleeper API.<br><br>${e.message}</div>`;
   }
@@ -2550,8 +2556,7 @@ async function buildTransactions(filter,year){
   const yr=year||currentTxnYear;
   currentTxnYear=yr;
   c.innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Loading transactions...</div></div>';
-  // Populate team dropdown the first time it's empty
-  populateTxnTeamDropdown();
+  buildTeamFilterChips('txn-team-chips',currentTxnTeams,()=>buildTransactions(currentTxnFilter,currentTxnYear));
   try{
     let leagueId=LID;
     if(yr<2026){
@@ -2563,15 +2568,14 @@ async function buildTransactions(filter,year){
     // Apply type filter
     let filtered=currentTxnFilter==='all'?all:all.filter(tx=>tx.type===currentTxnFilter);
     // Apply team filter — check roster_id in adds, drops, and roster_ids list
-    if(currentTxnTeam){
-      const rid=currentTxnTeam;
+    if(currentTxnTeams.size>0){
       filtered=filtered.filter(tx=>{
         const rids=new Set([
           ...(tx.roster_ids||[]).map(Number),
           ...Object.values(tx.adds||{}).map(Number),
           ...Object.values(tx.drops||{}).map(Number),
         ]);
-        return rids.has(rid);
+        return [...currentTxnTeams].some(rid=>rids.has(rid));
       });
     }
     if(!filtered.length){c.innerHTML=`<div class="note">No transactions found for the selected filters.</div>`;return;}
@@ -2582,21 +2586,60 @@ async function buildTransactions(filter,year){
   }
 }
 
-function populateTxnTeamDropdown(){
-  const sel=document.getElementById('txn-team-filter');
-  if(!sel||sel.options.length>1)return; // already populated
+// ── TEAM FILTER CHIPS (shared by Rosters, Draft, Transactions) ──
+function buildTeamFilterChips(containerId,teamSet,onToggle){
+  const container=document.getElementById(containerId);
+  if(!container||container.dataset.built)return;
+  container.dataset.built='1';
   const teams=Object.entries(RM).map(([rid,uid])=>({rid:parseInt(rid),td:t(uid)}));
   teams.sort((a,b)=>a.td.name.localeCompare(b.td.name));
+  const allBtn=document.createElement('button');
+  allBtn.className='f-pill'+(teamSet.size===0?' active':'');
+  allBtn.textContent='All Teams';
+  allBtn.onclick=()=>{teamSet.clear();syncTeamChips(containerId,teamSet);onToggle();};
+  container.appendChild(allBtn);
   teams.forEach(({rid,td})=>{
-    const opt=document.createElement('option');
-    opt.value=rid;opt.textContent=td.name;
-    sel.appendChild(opt);
+    const btn=document.createElement('button');
+    btn.className='f-pill'+(teamSet.has(rid)?' active':'');
+    btn.dataset.rid=rid;
+    btn.textContent=td.name;
+    btn.onclick=()=>{
+      if(teamSet.has(rid))teamSet.delete(rid);else teamSet.add(rid);
+      syncTeamChips(containerId,teamSet);
+      onToggle();
+    };
+    container.appendChild(btn);
   });
 }
 
-function setTxnTeam(value){
-  currentTxnTeam=value?parseInt(value):null;
-  buildTransactions(currentTxnFilter,currentTxnYear);
+function syncTeamChips(containerId,teamSet){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  [...container.querySelectorAll('.f-pill')].forEach((btn,i)=>{
+    if(i===0)btn.classList.toggle('active',teamSet.size===0);
+    else btn.classList.toggle('active',teamSet.has(parseInt(btn.dataset.rid)));
+  });
+}
+
+function uidToRid(uid){
+  const e=Object.entries(RM).find(([,u])=>u===uid);
+  return e?parseInt(e[0]):0;
+}
+
+function applyRosterFilter(){
+  document.querySelectorAll('#rosters-container .r-card').forEach(card=>{
+    const uid=card.id.replace('roster-card-','');
+    const rid=uidToRid(uid);
+    card.style.display=currentRosterTeams.size===0||currentRosterTeams.has(rid)?'':'none';
+  });
+}
+
+function applyDraftFilter(){
+  if(!_draftPicks)return;
+  const c=document.getElementById('draft-history-container');
+  if(c)renderDraftPicks(c,_draftPicks,_draftPicksYear);
+  const boardEl=document.getElementById('draft-past-board-view');
+  if(boardEl&&boardEl.dataset.built)renderDraftBoard(_draftPicks,_draftPicksYear);
 }
 
 // ── PLAYER HISTORY SEARCH ──
@@ -2797,7 +2840,7 @@ async function buildDraftHistory(year){
   if(boardEl){boardEl.innerHTML='';delete boardEl.dataset.built;}
   const key=`tol_drafts_${year}`;
   const cached=loadPerm(key);
-  if(cached){_draftPicks=cached;_draftPicksYear=year;renderDraftPicks(c,cached,year);return;}
+  if(cached){_draftPicks=cached;_draftPicksYear=year;renderDraftPicks(c,cached,year);buildTeamFilterChips('draft-team-chips',currentDraftTeams,applyDraftFilter);return;}
   try{
     let leagueId;
     if(String(year)==='2026'){
@@ -2816,6 +2859,7 @@ async function buildDraftHistory(year){
     _draftPicks=picks;
     _draftPicksYear=year;
     renderDraftPicks(c,picks,year);
+    buildTeamFilterChips('draft-team-chips',currentDraftTeams,applyDraftFilter);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load ${year} draft.<br><small>${e.message}</small></div>`;
   }
@@ -2823,6 +2867,8 @@ async function buildDraftHistory(year){
 
 function renderDraftPicks(container,picks,year){
   if(!picks||!picks.length){container.innerHTML=`<div class="note">No picks found for ${year}.</div>`;return;}
+  if(currentDraftTeams.size>0)picks=picks.filter(p=>currentDraftTeams.has(Number(p.roster_id)));
+  if(!picks.length){container.innerHTML=`<div class="note">No picks for the selected team(s).</div>`;return;}
   const sorted=[...picks].sort((a,b)=>a.pick_no-b.pick_no);
   const rows=sorted.map(pick=>{
     const team=rToTeam(pick.roster_id);
@@ -2844,6 +2890,8 @@ function renderDraftBoard(picks,year){
   // Renders draft picks as a board with teams as columns
   const container=document.getElementById('draft-past-board-view');
   if(!picks||!picks.length){container.innerHTML=`<div class="note">No picks to display.</div>`;return;}
+  if(currentDraftTeams.size>0)picks=picks.filter(p=>currentDraftTeams.has(Number(p.roster_id)));
+  if(!picks.length){container.innerHTML=`<div class="note">No picks for the selected team(s).</div>`;return;}
   const sorted=[...picks].sort((a,b)=>a.pick_no-b.pick_no);
   // Get ordered list of teams (first appearance order = pick order round 1)
   const teamOrder=[];

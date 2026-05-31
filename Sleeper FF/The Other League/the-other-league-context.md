@@ -1,6 +1,6 @@
 # THE OTHER LEAGUE — MASTER CONTEXT DOCUMENT
 *Dynasty Fantasy Football · Sleeper Platform · Commissioner: Matt Bova*
-*Last updated: May 30, 2026 · 2026 Rookie Draft Complete*
+*Last updated: May 31, 2026 · 2026 Rookie Draft Complete*
 
 ---
 
@@ -485,7 +485,7 @@ Static hardcoded HTML. Scoring rules, roster rules, playoff structure, payout hi
 Year tabs: 2026 (default), 2025, 2024, 2023. Week pill filter W1–W17; W15–W17 show "PLAYOFFS" divider. W4 and W13 pills turn pink for 2025/2026 (rivalry weeks) with a pink "⚔ Rivalry Week" banner above cards. Bracket chips on playoff week cards (gold=championship, bronze=3rd/5th, silver=consolation). All-time H2H record strip at bottom of each card (2025 and 2026 only). 2026 shows "Projected scores" banner and PROJ chip on cards.
 
 ### Rosters ✅ Complete
-12 roster cards from Sleeper API. Position-colored player chips (QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red). Position badge uses DM Sans 600 10px with colored background. Sections: Starters / Bench / Taxi / IR. Average age badges (overall + by position). Color legend at top of panel. Number in parentheses after player name = age.
+12 roster cards from Sleeper API. Position-colored player chips (QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red). Position badge uses DM Sans 600 10px with colored background. Sections: Starters / Bench / Taxi / IR. Average age badges (overall + by position). Color legend at top of panel. Number in parentheses after player name = age. **Multi-select team filter chips** above the roster grid — click one or more team names to isolate their cards; "All Teams" chip clears the filter.
 
 ### Stats ✅ Complete
 - Year tabs: 2026 (default), 2025, 2024, 2023
@@ -498,10 +498,10 @@ Year tabs: 2026 (default), 2025, 2024, 2023. Week pill filter W1–W17; W15–W1
 - **2023–2025 data: served from `stats-history.json`** (committed to repo root, ~1.2MB gzipped on delivery). `fetchPlayerStats()` and `fetchWeekStats()` check the JSON first; after first load the result is saved to permanent localStorage. Falls back to Sleeper API if JSON is unavailable. Includes all historically-rostered players — not limited to current roster.
 
 ### Draft ✅ Complete
-2026 rookie draft results pulled live from Sleeper API (complete as of May 2026). Linear draft format (same order all 4 rounds). Historical 2023/2024/2025 results also available. List + board views for 2026.
+2026 rookie draft results pulled live from Sleeper API (complete as of May 2026). Linear draft format (same order all 4 rounds). Historical 2023/2024/2025 results also available. List + board views for all years. **Multi-select team filter chips** above year buttons — filter list and board views to one or more teams. Filter persists when switching between years. Note: all years (including 2026) render into `draft-view-past` via `buildDraftHistory()`; `draft-view-2026` is hidden by default and reserved for future use.
 
 ### Transactions ✅ Complete
-All league transactions across seasons with filters: year, type (Waiver / Free Agent / Trade), team dropdown, player search. Two-sided trade cards.
+All league transactions across seasons with filters: year, type (Waiver / Free Agent / Trade), player search. **Multi-select team filter chips** (replaced the old single-select dropdown) — select one or more teams to show only transactions involving those teams. Two-sided trade cards.
 
 ### Trade Evaluator ✅ Complete
 Two-panel roster selector. KTC dynasty values (live fetch with snapshot fallback). Value delta calculation. AI-powered trade summary via Claude API (underlying JS functions kept even though Ask Claude UI tab was removed).

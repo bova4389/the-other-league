@@ -70,6 +70,8 @@ Each tab is `<div class="icon-tab" onclick="showTab('id',this)" data-tab="id">` 
 
 The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick="refreshData()">` — styled with a left border separator; it never gets the active class.
 
+**Mobile layout (≤ 680px):** The nav wraps into two rows of 5 using `flex-wrap: wrap` with each tab at `width: 20%`. Row 1: Careers, League, Rivalries, Scores, Rosters. Row 2: Stats, Draft, Transactions, Trade Eval, Refresh. Desktop remains a single scrollable row.
+
 ### URL Hash Routing
 `showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash` and navigates to the matching tab. `hashchange` event is also wired. Valid tab IDs are in `VALID_TABS` array in JS.
 
@@ -144,21 +146,25 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 ### Rosters Panel
 - `rosters-container` — roster grid (12 `r-card` divs)
 - `roster-card-{uid}` — individual roster card per team
+- `roster-team-chips` — multi-select team filter chip bar (built by `buildTeamFilterChips`)
 
 ### Rivalries Panel
 - `rivalry-grid` — rivalry matchup cards
 
 ### Draft Panel
-- `draft-view-2026`, `draft-view-past`
-- `d26-list-view`, `d26-board-view`, `d26-tbody`
-- `draft-history-container`
+- `draft-view-past` — visible by default; all years including 2026 render here via `buildDraftHistory()`
+- `draft-view-2026` — hidden by default (`display:none`); reserved for future use; `d26-tbody` is unpopulated
+- `d26-list-view`, `d26-board-view`, `d26-tbody` — inside the hidden 2026 view
+- `draft-history-container` — inside `draft-view-past`; holds rendered picks
+- `draft-team-chips` — multi-select team filter chip bar above the year toggle
 
 ### Player Stats Panel
 - `stats-yr-toggle`, `stats-pos-filter`, `stats-wk-filter`, `stats-container`
 - `sg-pass`, `sg-rush`, `sg-rec` — stat group toggle buttons (Passing / Rushing / Receiving); toggling rebuilds the table
 
 ### Transactions Panel
-- `txn-container`, `txn-yr-toggle`, `txn-filter-bar`, `txn-team-filter`, `txn-player-search`, `txn-player-results`
+- `txn-container`, `txn-yr-toggle`, `txn-filter-bar`, `txn-player-search`, `txn-player-results`
+- `txn-team-chips` — multi-select team filter chip bar (replaced the old `txn-team-filter` dropdown)
 
 ### Careers Panel
 - `careers-container` — career stats table + season standings
@@ -210,8 +216,17 @@ State variables: `currentScoresYear` (default 2026), `currentScoresWeek` (defaul
 - `goToScoresWeek(year, week)` — navigates from Rivalries tab: switches to scores tab, sets year+week, calls `updateRivalryPills(year)`, rebuilds scores
 - `updateRivalryPills(year)` — toggles `.rivalry` class on W4/W13 pills based on `RIVALRY_WEEKS[year]`; called whenever year changes
 
+### Team Filter Chips (shared — Rosters, Draft, Transactions)
+State variables: `currentTxnTeams`, `currentRosterTeams`, `currentDraftTeams` — each a `Set` of `roster_id` numbers; empty = all teams.
+
+- `buildTeamFilterChips(containerId, teamSet, onToggle)` — builds "All Teams" + one chip per team into the container div; guarded by `dataset.built` so it only runs once per container
+- `syncTeamChips(containerId, teamSet)` — updates active state on chips to match the current Set
+- `uidToRid(uid)` — converts a `user_id` string to its numeric `roster_id`
+- `applyRosterFilter()` — shows/hides `r-card` elements in `#rosters-container` based on `currentRosterTeams`
+- `applyDraftFilter()` — re-renders `renderDraftPicks` and (if board was built) `renderDraftBoard` using `_draftPicks` and `currentDraftTeams`
+
 ### Rosters
-- `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips
+- `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips; calls `buildTeamFilterChips` and `applyRosterFilter` after rendering
 
 ### Rivalries
 - `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit; always shows a "2026: TBD · W4 W13" placeholder row for each rivalry until live matchup data is available
@@ -236,12 +251,14 @@ State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `
 
 ### Transactions
 - `fetchTransactions(leagueId, year)` — fetches and permanently caches past transactions
-- `buildTransactions(filter, year)` — renders filtered list
+- `buildTransactions(filter, year)` — renders filtered list; calls `buildTeamFilterChips` on first run; filters by `currentTxnTeams` (multi-select Set — matches any transaction touching any selected team)
 - `runPlayerSearch(query)` — searches all seasons + draft history for a player
 
 ### Draft
-- `buildDraft2026()` — renders 2026 linear draft order (same order every round, not snake)
-- `buildDraftHistory(year)` — fetches and renders past draft results
+- `buildDraft2026()` — **never called** — dead code; `d26-tbody` is never populated; `draft-view-2026` stays hidden
+- `buildDraftHistory(year)` — fetches and renders past draft results for ALL years (including 2026); calls `buildTeamFilterChips` after rendering
+- `renderDraftPicks(container, picks, year)` — filters picks by `currentDraftTeams` before rendering
+- `renderDraftBoard(picks, year)` — filters picks by `currentDraftTeams` before rendering (shows only selected teams' columns on board view)
 
 ### Tab Navigation
 - `showTab(tab, el)` — activates tab + panel; triggers lazy-load on first visit; toggles `body.is-home`; updates URL hash
