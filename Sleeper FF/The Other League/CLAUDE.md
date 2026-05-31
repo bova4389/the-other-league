@@ -403,7 +403,7 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 
 ## KEY DESIGN DECISIONS (don't change without asking)
 
-- **Non-PPR scoring** with TE premium (+0.5/rec) and distance bonuses
+- **PPR scoring** with TE premium (+0.5/rec) and distance bonuses
 - **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
 - **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent
 - **CORS fallback chain** — direct → corsproxy.io → allorigins.win; never remove

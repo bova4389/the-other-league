@@ -124,29 +124,44 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .trade-panel-box{background:var(--card);border:1px solid var(--border);padding:14px;}
 .trade-panel-hdr{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.05em;color:var(--text2);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px;}
 .trade-team-sel{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:6px 8px;margin-bottom:10px;cursor:pointer;outline:none;}
-.trade-asset-list{max-height:420px;overflow-y:auto;}
+.trade-asset-list{max-height:400px;overflow-y:auto;}
 .trade-sec-lbl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:10px 0 5px;}
 .trade-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;}
 .trade-row:last-child{border-bottom:none;}
 .trade-row input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
 .trade-row-lbl{flex:1;font-size:11px;color:var(--text);line-height:1.4;}
 .trade-row-val{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0;}
-.trade-eval-btn{background:var(--accent);color:var(--bg);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 24px;border:none;cursor:pointer;transition:opacity .15s;}
+.trade-eval-btn{background:var(--accent);color:var(--bg);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 24px;border:none;cursor:pointer;transition:opacity .15s;margin-top:4px;}
 .trade-eval-btn:hover{opacity:.85;}
 .trade-eval-btn:disabled{opacity:.4;cursor:not-allowed;}
-.trade-score-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
-.trade-score-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.trade-score-dim{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);width:170px;flex-shrink:0;}
-.trade-bar-wrap{width:120px;background:var(--border);height:6px;flex-shrink:0;}
-.trade-bar{height:6px;}
-.trade-score-num{font-family:'Bebas Neue',sans-serif;font-size:20px;width:36px;text-align:right;flex-shrink:0;}
-.trade-score-note{font-size:11px;color:var(--muted);flex:1;min-width:0;}
-.trade-verdict{text-align:center;padding:16px;background:var(--card);border:2px solid;margin-bottom:20px;}
-.trade-verdict-lbl{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.04em;}
-.trade-verdict-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
-.trade-ai-box{background:var(--card);border:1px solid var(--border);padding:16px;}
-.trade-ai-hdr{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.05em;color:var(--text2);margin-bottom:10px;}
-@media(max-width:600px){.trade-input-grid{grid-template-columns:1fr;}.trade-score-dim{width:120px;}.trade-bar-wrap{width:80px;}}
+/* Pick scaler */
+.pick-scaler-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:20px;flex-wrap:wrap;}
+.pick-scaler-lbl{font-family:'DM Sans';font-weight:600;font-size:11px;color:var(--text2);white-space:nowrap;}
+.pick-scaler-inner{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;}
+.pick-scaler-extreme{font-family:'DM Mono';font-size:9px;color:var(--muted);white-space:nowrap;}
+.pick-scaler-inner input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
+/* KTC values table */
+.ktc-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.ktc-tbl th{text-align:left;padding:6px 8px;font-family:'Bebas Neue';letter-spacing:.06em;font-size:12px;border-bottom:1px solid var(--border);cursor:pointer;color:var(--accent3);white-space:nowrap;user-select:none;}
+.ktc-tbl th:hover{color:var(--accent);}
+.ktc-tbl td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.ktc-tbl tr:hover td{background:rgba(255,255,255,.04);}
+.ktc-val{font-family:'DM Mono';font-weight:600;color:var(--accent);}
+.ktc-rank{font-family:'DM Mono';font-size:10px;color:var(--muted);}
+.ktc-trend-up{color:#4caf50;font-size:9px;}
+.ktc-trend-dn{color:#e53935;font-size:9px;}
+/* Trade result */
+.trade-result-box{background:var(--card);border:1px solid var(--border);padding:20px;text-align:center;margin-bottom:16px;}
+.trade-result-sides{display:flex;justify-content:center;align-items:flex-start;gap:24px;flex-wrap:wrap;margin-bottom:16px;}
+.trade-result-side{display:flex;flex-direction:column;align-items:center;gap:4px;max-width:200px;}
+.trade-result-side-lbl{font-family:'DM Mono';font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+.trade-result-side-val{font-family:'Bebas Neue';font-size:44px;letter-spacing:.02em;line-height:1;}
+.trade-result-side-items{font-family:'DM Mono';font-size:9px;color:var(--muted);line-height:1.5;text-align:center;}
+.trade-result-vs{font-family:'Bebas Neue';font-size:22px;color:var(--muted);padding-top:14px;}
+.trade-result-delta{font-family:'DM Mono';font-size:13px;font-weight:600;margin-bottom:6px;}
+.trade-result-verdict{font-family:'Bebas Neue';font-size:28px;letter-spacing:.04em;}
+.trade-result-sub{font-family:'DM Mono';font-size:10px;color:var(--muted);margin-top:4px;}
+@media(max-width:600px){.trade-input-grid{grid-template-columns:1fr;}.pick-scaler-row{flex-direction:column;align-items:flex-start;}}
 
 /* PANELS */
 .panel{display:none;} .panel.active{display:block;}
@@ -1452,8 +1467,8 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       </div>
       <div style="margin-top:28px;">
         <div class="sec-row-label">Scoring Settings</div>
-        <div class="sec-sub">Non-PPR · TE Premium · Distance Bonuses · Super Flex</div>
-        <div class="note"><strong>Key implications:</strong> Non-PPR kills volume slot WRs. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
+        <div class="sec-sub">PPR · TE Premium · Distance Bonuses · Super Flex</div>
+        <div class="note"><strong>Key implications:</strong> PPR rewards volume receivers. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
         <div class="sc-grid" id="score-grid"></div>
       </div>
     </div>
@@ -1571,15 +1586,33 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       <div id="careers-container"></div>
     </div>
 
-    <!-- AI TAB -->
     <!-- TRADE EVALUATOR -->
     <div class="panel" id="panel-trade">
       <div class="sec-title">⚖ TRADE EVALUATOR</div>
-      <div class="sec-sub">Score any deal across 5 dynasty dimensions</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <div class="sec-sub">KTC Dynasty Values — Superflex · PPR · TE Premium (+0.5)</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
         <span id="ktc-badge" class="bdg bdg-m" style="font-size:9px;">Values: loading...</span>
-        <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">// UPDATE BEFORE 2026 SEASON</span>
+        <span id="ktc-updated" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);"></span>
       </div>
+      <div class="pick-scaler-row">
+        <span class="pick-scaler-lbl">Pick Value</span>
+        <div class="pick-scaler-inner">
+          <span class="pick-scaler-extreme">Very Conservative</span>
+          <input type="range" id="pick-scaler" min="-50" max="25" step="5" value="0" oninput="updatePickScaler(this.value)">
+          <span class="pick-scaler-extreme">KTC Standard (+25%)</span>
+        </div>
+        <span id="pick-scaler-val" class="bdg bdg-m" style="font-size:9px;min-width:130px;text-align:center;">Balanced (0%)</span>
+      </div>
+
+      <div class="sec-title" style="font-size:16px;margin-bottom:12px;">PLAYER VALUES</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+        <input type="text" id="ktc-search" class="trade-team-sel" style="width:200px;margin-bottom:0;" placeholder="Search player..." oninput="applyKTCTableFilters()">
+      </div>
+      <div id="ktc-pos-chips" class="filter-bar" style="margin-bottom:8px;"></div>
+      <div id="ktc-team-chips" class="filter-bar" style="margin-bottom:14px;"></div>
+      <div id="ktc-table-container" style="overflow-x:auto;max-height:480px;overflow-y:auto;"></div>
+
+      <div class="sec-title" style="font-size:16px;margin-top:32px;margin-bottom:12px;">TRADE COMPARISON</div>
       <div class="trade-input-grid">
         <div class="trade-panel-box">
           <div class="trade-panel-hdr">YOU GIVE</div>
@@ -1759,7 +1792,7 @@ const SLABELS = {
   pts_allow_28_34:'Pts Allowed 28–34',pts_allow_35p:'Pts Allowed 35+',
 };
 
-const SDATA = {"sack":1.0,"fgm_40_49":4.0,"bonus_rec_te":0.5,"pass_int":-2.0,"pts_allow_0":10.0,"bonus_pass_yd_400":2.0,"pass_2pt":2.0,"rec_0_4":0.5,"st_td":6.0,"rec_30_39":1.0,"rec_td":6.0,"rec_20_29":1.0,"fgm_30_39":3.0,"xpmiss":-1.0,"rush_td":6.0,"pass_td_40p":2.0,"rec_2pt":2.0,"pass_int_td":-1.0,"st_fum_rec":1.0,"fgmiss":-1.0,"ff":1.0,"rec":0.0,"pts_allow_14_20":1.0,"fgm_0_19":3.0,"int":2.0,"def_st_fum_rec":1.0,"fum_lost":-2.0,"pts_allow_1_6":7.0,"kr_yd":0.04,"rec_5_9":0.75,"fgm_20_29":3.0,"pts_allow_21_27":0.0,"xpm":1.0,"rec_40p":2.0,"rush_2pt":2.0,"fum_rec":2.0,"rec_10_19":1.0,"bonus_rec_yd_200":2.0,"def_st_td":6.0,"fgm_50p":5.0,"def_td":6.0,"bonus_rush_yd_200":2.0,"safe":2.0,"pass_yd":0.04,"blk_kick":2.0,"pass_td":4.0,"rush_yd":0.1,"rush_40p":1.0,"pr_yd":0.04,"fum":0.0,"pts_allow_28_34":-1.0,"pts_allow_35p":-4.0,"fum_rec_td":6.0,"rec_yd":0.1,"def_st_ff":1.0,"pts_allow_7_13":4.0,"st_ff":1.0};
+const SDATA = {"sack":1.0,"fgm_40_49":4.0,"bonus_rec_te":0.5,"pass_int":-2.0,"pts_allow_0":10.0,"bonus_pass_yd_400":2.0,"pass_2pt":2.0,"rec_0_4":0.5,"st_td":6.0,"rec_30_39":1.0,"rec_td":6.0,"rec_20_29":1.0,"fgm_30_39":3.0,"xpmiss":-1.0,"rush_td":6.0,"pass_td_40p":2.0,"rec_2pt":2.0,"pass_int_td":-1.0,"st_fum_rec":1.0,"fgmiss":-1.0,"ff":1.0,"rec":1.0,"pts_allow_14_20":1.0,"fgm_0_19":3.0,"int":2.0,"def_st_fum_rec":1.0,"fum_lost":-2.0,"pts_allow_1_6":7.0,"kr_yd":0.04,"rec_5_9":0.75,"fgm_20_29":3.0,"pts_allow_21_27":0.0,"xpm":1.0,"rec_40p":2.0,"rush_2pt":2.0,"fum_rec":2.0,"rec_10_19":1.0,"bonus_rec_yd_200":2.0,"def_st_td":6.0,"fgm_50p":5.0,"def_td":6.0,"bonus_rush_yd_200":2.0,"safe":2.0,"pass_yd":0.04,"blk_kick":2.0,"pass_td":4.0,"rush_yd":0.1,"rush_40p":1.0,"pr_yd":0.04,"fum":0.0,"pts_allow_28_34":-1.0,"pts_allow_35p":-4.0,"fum_rec_td":6.0,"rec_yd":0.1,"def_st_ff":1.0,"pts_allow_7_13":4.0,"st_ff":1.0};
 
 // 2026 draft order derived from 2025 final standings
 // Picks 1.01–1.06: reg season finishers 12th→7th; 1.07–1.11: playoff bracket; 1.12: champ; 1.13: consolation
@@ -1873,9 +1906,16 @@ const PLAYOFF_BRACKET_INFO = {
     },
   },
 };
-let _tradeInit = false;   // trade evaluator tab has been initialized
-let _ktcValues = null;    // live KTC values if fetch succeeds; null = use snapshot
-let _ktcSource = 'snapshot';
+let _tradeInit = false;
+let _ktcValues = null;       // live/cached KTC values; null = use snapshot
+let _ktcSource = 'snapshot'; // 'live' | 'cached' | 'snapshot'
+let _ktcFetchedAt = 0;
+let _ktcAllPlayers = [];     // flattened list for values table
+let _ktcSortCol = 'rank';
+let _ktcSortAsc = true;
+let _ktcFilterPos = 'all';
+let _ktcFilterTeams = new Set();
+let _pickSlider = 0;         // -50 to +25; 0 = Balanced = 80% of KTC pick value
 
 // ── HELPERS ──
 function t(uid){ return TEAMS[uid]||{name:uid,team:'Unknown',you:false,tier:'mid'}; }
@@ -3742,7 +3782,7 @@ async function build2026Stats(c,pos){
     c.innerHTML=`${topHtml}
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players &middot; 2026 ${weekLabel} &middot; sorted by ${sortLabel}</div>
       <div style="overflow-x:auto"><table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table></div>
-      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses, rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.${is2026Season?' Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections for remaining weeks.':''}</div>
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: PPR, TE premium (+0.5/rec), distance bonuses, rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.${is2026Season?' Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections for remaining weeks.':''}</div>
       ${hasRookies2026?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
     buildStatsTeamChips();
     applyStatsFilters();
@@ -3824,7 +3864,7 @@ async function buildPlayerStats(year,posFilter){
       <div style="overflow-x:auto">
         <table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table>
       </div>
-      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: non-PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>
       ${hasRookies?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
     buildStatsTeamChips();
     applyStatsFilters();
@@ -3985,80 +4025,110 @@ function showTab(tab,el){
 
 // ── TRADE EVALUATOR ──
 
-// Hardcoded KTC-approximate dynasty values (snapshot April 2026)
-// UPDATE BEFORE 2026 SEASON — verify against live KTC values at keeptradecut.com/dynasty-rankings
+// KTC Snapshot — Superflex + PPR + TE Premium (+0.5) values (June 2026)
+// Used as fallback when live fetch fails. Format: playerName → value (0-9999 scale).
 const KTC_SNAPSHOT = {
-  // QBs
-  'Patrick Mahomes':8800,'Lamar Jackson':7400,'Josh Allen':7000,
-  'Jayden Daniels':7800,'Caleb Williams':7600,'C.J. Stroud':7200,
-  'Joe Burrow':6800,'Drake Maye':7400,'Brock Purdy':5600,
-  'Jalen Hurts':6400,'Anthony Richardson':5800,'Bo Nix':6200,
-  'Jordan Love':6800,'Dak Prescott':5200,'Sam Darnold':4200,
+  // QBs — SF values are significantly higher than 1QB
+  'Josh Allen':9998,'Drake Maye':9376,'Caleb Williams':7944,'Jayden Daniels':7839,
+  'Lamar Jackson':7656,'Joe Burrow':7435,'Justin Herbert':6845,'Patrick Mahomes':6685,
+  'Jaxson Dart':6603,'Trevor Lawrence':6383,'Jalen Hurts':6166,'Bo Nix':6051,
+  'Brock Purdy':5843,'Jordan Love':5621,'Cam Ward':5444,'Dak Prescott':4964,
+  'C.J. Stroud':4881,'Baker Mayfield':4810,'Jared Goff':4670,'Sam Darnold':4633,
+  'Anthony Richardson':4522,'Kyler Murray':4469,'Fernando Mendoza':5619,'Tyler Shough':4932,
   // WRs
-  "Ja'Marr Chase":9600,'Justin Jefferson':9400,'CeeDee Lamb':9200,
-  'Malik Nabers':8800,'Marvin Harrison Jr.':8400,'Amon-Ra St. Brown':8200,
-  'Brian Thomas Jr.':8000,'Garrett Wilson':8000,'Puka Nacua':7400,
-  'Brandon Aiyuk':7400,'Rashee Rice':7400,'Nico Collins':7800,
-  'Ladd McConkey':7600,'Jaxon Smith-Njigba':7600,'Rome Odunze':7400,
-  'Jaylen Waddle':7200,'Drake London':7200,'Xavier Worthy':7000,
-  'DeVonta Smith':6800,'Tee Higgins':6600,'Chris Olave':6600,
-  'Michael Pittman Jr.':5800,'DK Metcalf':5800,'Rashid Shaheed':5400,
-  'Terry McLaurin':5600,'Mike Evans':4600,'Calvin Ridley':5200,
-  'Tyreek Hill':5400,'Deebo Samuel':5200,'Courtland Sutton':5000,
-  'Quentin Johnston':5600,'Dontayvion Wicks':5000,'Cooper Kupp':3800,
-  'Davante Adams':4200,'Keenan Allen':3400,'Stefon Diggs':3400,
-  'Christian Kirk':3800,'Tyler Lockett':3200,
+  "Ja'Marr Chase":9960,'Jaxon Smith-Njigba':9832,'Puka Nacua':8614,'Amon-Ra St. Brown':7841,
+  'Justin Jefferson':7790,'Malik Nabers':7665,'CeeDee Lamb':7260,'Drake London':6948,
+  'Tetairoa McMillan':6555,'Emeka Egbuka':6091,'Carnell Tate':5926,'George Pickens':5887,
+  'Garrett Wilson':5694,'Nico Collins':5585,'Chris Olave':5502,'Rome Odunze':5462,
+  'Ladd McConkey':5429,'Jordyn Tyson':5422,'Luther Burden':5306,'DeVonta Smith':5256,
+  'Marvin Harrison Jr.':5060,'Makai Lemon':5060,'Tee Higgins':4924,'A.J. Brown':4846,
+  'Brian Thomas Jr.':4831,'Jaylen Waddle':4820,'Zay Flowers':4803,'Jameson Williams':4668,
+  'Rashee Rice':4620,'Brandon Aiyuk':4580,'Terry McLaurin':4460,'Rashid Shaheed':4380,
+  'Michael Pittman Jr.':4280,'Cooper Kupp':2800,'Davante Adams':3800,'Mike Evans':3640,
+  'Tyler Lockett':2900,'Stefon Diggs':2600,
   // RBs
-  'Bijan Robinson':8800,'Jahmyr Gibbs':8400,'Breece Hall':8200,
-  "De'Von Achane":8200,'Jonathan Taylor':6800,'Kyren Williams':7000,
-  'James Cook':6800,'Chase Brown':6800,'Tyrone Tracy Jr.':5600,
-  'Tyjae Spears':5400,'Rhamondre Stevenson':5800,'Kenneth Walker III':6000,
-  'Rico Dowdle':5200,'Javonte Williams':5800,'Travis Etienne Jr.':5200,
-  'Isiah Pacheco':5400,'Rachaad White':5200,'Chuba Hubbard':5600,
-  'Josh Jacobs':4800,'Jaylen Warren':4400,'J.K. Dobbins':4600,
-  'Brian Robinson Jr.':4800,'Jaleel McLaughlin':4400,'Tony Pollard':4400,
-  'Najee Harris':4200,'Aaron Jones':4200,'David Montgomery':4000,
-  'Alvin Kamara':4000,'Saquon Barkley':5800,'Nick Chubb':3400,
-  'Derrick Henry':3800,'Dameon Pierce':4000,'Kareem Hunt':3000,
-  'MarShawn Lloyd':5200,
-  // TEs
-  'Brock Bowers':9000,'Trey McBride':8200,'Sam LaPorta':7800,
-  'Jake Ferguson':6800,'Kyle Pitts':6400,'Tucker Kraft':6200,
-  'Mark Andrews':5800,'Dalton Kincaid':5800,'Isaiah Likely':5600,
-  'David Njoku':5200,'Cole Kmet':5000,'Cade Otton':5200,
-  'Pat Freiermuth':4800,'Evan Engram':4600,'Jonnu Smith':4400,
-  'Dawson Knox':3600,'Noah Fant':3800,'Mike Gesicki':3600,
-  'Tyler Higbee':3200,'Gerald Everett':3200,'Juwan Johnson':3800,
+  'Bijan Robinson':9995,'Jahmyr Gibbs':9659,'Jeremiyah Love':7651,'Ashton Jeanty':7573,
+  "De'Von Achane":6906,'Omarion Hampton':6803,'Jonathan Taylor':6015,'James Cook':5983,
+  'Quinshon Judkins':5532,'Breece Hall':5426,'Kenneth Walker III':5414,'TreVeyon Henderson':5408,
+  'Christian McCaffrey':5018,'Chase Brown':4986,'Saquon Barkley':4919,'Kyren Williams':4860,
+  'Jadarian Price':4832,'Bucky Irving':4814,'Cam Skattebo':4722,'Tyrone Tracy Jr.':4250,
+  'Tyjae Spears':4180,'Rhamondre Stevenson':4588,'Travis Etienne Jr.':4480,
+  'Isiah Pacheco':4412,'Rico Dowdle':4380,'Chuba Hubbard':4340,'Josh Jacobs':4200,
+  'Najee Harris':3980,'Aaron Jones':3820,'Brian Robinson Jr.':3760,'Tony Pollard':3640,
+  'Derrick Henry':4542,'MarShawn Lloyd':4100,'Javonte Williams':4600,
+  // TEs — boosted by +0.5/rec TE premium
+  'Brock Bowers':8904,'Trey McBride':8367,'Colston Loveland':6790,'Tyler Warren':6417,
+  'Harold Fannin':5471,'Tucker Kraft':5469,'Sam LaPorta':5088,'Kyle Pitts':4984,
+  'Kenyon Sadiq':4654,'Mark Andrews':4540,'Jake Ferguson':4480,'Isaiah Likely':4320,
+  'Dalton Kincaid':4220,'David Njoku':4180,'Cole Kmet':3980,'Cade Otton':3820,
+  'Pat Freiermuth':3700,'Jonnu Smith':3560,'Evan Engram':3480,'Dawson Knox':3200,
+  // 2027 picks (SF+PPR+TEP, KTC as of Jun 2026) — at slider +25% these are the values
+  '2027 Early 1st':7123,'2027 Mid 1st':5682,'2027 Late 1st':4954,
+  '2027 Early 2nd':3922,'2027 Mid 2nd':3477,'2027 Late 2nd':3161,
+  '2027 Early 3rd':2623,'2027 Mid 3rd':2451,'2027 Late 3rd':2234,
+  '2027 Early 4th':1914,'2027 Mid 4th':1738,'2027 Late 4th':1697,
+  // 2028 picks
+  '2028 Early 1st':5010,'2028 Mid 1st':4517,'2028 Late 1st':4099,
+  '2028 Early 2nd':3167,'2028 Mid 2nd':2977,'2028 Late 2nd':2807,
+  '2028 Early 3rd':2176,'2028 Mid 3rd':2101,'2028 Late 3rd':1989,
+  '2028 Early 4th':1621,'2028 Mid 4th':1560,'2028 Late 4th':1289,
 };
 
-// Pick values by year + round on the same KTC scale
-const KTC_PICK_VALUES = {
-  2026:{1:4500,2:2200,3:1100,4:600},
-  2027:{1:3200,2:1600,3:800,4:400},
-  2028:{1:2400,2:1200,3:600,4:300},
-};
+// Load KTC values from localStorage (24h TTL)
+function loadKTCCache(){
+  try{
+    const raw=localStorage.getItem('tol_ktc_v3');
+    if(!raw)return false;
+    const{values,ts}=JSON.parse(raw);
+    if(!values||Date.now()-ts>24*3600*1000)return false;
+    _ktcValues=values;_ktcSource='cached';_ktcFetchedAt=ts;
+    return true;
+  }catch(e){return false;}
+}
 
-// Try to fetch live KTC dynasty values using the unofficial JSON endpoint + CORS proxy chain
+// Fetch live KTC values — parses playersArray from KTC HTML (SF+PPR+TEP format)
 async function fetchKTCValues(){
-  const base='https://keeptradecut.com/dynasty-rankings?filters=QB%7CWR%7CRB%7CTE%7CRDP&format=2';
-  const urls=[
-    base,
-    'https://corsproxy.io/?'+encodeURIComponent(base),
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(base),
-  ];
-  for(const url of urls){
+  if(loadKTCCache())return;
+  const url='https://keeptradecut.com/dynasty-rankings?format=1&tep=1';
+  const proxies=[url,'https://corsproxy.io/?'+encodeURIComponent(url),'https://api.allorigins.win/raw?url='+encodeURIComponent(url)];
+  for(const proxy of proxies){
     try{
-      const r=await fetch(url,{headers:{Accept:'application/json'}});
+      const r=await fetch(proxy);
       if(!r.ok)continue;
-      const text=await r.text();
-      if(!text.trim().startsWith('['))continue; // got HTML, not JSON
-      const data=JSON.parse(text);
+      const html=await r.text();
+      const start=html.indexOf('var playersArray = [');
+      if(start===-1)continue;
+      const arrStart=start+'var playersArray = '.length;
+      let depth=0,i=arrStart,end=-1;
+      for(;i<html.length;i++){
+        const c=html[i];
+        if(c==='['||c==='{')depth++;
+        else if(c===']'||c==='}'){if(--depth===0){end=i+1;break;}}
+      }
+      if(end===-1)continue;
+      const players=JSON.parse(html.substring(arrStart,end));
       const map={};
-      data.forEach(p=>{if(p.playerName&&p.value!=null)map[p.playerName]=p.value;});
-      if(Object.keys(map).length>50){_ktcValues=map;_ktcSource='live';return;}
+      players.forEach(p=>{
+        const sf=p.superflexValues?.tep;
+        if(!sf||sf.value==null)return;
+        map[p.playerName]={value:sf.value,position:p.position||'',nflTeam:p.team||'FA',age:p.age||0,rank:sf.rank||999,trend:p.superflexValues?.overallTrend||0};
+      });
+      if(Object.keys(map).length>100){
+        _ktcValues=map;_ktcSource='live';_ktcFetchedAt=Date.now();
+        try{localStorage.setItem('tol_ktc_v3',JSON.stringify({values:map,ts:Date.now()}));}catch(e){}
+        return;
+      }
     }catch(e){}
   }
   _ktcSource='snapshot';
+}
+
+// Resolve a KTC entry by name; returns {value,position,nflTeam,age,rank,trend} or null
+function getKTCEntry(name){
+  const src=_ktcValues||KTC_SNAPSHOT;
+  const e=src[name];
+  if(e==null)return null;
+  return typeof e==='object'?e:{value:e,position:null,nflTeam:null,age:0,rank:999,trend:0};
 }
 
 // Look up dynasty value for a player by their Sleeper player_id
@@ -4066,52 +4136,250 @@ function getDynastyValue(pid){
   const p=cachedPlayers&&cachedPlayers[pid];
   if(!p)return 800;
   const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
-  const src=_ktcValues||KTC_SNAPSHOT;
-  if(src[name])return src[name];
-  // fuzzy fallback: match on last name
+  const e=getKTCEntry(name);
+  if(e)return e.value;
   const last=(p.last_name||'').toLowerCase();
-  const hit=Object.keys(src).find(k=>k.toLowerCase().endsWith(last));
-  if(hit)return src[hit];
+  const src=_ktcValues||KTC_SNAPSHOT;
+  const hit=Object.keys(src).find(k=>k.toLowerCase().split(' ').pop()===last);
+  if(hit)return getKTCEntry(hit).value;
   return 800;
 }
 
-function getPickValue(year,round){
-  return(KTC_PICK_VALUES[year]&&KTC_PICK_VALUES[year][round])||200;
+// Pick multiplier: KTC pick values represent the +25% position; 0% = 80% of KTC
+function getPickMultiplier(){return 0.8+_pickSlider*0.008;}
+function getAdjustedPickValue(rawVal){return Math.round(rawVal*getPickMultiplier());}
+
+// KTC pick tier lookup — Early=slots 1-4, Mid=5-8, Late=9-12 in a 12-team league
+function getKTCPickValue(year,round,slot){
+  const tier=(!slot)?'Mid':slot<=4?'Early':slot<=8?'Mid':'Late';
+  const nm=`${year} ${tier} ${['1st','2nd','3rd','4th'][round-1]||'1st'}`;
+  const e=getKTCEntry(nm);
+  if(e)return e.value;
+  const fb={2027:{1:5682,2:3477,3:2451,4:1738},2028:{1:4517,2:2977,3:2101,4:1560}};
+  return(fb[year]&&fb[year][round])||500;
 }
 
-// Returns all 2026 picks currently owned by a team (uid), respecting any trades
-function get2026PicksForTeam(uid){
-  if(window._draft2026Rows)return window._draft2026Rows.filter(r=>r.currentUid===uid);
-  // fallback: no trade adjustments applied
-  const result=[];
-  for(let rd=1;rd<=4;rd++){
-    const base=DRAFT_ORDER_2026.slice(0,rd===1?13:12);
-    base.forEach((row,i)=>{
-      if(row.uid===uid){
-        const pick=rd===1?row.pick:`${rd}.${String(i+1).padStart(2,'0')}`;
-        result.push({rd,pick,currentUid:uid,origUid:uid,traded:false});
-      }
+function getPickValue(year,round,slot){
+  return getAdjustedPickValue(getKTCPickValue(year,round,slot));
+}
+
+function updatePickScaler(val){
+  _pickSlider=parseInt(val);
+  const labels={'-50':'Very Conservative','-25':'Conservative','0':'Balanced','25':'KTC Standard (+25%)'};
+  const lbl=labels[String(val)]||(parseInt(val)>0?`+${val}%`:`${val}%`);
+  const el=document.getElementById('pick-scaler-val');
+  if(el)el.textContent=lbl;
+  // Refresh trade panels — pick values changed
+  ['give','receive'].forEach(side=>{
+    const uid=document.getElementById(`trade-${side}-team`)?.value;
+    if(uid)loadTradeTeam(side);
+  });
+  renderKTCTable();
+}
+
+// ── KTC VALUES TABLE ──
+
+// Build _ktcAllPlayers from KTC values + Sleeper roster data
+function buildKTCPlayerList(){
+  const src=_ktcValues||KTC_SNAPSHOT;
+
+  // name → roster_id from Sleeper
+  const nameToRid={};
+  if(cachedPlayers&&cachedRosters){
+    const pidToRid={};
+    cachedRosters.forEach(r=>{(r.players||[]).forEach(pid=>{pidToRid[String(pid)]=parseInt(r.roster_id);});});
+    Object.entries(cachedPlayers).forEach(([pid,p])=>{
+      const rid=pidToRid[String(pid)];
+      if(!rid)return;
+      const nm=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
+      if(nm)nameToRid[nm]=rid;
     });
   }
-  return result;
+
+  // Sleeper position/nflTeam/age lookup for snapshot fallback
+  const sleepInfo={};
+  if(cachedPlayers){
+    Object.values(cachedPlayers).forEach(p=>{
+      const nm=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
+      if(nm&&!sleepInfo[nm])sleepInfo[nm]={pos:p.position||'',nflTeam:p.team||'FA',age:p.age||0};
+    });
+  }
+
+  // Build pick ownership from future picks map
+  const pickRidMap={};
+  const fm=window._futurePicksMap;
+  if(fm){
+    Object.entries(fm).forEach(([uid,picks])=>{
+      const rid=RMR[uid];if(!rid)return;
+      picks.forEach(pk=>{
+        ['Early','Mid','Late'].forEach(tier=>{
+          const nm=`${pk.year} ${tier} ${['1st','2nd','3rd','4th'][pk.round-1]||'1st'}`;
+          if(!pickRidMap[nm])pickRidMap[nm]=rid;
+        });
+      });
+    });
+  }
+
+  _ktcAllPlayers=Object.entries(src).map(([name,entry])=>{
+    const isObj=typeof entry==='object';
+    const rawValue=isObj?entry.value:entry;
+    if(!rawValue||rawValue<=0)return null;
+    const isPick=/^20\d\d (Early|Mid|Late) [1-4](st|nd|rd|th)$/.test(name);
+    let pickYear=null,pickRound=null,pickTier=null;
+    if(isPick){const m=name.match(/^(\d{4}) (Early|Mid|Late) (\d)/);if(m){pickYear=+m[1];pickTier=m[2];pickRound=+m[3];}}
+    let position=isObj?entry.position:'';
+    let nflTeam=isObj?entry.nflTeam:'FA';
+    let age=isObj?entry.age:0;
+    let rank=isObj?entry.rank:999;
+    let trend=isObj?entry.trend:0;
+    if(!isPick&&sleepInfo[name]){
+      if(!position)position=sleepInfo[name].pos;
+      if(!nflTeam||nflTeam==='FA')nflTeam=sleepInfo[name].nflTeam||'FA';
+      if(!age)age=sleepInfo[name].age;
+    }
+    if(isPick){position='RDP';nflTeam='';}
+    const rid=isPick?(pickRidMap[name]||0):(nameToRid[name]||0);
+    return{name,position:position||'',nflTeam:nflTeam||'FA',age:age||0,rank,trend,rawValue,isPick,pickYear,pickRound,pickTier,rid};
+  }).filter(Boolean).sort((a,b)=>a.rank-b.rank||b.rawValue-a.rawValue);
 }
 
-// Initialize the trade evaluator: populate team dropdowns and kick off KTC fetch
+function buildKTCPosChips(){
+  const c=document.getElementById('ktc-pos-chips');
+  if(!c||c.dataset.built)return;
+  c.dataset.built='1';
+  const defs=[['all','All'],['QB','QB'],['RB','RB'],['WR','WR'],['TE','TE'],['RDP','Picks']];
+  c.innerHTML=defs.map(([pos,lbl])=>`<button class="chip-btn${pos==='all'?' active':''}" data-pos="${pos}" onclick="setKTCPos('${pos}',this)">${lbl}</button>`).join('');
+}
+
+function setKTCPos(pos,el){
+  _ktcFilterPos=pos;
+  document.querySelectorAll('#ktc-pos-chips .chip-btn').forEach(b=>b.classList.toggle('active',b===el));
+  renderKTCTable();
+}
+
+function buildKTCTeamChips(){
+  const c=document.getElementById('ktc-team-chips');
+  if(!c||c.dataset.built)return;
+  c.dataset.built='1';
+  let html=`<button class="chip-btn active" data-rid="all" onclick="toggleKTCTeam('all',this)">All Teams</button>`;
+  Object.entries(TEAMS).map(([uid,info])=>({uid,name:info.name,rid:RMR[uid]}))
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .forEach(({name,rid})=>{
+      html+=`<button class="chip-btn" data-rid="${rid}" onclick="toggleKTCTeam(${rid},this)">${name}</button>`;
+    });
+  html+=`<button class="chip-btn" data-rid="0" onclick="toggleKTCTeam(0,this)">Free Agents</button>`;
+  c.innerHTML=html;
+}
+
+function toggleKTCTeam(rid,el){
+  if(rid==='all'){
+    _ktcFilterTeams.clear();
+    document.querySelectorAll('#ktc-team-chips .chip-btn').forEach(b=>b.classList.toggle('active',b.dataset.rid==='all'));
+  }else{
+    const n=parseInt(rid);
+    if(_ktcFilterTeams.has(n))_ktcFilterTeams.delete(n);else _ktcFilterTeams.add(n);
+    const allBtn=document.querySelector('#ktc-team-chips .chip-btn[data-rid="all"]');
+    if(allBtn)allBtn.classList.toggle('active',_ktcFilterTeams.size===0);
+    el.classList.toggle('active',_ktcFilterTeams.has(n));
+  }
+  renderKTCTable();
+}
+
+function applyKTCTableFilters(){
+  renderKTCTable();
+}
+
+function renderKTCTable(){
+  const el=document.getElementById('ktc-table-container');
+  if(!el)return;
+  if(!_ktcAllPlayers.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:16px 0;">Values loading...</div>';return;
+  }
+  const q=(document.getElementById('ktc-search')?.value||'').toLowerCase().trim();
+  let rows=_ktcAllPlayers.filter(p=>{
+    if(_ktcFilterPos!=='all'&&p.position!==_ktcFilterPos)return false;
+    if(q&&!p.name.toLowerCase().includes(q))return false;
+    if(_ktcFilterTeams.size>0&&!_ktcFilterTeams.has(p.rid))return false;
+    return true;
+  });
+  // Sort
+  rows=[...rows].sort((a,b)=>{
+    let av,bv;
+    if(_ktcSortCol==='value'){av=a.isPick?getAdjustedPickValue(a.rawValue):a.rawValue;bv=b.isPick?getAdjustedPickValue(b.rawValue):b.rawValue;}
+    else if(_ktcSortCol==='age'){av=a.age||99;bv=b.age||99;}
+    else if(_ktcSortCol==='name'){av=a.name;bv=b.name;}
+    else if(_ktcSortCol==='position'){av=a.position;bv=b.position;}
+    else{av=a.rank;bv=b.rank;}
+    if(typeof av==='string')return _ktcSortAsc?av.localeCompare(bv):bv.localeCompare(av);
+    return _ktcSortAsc?av-bv:bv-av;
+  });
+  const ar=col=>_ktcSortCol===col?(_ktcSortAsc?' ▲':' ▼'):'';
+  let html=`<table class="ktc-tbl"><thead><tr>
+    <th onclick="ktcSortBy('rank')">#${ar('rank')}</th>
+    <th onclick="ktcSortBy('name')">Player${ar('name')}</th>
+    <th onclick="ktcSortBy('position')">Pos${ar('position')}</th>
+    <th>NFL</th>
+    <th onclick="ktcSortBy('age')">Age${ar('age')}</th>
+    <th onclick="ktcSortBy('value')">Value${ar('value')}</th>
+    <th>Trend</th>
+    <th>TOL Owner</th>
+  </tr></thead><tbody>`;
+  if(!rows.length){
+    html+=`<tr><td colspan="8" style="color:var(--muted);font-size:11px;padding:16px 8px;">No players match the current filters.</td></tr>`;
+  }else{
+    rows.forEach(p=>{
+      const dispVal=p.isPick?getAdjustedPickValue(p.rawValue):p.rawValue;
+      const trendHtml=p.trend>2?`<span class="ktc-trend-up">▲${p.trend}</span>`:p.trend<-2?`<span class="ktc-trend-dn">▼${Math.abs(p.trend)}</span>`:'<span style="color:var(--muted);font-size:9px;">—</span>';
+      const ownerName=p.rid>0?(t(RM[p.rid])?.name||''):'';
+      const posLabel=p.position==='RDP'?'PICK':p.position;
+      const posHtml=posLabel?`<span class="cp pos-${p.position.toLowerCase()}">${posLabel}</span>`:'—';
+      html+=`<tr>
+        <td class="ktc-rank">${p.rank<900?p.rank:'—'}</td>
+        <td style="font-size:11px;white-space:nowrap;">${p.name}</td>
+        <td>${posHtml}</td>
+        <td class="ktc-rank">${p.isPick?'':p.nflTeam||'FA'}</td>
+        <td class="ktc-rank">${p.age>0?p.age.toFixed(1):'—'}</td>
+        <td class="ktc-val">${dispVal.toLocaleString()}</td>
+        <td>${trendHtml}</td>
+        <td style="font-size:10px;color:var(--text2);">${ownerName}</td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table>`;
+  el.innerHTML=html;
+}
+
+function ktcSortBy(col){
+  if(_ktcSortCol===col)_ktcSortAsc=!_ktcSortAsc;
+  else{_ktcSortCol=col;_ktcSortAsc=(col==='rank'||col==='age');}
+  renderKTCTable();
+}
+
+// ── TRADE COMPARISON ──
+
 function initTradeEval(){
   _tradeInit=true;
   const opts=Object.keys(TEAMS).map(uid=>`<option value="${uid}">${t(uid).name} — ${t(uid).team}</option>`).join('');
   const blank='<option value="">— Select Team —</option>';
   document.getElementById('trade-give-team').innerHTML=blank+opts;
   document.getElementById('trade-receive-team').innerHTML=blank+opts;
+  buildKTCPosChips();
+  buildKTCTeamChips();
   fetchKTCValues().then(()=>{
     const badge=document.getElementById('ktc-badge');
+    const updEl=document.getElementById('ktc-updated');
     if(!badge)return;
-    if(_ktcSource==='live'){badge.textContent='Values: KTC Live ✓';badge.className='bdg bdg-g';}
-    else{badge.textContent='Values: Snapshot (Apr 2026)';badge.className='bdg bdg-m';}
+    if(_ktcSource==='live'){badge.textContent='KTC Live ✓';badge.className='bdg bdg-g';if(updEl)updEl.textContent='Updated just now';}
+    else if(_ktcSource==='cached'){
+      badge.textContent='KTC Cached ✓';badge.className='bdg bdg-g';
+      if(updEl&&_ktcFetchedAt){const h=Math.round((Date.now()-_ktcFetchedAt)/3600000);updEl.textContent=`Cached ${h}h ago`;}
+    }else{badge.textContent='Snapshot (Jun 2026)';badge.className='bdg bdg-m';if(updEl)updEl.textContent='Live fetch unavailable';}
+    buildKTCPlayerList();
+    renderKTCTable();
+    buildFuturePicksMap().then(()=>{buildKTCPlayerList();renderKTCTable();});
   });
 }
 
-// Load players and picks for the selected team into one side panel
 function loadTradeTeam(side){
   const uid=document.getElementById(`trade-${side}-team`).value;
   const el=document.getElementById(`trade-${side}-content`);
@@ -4121,7 +4389,6 @@ function loadTradeTeam(side){
   const rid=RMR[uid];
   const roster=cachedRosters.find(r=>r.roster_id===rid||r.roster_id===String(rid));
   if(!roster){el.innerHTML=empty+'No roster data</div>';return;}
-  // Sort players: position order then by value descending
   const posOrder={QB:0,RB:1,WR:2,TE:3,K:9,DEF:9};
   const players=(roster.players||[]).map(String)
     .map(pid=>({pid,p:cachedPlayers[pid],val:getDynastyValue(pid)}))
@@ -4138,120 +4405,38 @@ function loadTradeTeam(side){
       <span class="trade-row-val">${val.toLocaleString()}</span>
     </label>`;
   });
-  // 2026 picks for this team
-  const picks2026=get2026PicksForTeam(uid);
-  // 2027+ picks from the futures map (built when Rosters tab loads)
+  // 2027+ future picks only (2026 draft is complete)
   const futureMap=window._futurePicksMap;
   const futurePicks=futureMap?(futureMap[uid]||[]):[];
-  const allPicks=[
-    ...picks2026.map(pk=>({key:`2026.${pk.rd}`,year:2026,round:pk.rd,label:pk.pick,val:getPickValue(2026,pk.rd),from:pk.traded?pk.origUid:null})),
-    ...futurePicks.map(pk=>({key:`${pk.year}.${pk.round}`,year:pk.year,round:pk.round,label:`${pk.year} ${['1st','2nd','3rd','4th'][pk.round-1]}`,val:getPickValue(pk.year,pk.round),from:pk.fromUid})),
-  ].sort((a,b)=>a.year-b.year||a.round-b.round);
-  if(allPicks.length){
+  if(futurePicks.length){
     html+='<div class="trade-sec-lbl" style="margin-top:12px;">Draft Picks</div>';
-    allPicks.forEach((pk,i)=>{
-      const fromStr=pk.from?` <span style="color:var(--muted);font-size:9px;">(from ${abbrev(t(pk.from).name)})</span>`:'';
+    [...futurePicks].sort((a,b)=>a.year-b.year||a.round-b.round).forEach((pk,i)=>{
+      const rawVal=getKTCPickValue(pk.year,pk.round,null);
+      const adjVal=getAdjustedPickValue(rawVal);
+      const roundLbl=['1st','2nd','3rd','4th'][pk.round-1]||`Rd${pk.round}`;
+      const fromStr=pk.fromUid?` <span style="color:var(--muted);font-size:9px;">(from ${abbrev(t(pk.fromUid).name)})</span>`:'';
       html+=`<label class="trade-row">
-        <input type="checkbox" class="trade-chk" data-side="${side}" data-pick="${pk.key}.${i}" data-val="${pk.val}" data-year="${pk.year}" data-round="${pk.round}">
-        <span class="trade-row-lbl">${pk.label}${fromStr}</span>
-        <span class="trade-row-val">${pk.val.toLocaleString()}</span>
+        <input type="checkbox" class="trade-chk" data-side="${side}" data-pick="${pk.year}.${pk.round}.${i}" data-val="${adjVal}" data-raw-val="${rawVal}" data-year="${pk.year}" data-round="${pk.round}">
+        <span class="trade-row-lbl">${pk.year} ${roundLbl} (mid-tier est.)${fromStr}</span>
+        <span class="trade-row-val">${adjVal.toLocaleString()}</span>
       </label>`;
     });
+  }else if(!futureMap){
+    html+='<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:9px;padding:8px 0;">Loading pick data...</div>';
+    buildFuturePicksMap().then(()=>loadTradeTeam(side));
   }
   el.innerHTML=html;
 }
 
-// Collect checked assets from one side
 function getTradeAssets(side){
   const players=[],picks=[];
   document.querySelectorAll(`.trade-chk[data-side="${side}"]:checked`).forEach(c=>{
     if(c.dataset.pid)players.push({pid:c.dataset.pid,val:+c.dataset.val,pos:c.dataset.pos,age:+c.dataset.age});
-    else picks.push({id:c.dataset.pick,val:+c.dataset.val,year:+c.dataset.year,round:+c.dataset.round});
+    else picks.push({id:c.dataset.pick,val:+c.dataset.val,year:+c.dataset.year,round:+c.dataset.round,rawVal:+c.dataset.rawVal});
   });
   return{players,picks};
 }
 
-function clamp2(v){return Math.max(-2,Math.min(2,Math.round(v)));}
-
-// Score: Age / Timeline — positive means you receive younger assets
-function scoreAge(gP,rP){
-  const gAges=gP.map(p=>p.age).filter(a=>a>0);
-  const rAges=rP.map(p=>p.age).filter(a=>a>0);
-  if(!gAges.length&&!rAges.length)return{label:'Age / Timeline',score:0,note:'No age data'};
-  const gAvg=gAges.length?gAges.reduce((a,b)=>a+b,0)/gAges.length:27;
-  const rAvg=rAges.length?rAges.reduce((a,b)=>a+b,0)/rAges.length:27;
-  const diff=gAvg-rAvg; // positive = receiving younger
-  const score=clamp2(diff);
-  const note=Math.abs(diff)<0.5?'Similar age profiles':diff>0?`Receive avg ${rAvg.toFixed(1)} vs give avg ${gAvg.toFixed(1)}`:`Give avg ${gAvg.toFixed(1)}, receive older ${rAvg.toFixed(1)}`;
-  return{label:'Age / Timeline',score,note};
-}
-
-// Score: Position Fit — checks depth needs on the receiving team
-function scorePositionFit(gP,rP,receiveUid){
-  if(!rP.length&&!gP.length)return{label:'Position Fit',score:0,note:'No players to evaluate'};
-  const rid=RMR[receiveUid];
-  const roster=(cachedRosters||[]).find(r=>r.roster_id===rid||r.roster_id===String(rid));
-  let raw=0;
-  if(roster&&cachedPlayers){
-    const counts={};
-    (roster.players||[]).forEach(pid=>{const pos=cachedPlayers[pid]?.position;if(pos)counts[pos]=(counts[pos]||0)+1;});
-    gP.forEach(p=>{if(counts[p.pos]>0)counts[p.pos]--;});
-    rP.forEach(p=>{const c=counts[p.pos]||0;raw+=c<2?2:c<4?1:-1;});
-    gP.forEach(p=>{if((counts[p.pos]||0)<2)raw--;});
-  }
-  const score=clamp2(raw/Math.max(1,rP.length+gP.length));
-  const note=score>0?'Received assets fill a roster need':score<0?'Leaves a positional gap or overstacks depth':'Neutral position fit';
-  return{label:'Position Fit',score,note};
-}
-
-// Score: Pick Capital — weighted by round and year
-function scorePickCapital(gPicks,rPicks){
-  const gVal=gPicks.reduce((s,p)=>s+p.val,0);
-  const rVal=rPicks.reduce((s,p)=>s+p.val,0);
-  if(!gVal&&!rVal)return{label:'Pick Capital',score:0,note:'No picks involved'};
-  const diff=rVal-gVal;
-  const score=clamp2(diff/2000);
-  const note=Math.abs(diff)<400?'Even pick capital exchange':diff>0?`+${diff.toLocaleString()} pick value received`:`${diff.toLocaleString()} pick value surrendered`;
-  return{label:'Pick Capital',score,note};
-}
-
-// Score: Win-Now vs. Rebuild — how well the deal matches the receiving team's direction
-function scoreWinNow(give,receive,receiveUid){
-  const tier=t(receiveUid).tier||'mid';
-  const gPV=give.players.reduce((s,p)=>s+p.val,0);
-  const rPV=receive.players.reduce((s,p)=>s+p.val,0);
-  const gPickV=give.picks.reduce((s,p)=>s+p.val,0);
-  const rPickV=receive.picks.reduce((s,p)=>s+p.val,0);
-  let raw=0;
-  if(tier==='contender'||tier==='champion'){
-    raw=(rPV-gPV)*0.7-(rPickV-gPickV)*0.3; // contenders want players, not picks
-  }else if(tier==='rebuild'||tier==='trader'){
-    const youthDiff=receive.players.filter(p=>p.age>0&&p.age<25).reduce((s,p)=>s+p.val,0)
-                   -give.players.filter(p=>p.age>0&&p.age<25).reduce((s,p)=>s+p.val,0);
-    raw=(rPickV-gPickV)*0.5+youthDiff*0.5; // rebuilds want picks and youth
-  }else{
-    raw=((rPV+rPickV)-(gPV+gPickV))*0.4;
-  }
-  const score=clamp2(raw/2000);
-  const tierLabel={'contender':'Contender','champion':'Contender','rebuild':'Rebuild','trader':'Trader','mid':'Mid-tier'}[tier]||'Mid-tier';
-  const note=`${tierLabel} perspective — ${score>0?'aligns with team direction':score<0?'works against team direction':'neutral for this team'}`;
-  return{label:'Win-Now vs. Rebuild',score,note};
-}
-
-// Score: Scoring System Fit — TE premium + distance bonuses favor TE/WR/RB over QB
-function scoreScoringFit(gP,rP){
-  if(!rP.length&&!gP.length)return{label:'Scoring System Fit',score:0,note:'No players to evaluate'};
-  const weight={TE:1.5,WR:1.2,RB:1.2,QB:0.8};
-  const gScore=gP.reduce((s,p)=>s+(weight[p.pos]||1)*p.val,0);
-  const rScore=rP.reduce((s,p)=>s+(weight[p.pos]||1)*p.val,0);
-  const diff=rScore-gScore;
-  const score=clamp2(diff/3000);
-  const hasTE=rP.some(p=>p.pos==='TE');
-  const note=hasTE?'TE premium boosts incoming TE value':score>0?'Received assets fit non-PPR/distance bonus scoring':score<0?'Given assets are more valuable in this scoring system':'Neutral scoring system fit';
-  return{label:'Scoring System Fit',score,note};
-}
-
-// Main evaluation — collect selections, run all 5 dimensions, render results
 function evaluateTrade(){
   const giveUid=document.getElementById('trade-give-team').value;
   const receiveUid=document.getElementById('trade-receive-team').value;
@@ -4259,106 +4444,45 @@ function evaluateTrade(){
   const give=getTradeAssets('give');
   const receive=getTradeAssets('receive');
   if(!give.players.length&&!give.picks.length&&!receive.players.length&&!receive.picks.length){
-    alert('Select at least one asset on each side.');return;
+    alert('Check at least one asset on each side.');return;
   }
-  const scores=[
-    scoreAge(give.players,receive.players),
-    scorePositionFit(give.players,receive.players,receiveUid),
-    scorePickCapital(give.picks,receive.picks),
-    scoreWinNow(give,receive,receiveUid),
-    scoreScoringFit(give.players,receive.players),
-  ];
-  const net=scores.reduce((s,sc)=>s+sc.score,0);
-  renderTradeResults(scores,net,giveUid,receiveUid,give,receive);
-}
-
-// Render the scoring matrix, verdict, and AI button
-function renderTradeResults(scores,net,giveUid,receiveUid,give,receive){
+  const giveVal=give.players.reduce((s,p)=>s+p.val,0)+give.picks.reduce((s,p)=>s+p.val,0);
+  const recVal=receive.players.reduce((s,p)=>s+p.val,0)+receive.picks.reduce((s,p)=>s+p.val,0);
   const el=document.getElementById('trade-results');
   el.style.display='block';
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
-  const verdicts=[
-    {min:7,label:'Strong Win — Make It',color:'var(--accent)'},
-    {min:3,label:'Slight Advantage — Lean Yes',color:'#4caf50'},
-    {min:-2,label:'Even Trade',color:'var(--muted)'},
-    {min:-6,label:'Slight Loss — Lean No',color:'var(--accent2)'},
-    {min:-10,label:'Avoid This Deal',color:'#e53935'},
-  ];
-  const verdict=verdicts.find(v=>net>=v.min)||verdicts[verdicts.length-1];
-  const rcvdAssets=[
-    ...receive.players.map(p=>pname(p.pid)),
-    ...receive.picks.map(p=>`${p.year} Rd${p.round}`),
-  ].join(', ')||'nothing';
-  let html=`<div class="sec-title" style="font-size:20px;margin-bottom:12px;">TRADE SCORE</div>`;
-  html+=`<div class="trade-score-grid">`;
-  scores.forEach(sc=>{
-    const col=sc.score>0?'var(--accent)':sc.score<0?'#e53935':'var(--muted)';
-    const barW=Math.abs(sc.score)/2*100;
-    const numStr=sc.score>0?`+${sc.score}`:String(sc.score);
-    html+=`<div class="trade-score-row">
-      <div class="trade-score-dim">${sc.label}</div>
-      <div class="trade-bar-wrap"><div class="trade-bar" style="width:${barW}%;background:${col};"></div></div>
-      <div class="trade-score-num" style="color:${col};">${numStr}</div>
-      <div class="trade-score-note">${sc.note}</div>
-    </div>`;
-  });
-  html+=`</div>`;
-  html+=`<div class="trade-verdict" style="border-color:${verdict.color};">
-    <div class="trade-verdict-lbl" style="color:${verdict.color};">${verdict.label}</div>
-    <div class="trade-verdict-sub">Net Score: ${net>0?'+':''}${net} / 10 &nbsp;·&nbsp; ${t(receiveUid).name} receives ${rcvdAssets}</div>
-  </div>`;
-  html+=`<div class="trade-ai-box">
-    <div class="trade-ai-hdr">⚡ AI ANALYSIS</div>
-    <div id="trade-ai-out">
-      <button class="trade-eval-btn" style="margin:0;" onclick="getTradeAI('${giveUid}','${receiveUid}')">Get Claude's Take</button>
+  const delta=recVal-giveVal;
+  const absDelta=Math.abs(delta);
+  const pct=giveVal>0?Math.round(absDelta/Math.max(giveVal,recVal)*100):0;
+  let verdict,vColor;
+  if(absDelta<400){verdict='Even Trade';vColor='var(--muted)';}
+  else if(delta>0&&absDelta<1200){verdict='Slight Win';vColor='#4caf50';}
+  else if(delta<0&&absDelta<1200){verdict='Slight Loss';vColor='var(--accent2)';}
+  else if(delta>0&&absDelta<2800){verdict='Clear Win';vColor='var(--accent)';}
+  else if(delta<0&&absDelta<2800){verdict='Clear Loss';vColor='#e53935';}
+  else if(delta>0){verdict='Strong Win';vColor='var(--accent)';}
+  else{verdict='Avoid This Deal';vColor='#e53935';}
+  const giveItems=[...give.players.map(p=>pname(p.pid)),...give.picks.map(p=>`${p.year} Rd${p.round}`)].join(', ')||'nothing';
+  const recItems=[...receive.players.map(p=>pname(p.pid)),...receive.picks.map(p=>`${p.year} Rd${p.round}`)].join(', ')||'nothing';
+  const winnerName=delta>0?t(receiveUid).name:delta<0?t(giveUid).name:'';
+  el.innerHTML=`<div class="trade-result-box">
+    <div class="trade-result-sides">
+      <div class="trade-result-side">
+        <div class="trade-result-side-lbl">You Give · ${t(giveUid).name}</div>
+        <div class="trade-result-side-val" style="color:${delta<0?'var(--accent)':'var(--text2)'};">${giveVal.toLocaleString()}</div>
+        <div class="trade-result-side-items">${giveItems}</div>
+      </div>
+      <div class="trade-result-vs">VS</div>
+      <div class="trade-result-side">
+        <div class="trade-result-side-lbl">You Receive · ${t(receiveUid).name}</div>
+        <div class="trade-result-side-val" style="color:${delta>0?'var(--accent)':'var(--text2)'};">${recVal.toLocaleString()}</div>
+        <div class="trade-result-side-items">${recItems}</div>
+      </div>
     </div>
+    <div class="trade-result-delta" style="color:${vColor};">${delta>=0?'+':''}${delta.toLocaleString()} (${pct}% difference)</div>
+    <div class="trade-result-verdict" style="color:${vColor};">${verdict}</div>
+    ${winnerName?`<div class="trade-result-sub">${winnerName} wins by ${absDelta.toLocaleString()} KTC pts · Pick scaler: ${document.getElementById('pick-scaler-val')?.textContent||'Balanced'}</div>`:''}
   </div>`;
-  el.innerHTML=html;
-}
-
-// Fire an AI request with full trade context injected
-async function getTradeAI(giveUid,receiveUid){
-  const give=getTradeAssets('give');
-  const receive=getTradeAssets('receive');
-  const out=document.getElementById('trade-ai-out');
-  if(!out)return;
-  out.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:10px;"><div class="spin" style="width:12px;height:12px;border-width:2px;"></div>Claude is analyzing...</div>';
-  const giveDesc=`Players: ${give.players.map(p=>`${pname(p.pid)} (${p.pos}, age ${p.age||'?'}, value ~${p.val})`).join(', ')||'none'} | Picks: ${give.picks.map(p=>`${p.year} Rd${p.round}`).join(', ')||'none'}`;
-  const receiveDesc=`Players: ${receive.players.map(p=>`${pname(p.pid)} (${p.pos}, age ${p.age||'?'}, value ~${p.val})`).join(', ')||'none'} | Picks: ${receive.picks.map(p=>`${p.year} Rd${p.round}`).join(', ')||'none'}`;
-  const prompt=`${LEAGUE_CONTEXT}
-
----
-
-TRADE EVALUATION REQUEST
-
-${t(giveUid).name} (${t(giveUid).tier}) gives: ${giveDesc}
-${t(receiveUid).name} (${t(receiveUid).tier}) receives: ${receiveDesc}
-
-Scoring system reminder: non-PPR, TE premium (+0.5/rec), distance bonuses for WR/RB. A 2027 rule change adds a WR/RB/TE flex spot (currently WRRB_FLEX), which further increases TE value.
-
-In 3-5 sentences: who wins this trade and why? Consider dynasty value, age, position fit in this specific scoring system, and each team's current tier/direction. Be direct.`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',max_tokens:600,
-        system:'You are a dynasty fantasy football analyst for The Other League. Be direct and analytical. Bold key names with **text**. Keep response to 3-5 sentences.',
-        messages:[{role:'user',content:prompt}],
-      }),
-    });
-    const data=await res.json();
-    if(data.content&&data.content[0]&&data.content[0].text){
-      let text=data.content[0].text;
-      text=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-      text=text.replace(/^- /gm,'<br>• ');
-      out.innerHTML=`<div style="font-size:13px;line-height:1.7;color:var(--text2);">${text}</div>`;
-    }else{
-      out.innerHTML=`<div style="color:var(--muted);font-size:11px;">⚠ ${data.error?.message||'Unexpected API response'}</div>`;
-    }
-  }catch(e){
-    out.innerHTML=`<div style="color:var(--muted);font-size:11px;">⚠ ${e.message}</div>`;
-  }
 }
 
 // ── INIT ──
