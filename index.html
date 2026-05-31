@@ -134,12 +134,19 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .trade-eval-btn{background:var(--accent);color:var(--bg);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 24px;border:none;cursor:pointer;transition:opacity .15s;margin-top:4px;}
 .trade-eval-btn:hover{opacity:.85;}
 .trade-eval-btn:disabled{opacity:.4;cursor:not-allowed;}
-/* Pick scaler */
-.pick-scaler-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:20px;flex-wrap:wrap;}
-.pick-scaler-lbl{font-family:'DM Sans';font-weight:600;font-size:11px;color:var(--text2);white-space:nowrap;}
-.pick-scaler-inner{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;}
-.pick-scaler-extreme{font-family:'DM Mono';font-size:9px;color:var(--muted);white-space:nowrap;}
-.pick-scaler-inner input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;}
+/* Trade evaluator top status+slider row */
+.ktc-top-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;flex-wrap:wrap;}
+.ktc-status-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ktc-slider-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:220px;}
+.ktc-slider-wrap .ps-lbl{font-family:'DM Sans';font-weight:600;font-size:10px;color:var(--text2);white-space:nowrap;}
+.ktc-slider-wrap .ps-ext{font-family:'DM Mono';font-size:9px;color:var(--muted);white-space:nowrap;}
+.ktc-slider-wrap input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;min-width:80px;}
+/* Standalone position badge (table rows) */
+.cp.pos-qb{color:var(--pos-qb);background:var(--pos-qb-bg);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;display:inline-block;}
+.cp.pos-rb{color:var(--pos-rb);background:var(--pos-rb-bg);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;display:inline-block;}
+.cp.pos-wr{color:var(--pos-wr);background:var(--pos-wr-bg);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;display:inline-block;}
+.cp.pos-te{color:var(--pos-te);background:var(--pos-te-bg);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;display:inline-block;}
+.cp.pos-rdp{color:var(--muted);background:rgba(255,255,255,.07);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;display:inline-block;}
 /* KTC values table */
 .ktc-tbl{width:100%;border-collapse:collapse;font-size:12px;}
 .ktc-tbl th{text-align:left;padding:6px 8px;font-family:'Bebas Neue';letter-spacing:.06em;font-size:12px;border-bottom:1px solid var(--border);cursor:pointer;color:var(--accent3);white-space:nowrap;user-select:none;}
@@ -161,7 +168,7 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .trade-result-delta{font-family:'DM Mono';font-size:13px;font-weight:600;margin-bottom:6px;}
 .trade-result-verdict{font-family:'Bebas Neue';font-size:28px;letter-spacing:.04em;}
 .trade-result-sub{font-family:'DM Mono';font-size:10px;color:var(--muted);margin-top:4px;}
-@media(max-width:600px){.trade-input-grid{grid-template-columns:1fr;}.pick-scaler-row{flex-direction:column;align-items:flex-start;}}
+@media(max-width:600px){.trade-input-grid{grid-template-columns:1fr;}.ktc-top-row{flex-direction:column;align-items:flex-start;}.ktc-slider-wrap{width:100%;}}
 
 /* PANELS */
 .panel{display:none;} .panel.active{display:block;}
@@ -1590,29 +1597,24 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     <div class="panel" id="panel-trade">
       <div class="sec-title">⚖ TRADE EVALUATOR</div>
       <div class="sec-sub">KTC Dynasty Values — Superflex · PPR · TE Premium (+0.5)</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-        <span id="ktc-badge" class="bdg bdg-m" style="font-size:9px;">Values: loading...</span>
-        <span id="ktc-updated" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);"></span>
-      </div>
-      <div class="pick-scaler-row">
-        <span class="pick-scaler-lbl">Pick Value</span>
-        <div class="pick-scaler-inner">
-          <span class="pick-scaler-extreme">Very Conservative</span>
-          <input type="range" id="pick-scaler" min="-50" max="25" step="5" value="0" oninput="updatePickScaler(this.value)">
-          <span class="pick-scaler-extreme">KTC Standard (+25%)</span>
+
+      <!-- KTC status + pick slider — compact single row -->
+      <div class="ktc-top-row">
+        <div class="ktc-status-wrap">
+          <span id="ktc-badge" class="bdg bdg-m" style="font-size:9px;">Values: loading...</span>
+          <span id="ktc-updated" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);"></span>
         </div>
-        <span id="pick-scaler-val" class="bdg bdg-m" style="font-size:9px;min-width:130px;text-align:center;">Balanced (0%)</span>
+        <div class="ktc-slider-wrap">
+          <span class="ps-lbl">Pick Value</span>
+          <span class="ps-ext">Conservative</span>
+          <input type="range" id="pick-scaler" min="-50" max="25" step="5" value="0" oninput="updatePickScaler(this.value)">
+          <span class="ps-ext">KTC (+25%)</span>
+          <span id="pick-scaler-val" class="bdg bdg-m" style="font-size:9px;white-space:nowrap;">Balanced (0%)</span>
+        </div>
       </div>
 
-      <div class="sec-title" style="font-size:16px;margin-bottom:12px;">PLAYER VALUES</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
-        <input type="text" id="ktc-search" class="trade-team-sel" style="width:200px;margin-bottom:0;" placeholder="Search player..." oninput="applyKTCTableFilters()">
-      </div>
-      <div id="ktc-pos-chips" class="filter-bar" style="margin-bottom:8px;"></div>
-      <div id="ktc-team-chips" class="filter-bar" style="margin-bottom:14px;"></div>
-      <div id="ktc-table-container" style="overflow-x:auto;max-height:480px;overflow-y:auto;"></div>
-
-      <div class="sec-title" style="font-size:16px;margin-top:32px;margin-bottom:12px;">TRADE COMPARISON</div>
+      <!-- TRADE COMPARISON — moved to top -->
+      <div class="sec-title" style="font-size:16px;margin-bottom:12px;">TRADE COMPARISON</div>
       <div class="trade-input-grid">
         <div class="trade-panel-box">
           <div class="trade-panel-hdr">YOU GIVE</div>
@@ -1635,6 +1637,22 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       </div>
       <button class="trade-eval-btn" onclick="evaluateTrade()">Evaluate Trade</button>
       <div id="trade-results" style="display:none;margin-top:24px;"></div>
+
+      <!-- PLAYER VALUES — collapsible, moved to bottom -->
+      <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div class="sec-title" style="font-size:16px;margin-bottom:0;">PLAYER VALUES</div>
+          <button id="ktc-toggle-btn" onclick="toggleKTCTable()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;padding:4px 10px;cursor:pointer;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;">Show ▼</button>
+        </div>
+        <div id="ktc-table-section" style="display:none;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+            <input type="text" id="ktc-search" class="trade-team-sel" style="width:200px;margin-bottom:0;" placeholder="Search player..." oninput="applyKTCTableFilters()">
+          </div>
+          <div id="ktc-pos-chips" class="filter-bar" style="margin-bottom:8px;"></div>
+          <div id="ktc-team-chips" class="filter-bar" style="margin-bottom:14px;"></div>
+          <div id="ktc-table-container" style="overflow-x:auto;max-height:480px;overflow-y:auto;"></div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -4179,44 +4197,29 @@ function updatePickScaler(val){
 
 // ── KTC VALUES TABLE ──
 
+// Normalize a name for fuzzy matching: lowercase, strip punctuation/apostrophes
+function normalizeName(n){return n.toLowerCase().replace(/[''`'.]/g,'').replace(/\s+/g,' ').trim();}
+
 // Build _ktcAllPlayers from KTC values + Sleeper roster data
 function buildKTCPlayerList(){
   const src=_ktcValues||KTC_SNAPSHOT;
 
-  // name → roster_id from Sleeper
+  // name → roster_id from Sleeper — exact AND normalized for fuzzy match
   const nameToRid={};
+  const nameToRidNorm={};
+  const sleepInfo={};
+  const sleepInfoNorm={};
   if(cachedPlayers&&cachedRosters){
     const pidToRid={};
     cachedRosters.forEach(r=>{(r.players||[]).forEach(pid=>{pidToRid[String(pid)]=parseInt(r.roster_id);});});
     Object.entries(cachedPlayers).forEach(([pid,p])=>{
+      const nm=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
+      if(!nm)return;
+      const norm=normalizeName(nm);
       const rid=pidToRid[String(pid)];
-      if(!rid)return;
-      const nm=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
-      if(nm)nameToRid[nm]=rid;
-    });
-  }
-
-  // Sleeper position/nflTeam/age lookup for snapshot fallback
-  const sleepInfo={};
-  if(cachedPlayers){
-    Object.values(cachedPlayers).forEach(p=>{
-      const nm=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
-      if(nm&&!sleepInfo[nm])sleepInfo[nm]={pos:p.position||'',nflTeam:p.team||'FA',age:p.age||0};
-    });
-  }
-
-  // Build pick ownership from future picks map
-  const pickRidMap={};
-  const fm=window._futurePicksMap;
-  if(fm){
-    Object.entries(fm).forEach(([uid,picks])=>{
-      const rid=RMR[uid];if(!rid)return;
-      picks.forEach(pk=>{
-        ['Early','Mid','Late'].forEach(tier=>{
-          const nm=`${pk.year} ${tier} ${['1st','2nd','3rd','4th'][pk.round-1]||'1st'}`;
-          if(!pickRidMap[nm])pickRidMap[nm]=rid;
-        });
-      });
+      if(rid){nameToRid[nm]=rid;nameToRidNorm[norm]=rid;}
+      if(!sleepInfo[nm])sleepInfo[nm]={pos:p.position||'',nflTeam:p.team||'FA',age:p.age||0};
+      if(!sleepInfoNorm[norm])sleepInfoNorm[norm]={pos:p.position||'',nflTeam:p.team||'FA',age:p.age||0};
     });
   }
 
@@ -4227,18 +4230,25 @@ function buildKTCPlayerList(){
     const isPick=/^20\d\d (Early|Mid|Late) [1-4](st|nd|rd|th)$/.test(name);
     let pickYear=null,pickRound=null,pickTier=null;
     if(isPick){const m=name.match(/^(\d{4}) (Early|Mid|Late) (\d)/);if(m){pickYear=+m[1];pickTier=m[2];pickRound=+m[3];}}
+    // Skip 2026 picks — that draft is complete
+    if(isPick&&pickYear&&pickYear<2027)return null;
     let position=isObj?entry.position:'';
     let nflTeam=isObj?entry.nflTeam:'FA';
     let age=isObj?entry.age:0;
     let rank=isObj?entry.rank:999;
     let trend=isObj?entry.trend:0;
-    if(!isPick&&sleepInfo[name]){
-      if(!position)position=sleepInfo[name].pos;
-      if(!nflTeam||nflTeam==='FA')nflTeam=sleepInfo[name].nflTeam||'FA';
-      if(!age)age=sleepInfo[name].age;
+    if(!isPick){
+      const norm=normalizeName(name);
+      const si=sleepInfo[name]||sleepInfoNorm[norm];
+      if(si){
+        if(!position)position=si.pos;
+        if(!nflTeam||nflTeam==='FA')nflTeam=si.nflTeam||'FA';
+        if(!age)age=si.age;
+      }
     }
     if(isPick){position='RDP';nflTeam='';}
-    const rid=isPick?(pickRidMap[name]||0):(nameToRid[name]||0);
+    // Roster assignment: normalize name for fuzzy match; picks have no single owner in table
+    const rid=isPick?0:(nameToRid[name]||nameToRidNorm[normalizeName(name)]||0);
     return{name,position:position||'',nflTeam:nflTeam||'FA',age:age||0,rank,trend,rawValue,isPick,pickYear,pickRound,pickTier,rid};
   }).filter(Boolean).sort((a,b)=>a.rank-b.rank||b.rawValue-a.rawValue);
 }
@@ -4341,7 +4351,7 @@ function renderKTCTable(){
         <td class="ktc-rank">${p.age>0?p.age.toFixed(1):'—'}</td>
         <td class="ktc-val">${dispVal.toLocaleString()}</td>
         <td>${trendHtml}</td>
-        <td style="font-size:10px;color:var(--text2);">${ownerName}</td>
+        <td style="font-size:10px;color:var(--accent3);font-family:'DM Mono',monospace;">${ownerName}</td>
       </tr>`;
     });
   }
@@ -4353,6 +4363,15 @@ function ktcSortBy(col){
   if(_ktcSortCol===col)_ktcSortAsc=!_ktcSortAsc;
   else{_ktcSortCol=col;_ktcSortAsc=(col==='rank'||col==='age');}
   renderKTCTable();
+}
+
+function toggleKTCTable(){
+  const sec=document.getElementById('ktc-table-section');
+  const btn=document.getElementById('ktc-toggle-btn');
+  if(!sec||!btn)return;
+  const open=sec.style.display!=='none';
+  sec.style.display=open?'none':'block';
+  btn.textContent=open?'Show ▼':'Hide ▲';
 }
 
 // ── TRADE COMPARISON ──
