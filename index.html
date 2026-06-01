@@ -4253,7 +4253,7 @@ function updatePickScaler(val){
 function normalizeName(n){return n.toLowerCase().replace(/[‘’’ʼ`.]/g,'').replace(/\s+/g,' ').trim();}
 
 // Strip name suffix (Jr./Sr./II/III/IV) for cross-source matching
-function stripSuffix(n){return n.replace(/\s+(Jr\.?|Sr\.?|IV|III|II|V)$/i,’’).trim();}
+function stripSuffix(n){return n.replace(/\s+(Jr\.?|Sr\.?|IV|III|II|V)$/i,'').trim();}
 
 // KTC entry lookup: exact → normalized → suffix-stripped → skip
 function getKTCEntryFuzzy(name){
