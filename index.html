@@ -4250,7 +4250,7 @@ function updatePickScaler(val){
 // ── KTC VALUES TABLE ──
 
 // Normalize a name for fuzzy matching: lowercase, strip apostrophes/periods
-function normalizeName(n){return n.toLowerCase().replace(/[‘’’ʼ`.]/g,’’).replace(/\s+/g,’ ‘).trim();}
+function normalizeName(n){return n.toLowerCase().replace(/[‘’’ʼ`.]/g,'').replace(/\s+/g,' ').trim();}
 
 // Strip name suffix (Jr./Sr./II/III/IV) for cross-source matching
 function stripSuffix(n){return n.replace(/\s+(Jr\.?|Sr\.?|IV|III|II|V)$/i,’’).trim();}
