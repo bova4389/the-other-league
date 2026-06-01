@@ -1135,14 +1135,21 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   </div>
 </header>
 <nav class="icon-nav">
-  <!-- Row 1 (desktop: left → right; mobile: top row) -->
+  <div class="icon-tab" onclick="showTab('careers',this)" data-tab="careers">
+    <span class="itab-icon">📊</span>
+    <span class="itab-label">Careers</span>
+  </div>
   <div class="icon-tab" onclick="showTab('scores',this)" data-tab="scores">
     <span class="itab-icon">🏈</span>
     <span class="itab-label">Scores</span>
   </div>
-  <div class="icon-tab" onclick="showTab('careers',this)" data-tab="careers">
-    <span class="itab-icon">📊</span>
-    <span class="itab-label">Careers</span>
+  <div class="icon-tab" onclick="showTab('rivalries',this)" data-tab="rivalries">
+    <span class="itab-icon">⚔️</span>
+    <span class="itab-label">Rivalries</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('trade',this)" data-tab="trade">
+    <span class="itab-icon">⚖️</span>
+    <span class="itab-label">Trade Eval</span>
   </div>
   <div class="icon-tab" onclick="showTab('rosters',this)" data-tab="rosters">
     <span class="itab-icon">📋</span>
@@ -1155,15 +1162,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   <div class="icon-tab" onclick="showTab('stats',this)" data-tab="stats">
     <span class="itab-icon">📈</span>
     <span class="itab-label">Stats</span>
-  </div>
-  <!-- Row 2 (mobile): Trade Eval first -->
-  <div class="icon-tab" onclick="showTab('trade',this)" data-tab="trade">
-    <span class="itab-icon">⚖️</span>
-    <span class="itab-label">Trade Eval</span>
-  </div>
-  <div class="icon-tab" onclick="showTab('rivalries',this)" data-tab="rivalries">
-    <span class="itab-icon">⚔️</span>
-    <span class="itab-label">Rivalries</span>
   </div>
   <div class="icon-tab" onclick="showTab('transactions',this)" data-tab="transactions">
     <span class="itab-icon">🔄</span>
