@@ -4,8 +4,15 @@ on:
   schedule:
     # Every Monday at noon UTC (8 AM ET) — fresh values for the week
     - cron: '0 12 * * 1'
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'ktc-values.json'        # don't re-run on its own commit
+      - 'Sleeper FF/**'
+      - 'Majors Golf Pool/**'
+      - 'Basic Bros Ryder Cup/**'
   workflow_dispatch:
-    # Manual trigger from GitHub Actions UI for testing or on-demand refresh
+    # Manual trigger from GitHub Actions UI for on-demand refresh
 
 jobs:
   update-ktc:
