@@ -1,0 +1,42 @@
+name: Weekly KTC Values Update
+
+on:
+  schedule:
+    # Every Monday at noon UTC (8 AM ET) — fresh values for the week
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+    # Manual trigger from GitHub Actions UI for testing or on-demand refresh
+
+jobs:
+  update-ktc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch KTC values
+        run: python scripts/fetch_ktc.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "ktc-bot"
+          git config user.email "ktc-bot@the-other-league"
+          git add ktc-values.json
+          if git diff --staged --quiet; then
+            echo "✓ No changes — ktc-values.json is already up to date."
+          else
+            git commit -m "chore(bot): update KTC dynasty values [automated]"
+            git push
+            echo "✓ Pushed updated KTC values."
+          fi

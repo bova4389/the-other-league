@@ -126,12 +126,13 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .trade-team-sel{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:6px 8px;margin-bottom:10px;cursor:pointer;outline:none;}
 .trade-asset-list{max-height:400px;overflow-y:auto;}
 .trade-sec-lbl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:10px 0 5px;}
-.trade-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.trade-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
 .trade-row:last-child{border-bottom:none;}
-.trade-row input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
-.trade-row-lbl{flex:1;min-width:0;font-size:11px;color:var(--text);line-height:1.4;display:flex;align-items:center;gap:5px;overflow:hidden;}
+.trade-row input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px;cursor:pointer;flex-shrink:0;}
+.trade-row-lbl{flex:1;min-width:0;font-size:13px;color:var(--text);line-height:1.4;display:flex;align-items:center;gap:6px;overflow:hidden;}
 .trade-row-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
-.trade-row-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);flex-shrink:0;font-weight:600;white-space:nowrap;}
+.trade-row-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);flex-shrink:0;font-weight:600;white-space:nowrap;}
+.trade-row-sel{background:rgba(22,224,214,0.06);border-left:2px solid var(--accent);padding-left:6px;}
 .trade-eval-btn{background:var(--accent);color:var(--bg);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 24px;border:none;cursor:pointer;transition:opacity .15s;margin-top:4px;}
 .trade-eval-btn:hover{opacity:.85;}
 .trade-eval-btn:disabled{opacity:.4;cursor:not-allowed;}
@@ -1026,7 +1027,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .tab             { font-family: 'DM Sans', sans-serif; font-size: 11px; }
 .trade-eval-btn  { font-family: 'DM Sans', sans-serif; font-size: 12px; }
 .trade-team-sel  { font-family: 'DM Sans', sans-serif; font-size: 11px; }
-.trade-row-val   { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+.trade-row-val   { font-family: 'DM Mono', monospace; font-size: 12px; }
 .trade-score-dim { font-family: 'DM Sans', sans-serif; font-size: 11px; }
 .trade-verdict-sub{ font-family: 'DM Sans', sans-serif; font-size: 11px; }
 .sleeper-link    { font-family: 'DM Sans', sans-serif; font-size: 11px; }
@@ -1620,10 +1621,8 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         </div>
         <div class="ktc-slider-wrap">
           <span class="ps-lbl">Pick Value</span>
-          <span class="ps-ext">Conservative</span>
-          <input type="range" id="pick-scaler" min="-50" max="25" step="5" value="0" oninput="updatePickScaler(this.value)">
-          <span class="ps-ext">KTC (+25%)</span>
-          <span id="pick-scaler-val" class="bdg bdg-m" style="font-size:9px;white-space:nowrap;">Balanced (0%)</span>
+          <input type="range" id="pick-scaler" min="-25" max="25" step="5" value="0" oninput="updatePickScaler(this.value)">
+          <span id="pick-scaler-val" class="bdg bdg-m" style="font-size:9px;white-space:nowrap;">0%</span>
         </div>
       </div>
 
@@ -1947,7 +1946,9 @@ let _ktcSortCol = 'rank';
 let _ktcSortAsc = true;
 let _ktcFilterPos = 'all';
 let _ktcFilterTeams = new Set();
-let _pickSlider = 0;         // -50 to +25; 0 = Balanced = 80% of KTC pick value
+let _pickSlider = 0;         // -25 to +25; 0 = 80% of KTC pick value
+let _tradeChecked = {give:new Set(),receive:new Set()};
+let _tradeLastTeam = {give:null,receive:null};
 
 // ── HELPERS ──
 function t(uid){ return TEAMS[uid]||{name:uid,team:'Unknown',you:false,tier:'mid'}; }
@@ -4067,6 +4068,8 @@ const KTC_SNAPSHOT = {
   'Brock Purdy':5843,'Jordan Love':5621,'Cam Ward':5444,'Dak Prescott':4964,
   'C.J. Stroud':4881,'Baker Mayfield':4810,'Jared Goff':4670,'Sam Darnold':4633,
   'Anthony Richardson':4522,'Kyler Murray':4469,'Fernando Mendoza':5619,'Tyler Shough':4932,
+  'Tua Tagovailoa':4100,'Bryce Young':3300,'Will Levis':3400,'Justin Fields':3100,
+  "Aidan O'Connell":1900,'Mac Jones':1500,
   // WRs
   "Ja'Marr Chase":9960,'Jaxon Smith-Njigba':9832,'Puka Nacua':8614,'Amon-Ra St. Brown':7841,
   'Justin Jefferson':7790,'Malik Nabers':7665,'CeeDee Lamb':7260,'Drake London':6948,
@@ -4078,6 +4081,16 @@ const KTC_SNAPSHOT = {
   'Rashee Rice':4620,'Brandon Aiyuk':4580,'Terry McLaurin':4460,'Rashid Shaheed':4380,
   'Michael Pittman Jr.':4280,'Cooper Kupp':2800,'Davante Adams':3800,'Mike Evans':3640,
   'Tyler Lockett':2900,'Stefon Diggs':2600,
+  'DK Metcalf':4400,'Tank Dell':4100,'Josh Downs':4300,'Xavier Worthy':4500,
+  'DJ Moore':4000,'Troy Franklin':4100,'Jalen McMillan':3700,
+  'Xavier Legette':3300,'Quentin Johnston':3100,'Dontayvion Wicks':3300,
+  'Roman Wilson':3200,"Wan'Dale Robinson":2700,'Josh Palmer':2200,
+  'Tutu Atwell':2600,'Jermaine Burton':2400,'Cedric Tillman':2400,
+  "Ja'Lynn Polk":2700,'Elijah Moore':2500,'Alec Pierce':2200,'Michael Wilson':2300,
+  'Tyreek Hill':2600,'Charlie Jones':2000,'Rashod Bateman':1900,'Kayshon Boutte':1700,
+  'KJ Osborn':1600,'Mecole Hardman':1600,'Christian Kirk':2000,
+  'Kendrick Bourne':1400,'Hunter Renfrow':1200,'DeAndre Hopkins':1600,
+  'Odell Beckham Jr.':1200,'Keenan Allen':1000,
   // RBs
   'Bijan Robinson':9995,'Jahmyr Gibbs':9659,'Jeremiyah Love':7651,'Ashton Jeanty':7573,
   "De'Von Achane":6906,'Omarion Hampton':6803,'Jonathan Taylor':6015,'James Cook':5983,
@@ -4088,12 +4101,23 @@ const KTC_SNAPSHOT = {
   'Isiah Pacheco':4412,'Rico Dowdle':4380,'Chuba Hubbard':4340,'Josh Jacobs':4200,
   'Najee Harris':3980,'Aaron Jones':3820,'Brian Robinson Jr.':3760,'Tony Pollard':3640,
   'Derrick Henry':4542,'MarShawn Lloyd':4100,'Javonte Williams':4600,
+  'Zach Charbonnet':4200,'Blake Corum':3900,"D'Andre Swift":3700,'Rachaad White':3700,
+  'Jordan Mason':3700,'Tank Bigsby':3500,'Jaylen Warren':3300,'Jerome Ford':3300,
+  'Keaton Mitchell':3400,'Kendre Miller':3200,'David Montgomery':3100,'Zamir White':2700,
+  'Dameon Pierce':2900,'Zack Moss':2700,'Khalil Herbert':2500,'AJ Dillon':2200,
+  'Elijah Mitchell':2300,'Ty Chandler':1900,'Deuce Vaughn':1600,'Gus Edwards':1600,
+  'Miles Sanders':1400,'Boston Scott':1200,'Craig Reynolds':1100,'Raheem Mostert':1300,
+  'Patrick Taylor':900,'Tyrion Davis-Price':1100,
   // TEs — boosted by +0.5/rec TE premium
   'Brock Bowers':8904,'Trey McBride':8367,'Colston Loveland':6790,'Tyler Warren':6417,
   'Harold Fannin':5471,'Tucker Kraft':5469,'Sam LaPorta':5088,'Kyle Pitts':4984,
   'Kenyon Sadiq':4654,'Mark Andrews':4540,'Jake Ferguson':4480,'Isaiah Likely':4320,
   'Dalton Kincaid':4220,'David Njoku':4180,'Cole Kmet':3980,'Cade Otton':3820,
   'Pat Freiermuth':3700,'Jonnu Smith':3560,'Evan Engram':3480,'Dawson Knox':3200,
+  'T.J. Hockenson':3900,'Chigoziem Okonkwo':3500,'Luke Musgrave':3100,'Noah Fant':2900,
+  'Charlie Kolar':2600,'Michael Mayer':2800,'Theo Johnson':2600,'Daniel Bellinger':2000,
+  'Hunter Henry':2200,'Tyler Conklin':1700,'Gerald Everett':1600,'Mo Alie-Cox':1300,
+  'Tanner Hudson':1400,
   // 2027 picks (SF+PPR+TEP, KTC as of Jun 2026) — at slider +25% these are the values
   '2027 Early 1st':7123,'2027 Mid 1st':5682,'2027 Late 1st':4954,
   '2027 Early 2nd':3922,'2027 Mid 2nd':3477,'2027 Late 2nd':3161,
@@ -4112,15 +4136,28 @@ function loadKTCCache(){
     const raw=localStorage.getItem('tol_ktc_v3');
     if(!raw)return false;
     const{values,ts}=JSON.parse(raw);
-    if(!values||Date.now()-ts>24*3600*1000)return false;
+    if(!values||Date.now()-ts>72*3600*1000)return false;
     _ktcValues=values;_ktcSource='cached';_ktcFetchedAt=ts;
     return true;
   }catch(e){return false;}
 }
 
-// Fetch live KTC values — parses playersArray from KTC HTML (SF+PPR+TEP format)
+// Fetch KTC values — tries ktc-values.json (weekly GH Action commit) then CORS proxies
 async function fetchKTCValues(){
   if(loadKTCCache())return;
+  // Primary: ktc-values.json committed to repo weekly by GitHub Action (no CORS)
+  try{
+    const r=await fetch('ktc-values.json?_='+Math.floor(Date.now()/3600000));
+    if(r.ok){
+      const data=await r.json();
+      if(data.values&&Object.keys(data.values).length>200){
+        _ktcValues=data.values;_ktcSource='static';_ktcFetchedAt=data.ts||Date.now();
+        try{localStorage.setItem('tol_ktc_v3',JSON.stringify({values:data.values,ts:Date.now()}));}catch(e){}
+        return;
+      }
+    }
+  }catch(e){}
+  // Fallback: live CORS proxy fetch
   const url='https://keeptradecut.com/dynasty-rankings?format=1&tep=1';
   const proxies=[url,'https://corsproxy.io/?'+encodeURIComponent(url),'https://api.allorigins.win/raw?url='+encodeURIComponent(url)];
   for(const proxy of proxies){
@@ -4166,15 +4203,16 @@ function getKTCEntry(name){
 // Look up dynasty value for a player by their Sleeper player_id
 function getDynastyValue(pid){
   const p=cachedPlayers&&cachedPlayers[pid];
-  if(!p)return 800;
+  if(!p)return 0;
   const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
-  const e=getKTCEntry(name);
-  if(e)return e.value;
+  const fuzzy=getKTCEntryFuzzy(name);
+  if(fuzzy)return fuzzy.value;
+  // Last-name fallback (broad; catches backup/depth players in snapshot)
   const last=(p.last_name||'').toLowerCase();
   const src=_ktcValues||KTC_SNAPSHOT;
-  const hit=Object.keys(src).find(k=>k.toLowerCase().split(' ').pop()===last);
+  const hit=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&k.toLowerCase().split(' ').pop()===last);
   if(hit)return getKTCEntry(hit).value;
-  return 800;
+  return 0;
 }
 
 // Pick multiplier: KTC pick values represent the +25% position; 0% = 80% of KTC
@@ -4197,8 +4235,8 @@ function getPickValue(year,round,slot){
 
 function updatePickScaler(val){
   _pickSlider=parseInt(val);
-  const labels={'-50':'Very Conservative','-25':'Conservative','0':'Balanced','25':'KTC Standard (+25%)'};
-  const lbl=labels[String(val)]||(parseInt(val)>0?`+${val}%`:`${val}%`);
+  const n=parseInt(val);
+  const lbl=n>0?`+${n}%`:n<0?`${n}%`:'0%';
   const el=document.getElementById('pick-scaler-val');
   if(el)el.textContent=lbl;
   // Refresh trade panels — pick values changed
@@ -4212,15 +4250,27 @@ function updatePickScaler(val){
 // ── KTC VALUES TABLE ──
 
 // Normalize a name for fuzzy matching: lowercase, strip apostrophes/periods
-function normalizeName(n){return n.toLowerCase().replace(/['‘’ʼ`.]/g,'').replace(/\s+/g,' ').trim();}
+function normalizeName(n){return n.toLowerCase().replace(/[‘’’ʼ`.]/g,’’).replace(/\s+/g,’ ‘).trim();}
 
-// KTC entry lookup with fuzzy fallback (exact → normalized → skip)
+// Strip name suffix (Jr./Sr./II/III/IV) for cross-source matching
+function stripSuffix(n){return n.replace(/\s+(Jr\.?|Sr\.?|IV|III|II|V)$/i,’’).trim();}
+
+// KTC entry lookup: exact → normalized → suffix-stripped → skip
 function getKTCEntryFuzzy(name){
   const src=_ktcValues||KTC_SNAPSHOT;
+  // 1. Exact match
   if(src[name]!=null)return getKTCEntry(name);
+  // 2. Normalized match (strips apostrophes/periods/backticks)
   const norm=normalizeName(name);
   const normKey=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&normalizeName(k)===norm);
-  return normKey?getKTCEntry(normKey):null;
+  if(normKey)return getKTCEntry(normKey);
+  // 3. Suffix-stripped match (handles Jr./II/III differences between KTC and Sleeper)
+  const normStripped=normalizeName(stripSuffix(name));
+  if(normStripped!==norm){
+    const strKey=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&normalizeName(stripSuffix(k))===normStripped);
+    if(strKey)return getKTCEntry(strKey);
+  }
+  return null;
 }
 
 // Build _ktcAllPlayers — starts from Sleeper rosters for guaranteed ownership,
@@ -4409,7 +4459,10 @@ function initTradeEval(){
     const updEl=document.getElementById('ktc-updated');
     if(!badge)return;
     if(_ktcSource==='live'){badge.textContent='KTC Live ✓';badge.className='bdg bdg-g';if(updEl)updEl.textContent='Updated just now';}
-    else if(_ktcSource==='cached'){
+    else if(_ktcSource==='static'){
+      badge.textContent='KTC Weekly ✓';badge.className='bdg bdg-g';
+      if(updEl&&_ktcFetchedAt){const d=Math.round((Date.now()-_ktcFetchedAt)/86400000);updEl.textContent=d<1?'Updated today':`Updated ${d}d ago`;}
+    }else if(_ktcSource==='cached'){
       badge.textContent='KTC Cached ✓';badge.className='bdg bdg-g';
       if(updEl&&_ktcFetchedAt){const h=Math.round((Date.now()-_ktcFetchedAt)/3600000);updEl.textContent=`Cached ${h}h ago`;}
     }else{badge.textContent='Snapshot (Jun 2026)';badge.className='bdg bdg-m';if(updEl)updEl.textContent='Live fetch unavailable';}
@@ -4425,6 +4478,8 @@ function loadTradeTeam(side){
   const empty='<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:10px;padding:12px 0;">';
   if(!uid){el.innerHTML=empty+'Select a team above</div>';return;}
   if(!cachedRosters||!cachedPlayers){el.innerHTML=empty+'Roster data not loaded yet</div>';return;}
+  // Clear selection when team changes
+  if(_tradeLastTeam[side]!==uid){_tradeChecked[side].clear();_tradeLastTeam[side]=uid;}
   const rid=RMR[uid];
   const roster=cachedRosters.find(r=>r.roster_id===rid||r.roster_id===String(rid));
   if(!roster){el.innerHTML=empty+'No roster data</div>';return;}
@@ -4433,36 +4488,64 @@ function loadTradeTeam(side){
     .map(pid=>({pid,p:cachedPlayers[pid],val:getDynastyValue(pid)}))
     .filter(x=>x.p&&x.p.position&&!['K','DEF'].includes(x.p.position))
     .sort((a,b)=>(posOrder[a.p.position]??5)-(posOrder[b.p.position]??5)||b.val-a.val);
-  let html='<div class="trade-sec-lbl">Players</div>';
-  players.forEach(({pid,p,val})=>{
+  const futureMap=window._futurePicksMap;
+  const sortedPicks=futureMap?[...(futureMap[uid]||[])].sort((a,b)=>a.year-b.year||a.round-b.round):[];
+  const chk=_tradeChecked[side];
+
+  // Partition players and picks into checked / unchecked
+  const chkPlayers=players.filter(x=>chk.has(x.pid));
+  const unchkPlayers=players.filter(x=>!chk.has(x.pid));
+  const allPicks=sortedPicks.map((pk,i)=>({pk,i,id:`${pk.year}.${pk.round}.${i}`}));
+  const chkPicks=allPicks.filter(x=>chk.has(x.id));
+  const unchkPicks=allPicks.filter(x=>!chk.has(x.id));
+  const anyChecked=chkPlayers.length+chkPicks.length>0;
+
+  function playerRow({pid,p,val},isSel){
     const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
     const pos=p.position||'';
     const age=p.age?` · ${p.age}yo`:'';
-    html+=`<label class="trade-row">
-      <input type="checkbox" class="trade-chk" data-side="${side}" data-pid="${pid}" data-val="${val}" data-pos="${pos}" data-age="${p.age||0}">
-      <span class="trade-row-lbl"><span class="cp pos-${pos.toLowerCase()}">${pos}</span><span class="trade-row-name">${name}${age}</span><span class="trade-row-val">${val.toLocaleString()}</span></span>
+    const dispVal=val>0?val.toLocaleString():'—';
+    return `<label class="trade-row${isSel?' trade-row-sel':''}">
+      <input type="checkbox" class="trade-chk" data-side="${side}" data-pid="${pid}" data-val="${val}" data-pos="${pos}" data-age="${p.age||0}" onchange="tradeCheckToggle(this,'${side}')"${isSel?' checked':''}>
+      <span class="trade-row-lbl"><span class="cp pos-${pos.toLowerCase()}">${pos}</span><span class="trade-row-name">${name}${age}</span><span class="trade-row-val">${dispVal}</span></span>
     </label>`;
-  });
-  // 2027+ future picks only (2026 draft is complete)
-  const futureMap=window._futurePicksMap;
-  const futurePicks=futureMap?(futureMap[uid]||[]):[];
-  if(futurePicks.length){
-    html+='<div class="trade-sec-lbl" style="margin-top:12px;">Draft Picks</div>';
-    [...futurePicks].sort((a,b)=>a.year-b.year||a.round-b.round).forEach((pk,i)=>{
-      const rawVal=getKTCPickValue(pk.year,pk.round,null);
-      const adjVal=getAdjustedPickValue(rawVal);
-      const roundLbl=['1st','2nd','3rd','4th'][pk.round-1]||`Rd${pk.round}`;
-      const fromStr=pk.fromUid?` <span style="color:var(--muted);font-size:9px;">(from ${abbrev(t(pk.fromUid).name)})</span>`:'';
-      html+=`<label class="trade-row">
-        <input type="checkbox" class="trade-chk" data-side="${side}" data-pick="${pk.year}.${pk.round}.${i}" data-val="${adjVal}" data-raw-val="${rawVal}" data-year="${pk.year}" data-round="${pk.round}">
-        <span class="trade-row-lbl"><span class="trade-row-name">${pk.year} ${roundLbl} (mid-tier est.)${fromStr}</span><span class="trade-row-val">${adjVal.toLocaleString()}</span></span>
-      </label>`;
-    });
+  }
+  function pickRow({pk,i,id},isSel){
+    const rawVal=getKTCPickValue(pk.year,pk.round,null);
+    const adjVal=getAdjustedPickValue(rawVal);
+    const roundLbl=['1st','2nd','3rd','4th'][pk.round-1]||`Rd${pk.round}`;
+    const fromStr=pk.fromUid?` <span style="color:var(--muted);font-size:9px;">(from ${abbrev(t(pk.fromUid).name)})</span>`:'';
+    return `<label class="trade-row${isSel?' trade-row-sel':''}">
+      <input type="checkbox" class="trade-chk" data-side="${side}" data-pick="${id}" data-val="${adjVal}" data-raw-val="${rawVal}" data-year="${pk.year}" data-round="${pk.round}" onchange="tradeCheckToggle(this,'${side}')"${isSel?' checked':''}>
+      <span class="trade-row-lbl"><span class="trade-row-name">${pk.year} ${roundLbl} (mid-tier est.)${fromStr}</span><span class="trade-row-val">${adjVal.toLocaleString()}</span></span>
+    </label>`;
+  }
+
+  let html='';
+  if(anyChecked){
+    html+=`<div class="trade-sec-lbl" style="color:var(--accent);">Selected (${chkPlayers.length+chkPicks.length}) ▲</div>`;
+    chkPlayers.forEach(x=>{html+=playerRow(x,true);});
+    chkPicks.forEach(x=>{html+=pickRow(x,true);});
+  }
+  if(unchkPlayers.length){
+    html+=`<div class="trade-sec-lbl">${anyChecked?'Remaining Players':'Players'}</div>`;
+    unchkPlayers.forEach(x=>{html+=playerRow(x,false);});
+  }
+  if(unchkPicks.length){
+    html+=`<div class="trade-sec-lbl" style="margin-top:12px;">${anyChecked?'Remaining Picks':'Draft Picks'}</div>`;
+    unchkPicks.forEach(x=>{html+=pickRow(x,false);});
   }else if(!futureMap){
     html+='<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:9px;padding:8px 0;">Loading pick data...</div>';
     buildFuturePicksMap().then(()=>loadTradeTeam(side));
   }
   el.innerHTML=html;
+}
+
+function tradeCheckToggle(el,side){
+  const key=el.dataset.pid||el.dataset.pick;
+  if(el.checked)_tradeChecked[side].add(key);
+  else _tradeChecked[side].delete(key);
+  loadTradeTeam(side);
 }
 
 function getTradeAssets(side){
