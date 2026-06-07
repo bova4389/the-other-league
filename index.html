@@ -2025,6 +2025,7 @@ async function refreshData(){
   document.getElementById('scores-container').innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Loading scores...</div></div>';
   delete document.getElementById('scores-container').dataset.loaded;
   await init();
+  buildScores();
 }
 
 // ── SLEEPER API (with CORS fallback chain) ──
@@ -2182,20 +2183,39 @@ async function fetchWeekProjections(year,week){
   return _projCache[key];
 }
 
-function calcTeamProjected(starters,projData){
-  if(!starters||!starters.length)return null;
-  const valid=starters.filter(id=>id&&id!=='0');
-  if(!valid.length)return null;
-  let total=0,hasAny=false;
-  valid.forEach(pid=>{
-    const stats=projData[pid];
-    if(!stats)return;
-    const pos=cachedPlayers?.[pid]?.position||null;
-    const pts=pos?calcPts(stats,pos):(stats.pts_ppr||stats.pts_half_ppr||stats.pts_std||0);
-    total+=pts;
-    hasAny=true;
+function calcTeamProjected(starters,rosterPlayers,projData){
+  // In-season: use actual starters if set
+  const active=(starters||[]).filter(id=>id&&id!=='0');
+  if(active.length>0){
+    let total=0,hasAny=false;
+    active.forEach(pid=>{
+      const stats=projData[pid];if(!stats)return;
+      const pos=cachedPlayers?.[pid]?.position||null;
+      total+=(pos?calcPts(stats,pos):(stats.pts_ppr||stats.pts_half_ppr||stats.pts_std||0));
+      hasAny=true;
+    });
+    return hasAny?Math.round(total*100)/100:null;
+  }
+  // Pre-season / future week: compute optimal lineup from full roster
+  if(!rosterPlayers?.length||!cachedPlayers)return null;
+  const pool=[];
+  rosterPlayers.forEach(pid=>{
+    const p=cachedPlayers[String(pid)];if(!p)return;
+    const pos=p.position;if(!['QB','RB','WR','TE'].includes(pos))return;
+    const stats=projData[String(pid)];if(!stats)return;
+    const pts=calcPts(stats,pos);if(pts<=0)return;
+    pool.push({pid:String(pid),pos,pts});
   });
-  return hasAny?Math.round(total*100)/100:null;
+  if(!pool.length)return null;
+  const byPos={QB:[],RB:[],WR:[],TE:[]};
+  pool.forEach(p=>byPos[p.pos].push(p));
+  Object.values(byPos).forEach(arr=>arr.sort((a,b)=>b.pts-a.pts));
+  const used=new Set();let total=0;
+  const take=(arr,n=1)=>{let c=0;for(const p of arr){if(c>=n)break;if(!used.has(p.pid)){total+=p.pts;used.add(p.pid);c++;}}};
+  take(byPos.QB);take(byPos.RB,2);take(byPos.WR,2);take(byPos.TE);
+  take([...byPos.WR,...byPos.RB,...byPos.TE].filter(p=>!used.has(p.pid)).sort((a,b)=>b.pts-a.pts),4);
+  take([...byPos.QB,...byPos.WR,...byPos.RB,...byPos.TE].filter(p=>!used.has(p.pid)).sort((a,b)=>b.pts-a.pts));
+  return used.size>0?Math.round(total*100)/100:null;
 }
 
 async function buildScores(){
@@ -2239,8 +2259,10 @@ function renderHistoricalScores(container,matchups,week,projData){
     const[a,b]=pair;
     const ta=rToTeam(a.roster_id),tb=rToTeam(b.roster_id);
     const aActual=a.points||0,bActual=b.points||0;
-    const aProj=(aActual===0&&hasProjData)?calcTeamProjected(a.starters,projData):null;
-    const bProj=(bActual===0&&hasProjData)?calcTeamProjected(b.starters,projData):null;
+    const rA=(cachedRosters||[]).find(r=>r.roster_id===a.roster_id);
+    const rB=(cachedRosters||[]).find(r=>r.roster_id===b.roster_id);
+    const aProj=(aActual===0&&hasProjData)?calcTeamProjected(a.starters,rA?.players,projData):null;
+    const bProj=(bActual===0&&hasProjData)?calcTeamProjected(b.starters,rB?.players,projData):null;
     const aDisplay=aActual>0?aActual:(aProj!==null?aProj:null);
     const bDisplay=bActual>0?bActual:(bProj!==null?bProj:null);
     const noScores=aDisplay===null&&bDisplay===null;
