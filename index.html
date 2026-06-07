@@ -2016,7 +2016,7 @@ async function refreshData(){
   clearCache();
   try{localStorage.removeItem('tol_txn_2026');}catch(e){} // re-fetch current season trades
   try{localStorage.removeItem('tol_matchups_2026');}catch(e){} // re-fetch current season scores
-  _stats2026Cache=null; // re-fetch current season stats+projections
+  _stats2026Cache=null;_projCache={}; // re-fetch current season stats+projections
   cachedRosters=null;cachedPlayers=null;cachedLeague=null;window._futurePicksMap=null;
   document.getElementById('cache-dot').className='cache-dot';
   document.getElementById('cache-status-txt').textContent='Refreshing...';
@@ -2070,7 +2070,7 @@ async function fetchAllMatchups(leagueId,year){
   // Strip to minimal fields needed for H2H
   const matchups={};
   weeks.forEach((w,i)=>{
-    matchups[w]=(results[i]||[]).map(r=>({roster_id:r.roster_id,points:r.points||0,matchup_id:r.matchup_id}));
+    matchups[w]=(results[i]||[]).map(r=>({roster_id:r.roster_id,points:r.points||0,matchup_id:r.matchup_id,starters:r.starters||[]}));
   });
   savePerm(key,matchups);
   return matchups;
@@ -2174,6 +2174,30 @@ function goToScoresWeek(year,week){
   buildScores();
 }
 
+async function fetchWeekProjections(year,week){
+  const key=`${year}_${week}`;
+  if(_projCache[key]!==undefined)return _projCache[key];
+  try{const d=await api(`/projections/nfl/${year}/${week}`);_projCache[key]=d||{};}
+  catch(e){_projCache[key]={};}
+  return _projCache[key];
+}
+
+function calcTeamProjected(starters,projData){
+  if(!starters||!starters.length)return null;
+  const valid=starters.filter(id=>id&&id!=='0');
+  if(!valid.length)return null;
+  let total=0,hasAny=false;
+  valid.forEach(pid=>{
+    const stats=projData[pid];
+    if(!stats)return;
+    const pos=cachedPlayers?.[pid]?.position||null;
+    const pts=pos?calcPts(stats,pos):(stats.pts_ppr||stats.pts_half_ppr||stats.pts_std||0);
+    total+=pts;
+    hasAny=true;
+  });
+  return hasAny?Math.round(total*100)/100:null;
+}
+
 async function buildScores(){
   const c=document.getElementById('scores-container');
   c.dataset.loaded='1';
@@ -2181,16 +2205,21 @@ async function buildScores(){
   try{
     const lids=await findLeagueIds();
     const lid=lids[currentScoresYear]||LID;
-    const matchups=await fetchAllMatchups(lid,currentScoresYear);
-    renderHistoricalScores(c,matchups,currentScoresWeek);
+    const[matchups,projData]=await Promise.all([
+      fetchAllMatchups(lid,currentScoresYear),
+      currentScoresYear===2026?fetchWeekProjections(2026,currentScoresWeek):Promise.resolve({})
+    ]);
+    renderHistoricalScores(c,matchups,currentScoresWeek,projData);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load scores.<br><small>${e.message}</small></div>`;
   }
 }
 
-function renderHistoricalScores(container,matchups,week){
+function renderHistoricalScores(container,matchups,week,projData){
+  projData=projData||{};
   const h2h=buildH2HMap();
   const is2026=currentScoresYear===2026;
+  const hasProjData=is2026&&Object.keys(projData).length>0;
   const weekData=matchups[week]||[];
   const groups={};
   weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
@@ -2200,16 +2229,29 @@ function renderHistoricalScores(container,matchups,week){
     return;
   }
   const isRivalry=(RIVALRY_WEEKS[currentScoresYear]||[]).includes(week);
+  const showProjBanner=hasProjData&&pairs.some(p=>!(p[0].points||0)||!(p[1].points||0));
   let html='';
-  if(isRivalry) html+='<div class="rivalry-banner">&#9876; Rivalry Week</div>';
-  if(is2026) html+='<div class="proj-banner">&#9889; Projected scores &mdash; updates as games are played. Not yet final.</div>';
+  if(isRivalry)html+='<div class="rivalry-banner">&#9876; Rivalry Week</div>';
+  if(showProjBanner)html+='<div class="proj-banner">&#9889; Projected scores &mdash; updates as games are played. Not yet final.</div>';
   html+='<div class="match-grid">';
   pairs.forEach(pair=>{
     const[a,b]=pair;
     const ta=rToTeam(a.roster_id),tb=rToTeam(b.roster_id);
-    const aScore=a.points||0,bScore=b.points||0;
-    const noScores=is2026&&aScore===0&&bScore===0;
-    const aWin=noScores?false:aScore>=bScore;
+    const aActual=a.points||0,bActual=b.points||0;
+    const aProj=(aActual===0&&hasProjData)?calcTeamProjected(a.starters,projData):null;
+    const bProj=(bActual===0&&hasProjData)?calcTeamProjected(b.starters,projData):null;
+    const aDisplay=aActual>0?aActual:(aProj!==null?aProj:null);
+    const bDisplay=bActual>0?bActual:(bProj!==null?bProj:null);
+    const noScores=aDisplay===null&&bDisplay===null;
+    const aIsProj=aActual===0&&aProj!==null;
+    const bIsProj=bActual===0&&bProj!==null;
+    const aWin=noScores?false:(aDisplay||0)>=(bDisplay||0);
+    const aScoreStr=aDisplay!==null?aDisplay.toFixed(2):'&mdash;';
+    const bScoreStr=bDisplay!==null?bDisplay.toFixed(2):'&mdash;';
+    const aChip=aIsProj?'<span class="proj-chip">PROJ</span>':'';
+    const bChip=bIsProj?'<span class="proj-chip">PROJ</span>':'';
+    const aWinCls=!noScores&&aWin?'winner':'';
+    const bWinCls=!noScores&&!aWin?'winner':'';
     const ridA=a.roster_id,ridB=b.roster_id;
     const aW=(h2h[ridA]&&h2h[ridA][ridB])?h2h[ridA][ridB].w:0;
     const aL=(h2h[ridA]&&h2h[ridA][ridB])?h2h[ridA][ridB].l:0;
@@ -2217,20 +2259,15 @@ function renderHistoricalScores(container,matchups,week){
     const bracketData=bracketPool?bracketPool[[ta.name,tb.name].sort().join('|')]||null:null;
     const bracketLabel=bracketData?.label||'';
     const bracketStyle=bracketData?.style||'';
-    const aScoreStr=noScores?'&mdash;':aScore.toFixed(2);
-    const bScoreStr=noScores?'&mdash;':bScore.toFixed(2);
-    const projChip=is2026&&!noScores?'<span class="proj-chip">PROJ</span>':'';
-    const aWinCls=!noScores&&aWin?'winner':'';
-    const bWinCls=!noScores&&!aWin?'winner':'';
     html+=`<div class="match-card">
       ${bracketLabel?`<div class="bracket-chip ${bracketStyle}">${bracketLabel}</div>`:''}
       <div class="match-side ${aWinCls}">
         <div class="match-tm"><div class="match-name">${ta.name}</div><div class="match-own">${ta.team}</div></div>
-        <div class="match-pts ${aWinCls==='winner'?'leading':''}">${aScoreStr}${projChip}</div>
+        <div class="match-pts ${aWinCls==='winner'?'leading':''}">${aScoreStr}${aChip}</div>
       </div>
       <div class="match-side ${bWinCls}">
         <div class="match-tm"><div class="match-name">${tb.name}</div><div class="match-own">${tb.team}</div></div>
-        <div class="match-pts ${bWinCls==='winner'?'leading':''}">${bScoreStr}</div>
+        <div class="match-pts ${bWinCls==='winner'?'leading':''}">${bScoreStr}${bChip}</div>
       </div>
       ${(currentScoresYear===2025||currentScoresYear===2026)?`<div class="match-h2h">All-time: ${abbrev(ta.name)} ${aW}&ndash;${aL} ${abbrev(tb.name)}</div>`:''}
     </div>`;
@@ -3536,7 +3573,8 @@ function isRookieInYear(pid,year){
 }
 
 let _stats2026Cache=null;
-let _statsHistoryCache=null; // in-memory cache for stats-history.json
+let _statsHistoryCache=null;
+let _projCache={}; // in-memory cache for stats-history.json
 
 async function loadStatsHistory(){
   if(_statsHistoryCache)return _statsHistoryCache;
