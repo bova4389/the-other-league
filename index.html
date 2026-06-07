@@ -2183,6 +2183,14 @@ async function fetchWeekProjections(year,week){
   return _projCache[key];
 }
 
+function projPts(stats,pos){
+  // Projections API uses different field names than stats API — use pre-calculated pts_ppr,
+  // then add TE premium (0.5/rec) which pts_ppr doesn't include
+  const base=stats.pts_ppr||stats.pts_half_ppr||stats.pts_std||0;
+  const teBonus=(pos==='TE'&&stats.rec)?stats.rec*(SDATA.bonus_rec_te||0.5):0;
+  return base+teBonus;
+}
+
 function calcTeamProjected(starters,rosterPlayers,projData){
   // In-season: use actual starters if set
   const active=(starters||[]).filter(id=>id&&id!=='0');
@@ -2191,7 +2199,7 @@ function calcTeamProjected(starters,rosterPlayers,projData){
     active.forEach(pid=>{
       const stats=projData[pid];if(!stats)return;
       const pos=cachedPlayers?.[pid]?.position||null;
-      total+=(pos?calcPts(stats,pos):(stats.pts_ppr||stats.pts_half_ppr||stats.pts_std||0));
+      total+=projPts(stats,pos);
       hasAny=true;
     });
     return hasAny?Math.round(total*100)/100:null;
@@ -2203,7 +2211,7 @@ function calcTeamProjected(starters,rosterPlayers,projData){
     const p=cachedPlayers[String(pid)];if(!p)return;
     const pos=p.position;if(!['QB','RB','WR','TE'].includes(pos))return;
     const stats=projData[String(pid)];if(!stats)return;
-    const pts=calcPts(stats,pos);if(pts<=0)return;
+    const pts=projPts(stats,pos);if(pts<=0)return;
     pool.push({pid:String(pid),pos,pts});
   });
   if(!pool.length)return null;
