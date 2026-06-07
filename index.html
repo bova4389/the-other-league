@@ -2205,9 +2205,10 @@ async function buildScores(){
   try{
     const lids=await findLeagueIds();
     const lid=lids[currentScoresYear]||LID;
+    const timeout5s=new Promise(r=>setTimeout(()=>r({}),5000));
     const[matchups,projData]=await Promise.all([
       fetchAllMatchups(lid,currentScoresYear),
-      currentScoresYear===2026?fetchWeekProjections(2026,currentScoresWeek):Promise.resolve({})
+      currentScoresYear===2026?Promise.race([fetchWeekProjections(2026,currentScoresWeek),timeout5s]):Promise.resolve({})
     ]);
     renderHistoricalScores(c,matchups,currentScoresWeek,projData);
   }catch(e){
