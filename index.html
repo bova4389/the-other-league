@@ -2240,6 +2240,7 @@ async function buildScores(){
       fetchAllMatchups(lid,currentScoresYear),
       currentScoresYear===2026?Promise.race([fetchWeekProjections(2026,currentScoresWeek),timeout5s]):Promise.resolve({})
     ]);
+    console.log('[SCORES] projKeys',Object.keys(projData).length,'matchupW1',matchups[1]?.length,'cachedRosters',cachedRosters?.length,'cachedPlayers',!!cachedPlayers);
     renderHistoricalScores(c,matchups,currentScoresWeek,projData);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load scores.<br><small>${e.message}</small></div>`;
