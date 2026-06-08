@@ -2206,6 +2206,8 @@ function calcTeamProjected(starters,rosterPlayers,projData){
   }
   // Pre-season / future week: compute optimal lineup from full roster
   if(!rosterPlayers?.length||!cachedPlayers)return null;
+  const _pid0=String(rosterPlayers[0]);
+  console.log('[PROJ]','rosterLen',rosterPlayers.length,'pid0',_pid0,'inPlayers',!!cachedPlayers[_pid0],'inProj',!!projData[_pid0],'projKeys',Object.keys(projData).length,'sampleProjKey',Object.keys(projData)[0]);
   const pool=[];
   rosterPlayers.forEach(pid=>{
     const p=cachedPlayers[String(pid)];if(!p)return;
