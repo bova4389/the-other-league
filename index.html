@@ -2272,6 +2272,8 @@ function renderHistoricalScores(container,matchups,week,projData){
     const aActual=a.points||0,bActual=b.points||0;
     const rA=(cachedRosters||[]).find(r=>r.roster_id===a.roster_id);
     const rB=(cachedRosters||[]).find(r=>r.roster_id===b.roster_id);
+    if(!rA)console.log('[ROSTER MISS] a.roster_id=',a.roster_id,typeof a.roster_id,'roster ids:',(cachedRosters||[]).map(r=>r.roster_id));
+    if(rA&&!rA.players?.length)console.log('[EMPTY PLAYERS] rA.roster_id=',rA.roster_id,'players=',rA.players);
     const aProj=(aActual===0&&hasProjData)?calcTeamProjected(a.starters,rA?.players,projData):null;
     const bProj=(bActual===0&&hasProjData)?calcTeamProjected(b.starters,rB?.players,projData):null;
     const aDisplay=aActual>0?aActual:(aProj!==null?aProj:null);
