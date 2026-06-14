@@ -2018,6 +2018,7 @@ async function refreshData(){
   try{localStorage.removeItem('tol_matchups_2026');}catch(e){} // re-fetch current season scores
   _stats2026Cache=null;_projCache={}; // re-fetch current season stats+projections
   cachedRosters=null;cachedPlayers=null;cachedLeague=null;window._futurePicksMap=null;
+  _rosterReady=new Promise(r=>{_rosterReadyResolve=r;});
   document.getElementById('cache-dot').className='cache-dot';
   document.getElementById('cache-status-txt').textContent='Refreshing...';
   document.getElementById('refresh-btn').disabled=true;
@@ -2065,13 +2066,18 @@ async function findLeagueIds(){
 async function fetchAllMatchups(leagueId,year){
   const key=`tol_matchups_${year}`;
   const cached=loadPerm(key);
-  if(cached)return cached;
+  if(cached){
+    // Migrate old cache entries that are missing projected_points (added later)
+    const sample=(cached[1]||[])[0];
+    if(!sample||'projected_points' in sample)return cached;
+    // Old format — clear and re-fetch below
+    try{localStorage.removeItem(key);}catch(e){}
+  }
   const weeks=Array.from({length:17},(_,i)=>i+1);
   const results=await Promise.all(weeks.map(w=>api(`/league/${leagueId}/matchups/${w}`).catch(()=>[])));
-  // Strip to minimal fields needed for H2H
   const matchups={};
   weeks.forEach((w,i)=>{
-    matchups[w]=(results[i]||[]).map(r=>({roster_id:r.roster_id,points:r.points||0,matchup_id:r.matchup_id,starters:r.starters||[]}));
+    matchups[w]=(results[i]||[]).map(r=>({roster_id:r.roster_id,points:r.points||0,matchup_id:r.matchup_id,starters:r.starters||[],projected_points:r.projected_points||null}));
   });
   savePerm(key,matchups);
   return matchups;
@@ -2178,7 +2184,7 @@ function goToScoresWeek(year,week){
 async function fetchWeekProjections(year,week){
   const key=`${year}_${week}`;
   if(_projCache[key]!==undefined)return _projCache[key];
-  try{const d=await api(`/projections/nfl/${year}/${week}`);_projCache[key]=d||{};}
+  try{const d=await api(`/projections/nfl/${year}/${week}?season_type=regular`);_projCache[key]=d||{};}
   catch(e){_projCache[key]={};}
   return _projCache[key];
 }
@@ -2192,22 +2198,21 @@ function projPts(stats,pos){
 }
 
 function calcTeamProjected(starters,rosterPlayers,projData){
-  // In-season: use actual starters if set
+  // In-season: use actual starters when they have real projections
   const active=(starters||[]).filter(id=>id&&id!=='0');
   if(active.length>0){
     let total=0,hasAny=false;
     active.forEach(pid=>{
       const stats=projData[pid];if(!stats)return;
       const pos=cachedPlayers?.[pid]?.position||null;
-      total+=projPts(stats,pos);
-      hasAny=true;
+      const pts=projPts(stats,pos);if(pts<=0)return;
+      total+=pts;hasAny=true;
     });
-    return hasAny?Math.round(total*100)/100:null;
+    if(hasAny)return Math.round(total*100)/100;
+    // starters have no non-zero projections — fall through to roster optimal lineup
   }
   // Pre-season / future week: compute optimal lineup from full roster
   if(!rosterPlayers?.length||!cachedPlayers)return null;
-  const _pid0=String(rosterPlayers[0]);
-  console.log('[PROJ]','rosterLen',rosterPlayers.length,'pid0',_pid0,'inPlayers',!!cachedPlayers[_pid0],'inProj',!!projData[_pid0],'projKeys',Object.keys(projData).length,'sampleProjKey',Object.keys(projData)[0]);
   const pool=[];
   rosterPlayers.forEach(pid=>{
     const p=cachedPlayers[String(pid)];if(!p)return;
@@ -2235,23 +2240,16 @@ async function buildScores(){
   try{
     const lids=await findLeagueIds();
     const lid=lids[currentScoresYear]||LID;
-    const timeout5s=new Promise(r=>setTimeout(()=>r({}),5000));
-    const[matchups,projData]=await Promise.all([
-      fetchAllMatchups(lid,currentScoresYear),
-      currentScoresYear===2026?Promise.race([fetchWeekProjections(2026,currentScoresWeek),timeout5s]):Promise.resolve({})
-    ]);
-    console.log('[SCORES] projKeys',Object.keys(projData).length,'matchupW1',matchups[1]?.length,'cachedRosters',cachedRosters?.length,'cachedPlayers',!!cachedPlayers);
-    renderHistoricalScores(c,matchups,currentScoresWeek,projData);
+    const matchups=await fetchAllMatchups(lid,currentScoresYear);
+    renderHistoricalScores(c,matchups,currentScoresWeek);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load scores.<br><small>${e.message}</small></div>`;
   }
 }
 
-function renderHistoricalScores(container,matchups,week,projData){
-  projData=projData||{};
+function renderHistoricalScores(container,matchups,week){
   const h2h=buildH2HMap();
   const is2026=currentScoresYear===2026;
-  const hasProjData=is2026&&Object.keys(projData).length>0;
   const weekData=matchups[week]||[];
   const groups={};
   weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
@@ -2261,7 +2259,7 @@ function renderHistoricalScores(container,matchups,week,projData){
     return;
   }
   const isRivalry=(RIVALRY_WEEKS[currentScoresYear]||[]).includes(week);
-  const showProjBanner=hasProjData&&pairs.some(p=>!(p[0].points||0)||!(p[1].points||0));
+  const showProjBanner=is2026&&pairs.some(p=>!(p[0].points||0)&&(p[0].projected_points||p[1].projected_points));
   let html='';
   if(isRivalry)html+='<div class="rivalry-banner">&#9876; Rivalry Week</div>';
   if(showProjBanner)html+='<div class="proj-banner">&#9889; Projected scores &mdash; updates as games are played. Not yet final.</div>';
@@ -2270,12 +2268,8 @@ function renderHistoricalScores(container,matchups,week,projData){
     const[a,b]=pair;
     const ta=rToTeam(a.roster_id),tb=rToTeam(b.roster_id);
     const aActual=a.points||0,bActual=b.points||0;
-    const rA=(cachedRosters||[]).find(r=>r.roster_id===a.roster_id);
-    const rB=(cachedRosters||[]).find(r=>r.roster_id===b.roster_id);
-    if(!rA)console.log('[ROSTER MISS] a.roster_id=',a.roster_id,typeof a.roster_id,'roster ids:',(cachedRosters||[]).map(r=>r.roster_id));
-    if(rA&&!rA.players?.length)console.log('[EMPTY PLAYERS] rA.roster_id=',rA.roster_id,'players=',rA.players);
-    const aProj=(aActual===0&&hasProjData)?calcTeamProjected(a.starters,rA?.players,projData):null;
-    const bProj=(bActual===0&&hasProjData)?calcTeamProjected(b.starters,rB?.players,projData):null;
+    const aProj=(aActual===0&&is2026&&a.projected_points)?a.projected_points:null;
+    const bProj=(bActual===0&&is2026&&b.projected_points)?b.projected_points:null;
     const aDisplay=aActual>0?aActual:(aProj!==null?aProj:null);
     const bDisplay=bActual>0?bActual:(bProj!==null?bProj:null);
     const noScores=aDisplay===null&&bDisplay===null;
@@ -2483,6 +2477,7 @@ async function buildRosters(rostersData,playersData){
     const rosters=rostersData||await api(`/league/${LID}/rosters`);
     const players=playersData||await api('/players/nfl');
     cachedRosters=rosters;cachedPlayers=players;
+    if(_rosterReadyResolve){_rosterReadyResolve();_rosterReadyResolve=null;}
     const picksMap=await buildFuturePicksMap();
     c.innerHTML='';
     const g=document.createElement('div');g.className='roster-grid';
@@ -3610,7 +3605,9 @@ function isRookieInYear(pid,year){
 
 let _stats2026Cache=null;
 let _statsHistoryCache=null;
-let _projCache={}; // in-memory cache for stats-history.json
+let _projCache={};
+let _rosterReadyResolve=null;
+let _rosterReady=new Promise(r=>{_rosterReadyResolve=r;});
 
 async function loadStatsHistory(){
   if(_statsHistoryCache)return _statsHistoryCache;
