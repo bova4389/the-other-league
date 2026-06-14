@@ -13,34 +13,27 @@ A personal fantasy football dashboard for "The Other League" — a 12-team dynas
 This is a **static HTML/JavaScript project** — no framework, no build step, no package manager. All files are plain `.html` with embedded CSS and JavaScript.
 
 ```
-the-other-league/                      — repo root (outer git repo)
-├── index.html                         — redirect stub only (→ GitHub Pages URL)
-└── Sleeper FF/The Other League/       — ALL TOL project files live here
-    ├── CLAUDE.md                      — you are here
-    ├── index.html                     — THE working file (4900+ lines, all logic embedded)
-    ├── TOL Large Logo.png             — hero image (home panel + sticky header)
-    ├── TOL Small Logo.png             — available if needed
-    ├── TOL Abbreviated Icon.png       — favicon + iOS add-to-homescreen icon
-    ├── TOL iPhone background image.png — iOS splash screen
-    ├── ktc-values.json                — KTC dynasty values (updated weekly by GitHub Action)
-    ├── stats-history.json             — historical player stats cache
-    ├── generate_stats.py              — one-time script to rebuild stats-history.json
-    ├── h2h_calc.py                    — H2H calculation utility
-    ├── h2h-records.md                 — all-time H2H records (updated weekly by Tuesday bot)
-    ├── the-other-league-context.md    — master league context document
+the-other-league/                      ← outer repo root
+├── index.html                         ← redirect stub to GitHub Pages site (do NOT edit for features)
+├── .github/workflows/                 ← GitHub Actions (deploy-pages, update-ktc, tuesday-update)
+└── Sleeper FF/The Other League/       ← THE actual project folder (edit everything here)
+    ├── index.html                     ← THE working file (5000+ lines, all logic embedded)
+    ├── CLAUDE.md                      ← you are here
+    ├── TOL Large Logo.png             ← hero image (home panel + sticky header)
+    ├── TOL Small Logo.png             ← available if needed
+    ├── TOL Abbreviated Icon.png       ← favicon + iOS add-to-homescreen icon
+    ├── TOL iPhone background image.png ← iOS splash screen
+    ├── ktc-values.json                ← KTC dynasty values (updated weekly by GitHub Action)
+    ├── stats-history.json             ← historical player stats cache
     └── scripts/
-        ├── tuesday_update.py          — weekly H2H bot
-        ├── fetch_ktc.py               — KTC value fetcher
-        ├── bot_state.json             — Tuesday bot state
-        ├── run_tuesday_update.bat     — Windows Task Scheduler launcher
-        └── setup_scheduled_task.ps1  — one-time Task Scheduler registration
+        ├── tuesday_update.py          ← weekly H2H records updater
+        ├── fetch_ktc.py               ← KTC values scraper
+        └── bot_state.json             ← tracks which weeks have been applied
 ```
 
-**Current state:** `index.html` inside `Sleeper FF/The Other League/` is the **only** file to edit. It contains all HTML, CSS, and JavaScript in one file. The logo PNGs and JSON data files are in the same directory.
+**Current state:** `Sleeper FF/The Other League/index.html` is the **only** file to edit for features. It contains all HTML, CSS, and JavaScript in one file. The logo PNGs, `ktc-values.json`, and `stats-history.json` are in the same folder.
 
-**Deployment:** GitHub Pages via GitHub Actions (`deploy-pages.yml`). Push to `main` → the workflow deploys `Sleeper FF/The Other League/` as the Pages root. Live at `https://bova4389.github.io/the-other-league/`
-
-**One-time GitHub setup required:** In the repo's GitHub Settings → Pages, set Source to **"GitHub Actions"** (not "Deploy from a branch") for the `deploy-pages.yml` workflow to take effect.
+**Deployment:** GitHub Pages (static hosting). The `deploy-pages.yml` Action serves from `Sleeper FF/The Other League/`. Push to `main` → site updates automatically. Live at `https://bova4389.github.io/the-other-league/`
 
 ---
 
@@ -50,16 +43,16 @@ the-other-league/                      — repo root (outer git repo)
 - Base: `https://api.sleeper.app/v1`
 - League ID: `1316225642072662016`
 - Key endpoints:
-  - `/league/{lid}` — league info
-  - `/league/{lid}/rosters` — all 12 rosters
-  - `/league/{lid}/traded_picks` — pick trade log
-  - `/league/{lid}/matchups/{week}` — matchup scores for a given week
-  - `/league/{lid}/transactions/{week}` — transactions for a given week
-  - `/league/{lid}/drafts` — drafts list
-  - `/draft/{draft_id}/picks` — picks for a draft
-  - `/players/nfl` — full player database (~5MB, slow)
-  - `/stats/nfl/regular/{year}/{week}` — actual player stats for a completed week
-  - `/projections/nfl/{year}/{week}` — projected player stats (**no "regular" in path** — different from stats endpoint)
+  - `/league/{lid}` → league info
+  - `/league/{lid}/rosters` → all 12 rosters
+  - `/league/{lid}/traded_picks` → pick trade log
+  - `/league/{lid}/matchups/{week}` → matchup scores for a given week
+  - `/league/{lid}/transactions/{week}` → transactions for a given week
+  - `/league/{lid}/drafts` → drafts list
+  - `/draft/{draft_id}/picks` → picks for a draft
+  - `/players/nfl` → full player database (~5MB, slow)
+  - `/stats/nfl/regular/{year}/{week}` → actual player stats for a completed week
+  - `/projections/nfl/{year}/{week}` → projected player stats (**no "regular" in path** — different from stats endpoint)
 - CORS note: Direct browser fetch may fail. Fallback proxies in order: `corsproxy.io`, `api.allorigins.win`
 
 ### Anthropic API
@@ -73,8 +66,8 @@ the-other-league/                      — repo root (outer git repo)
 
 ### Sticky Shell
 `<div class="sticky-shell">` uses `position: sticky; top: 0; z-index: 100`. It contains:
-1. `<header>` — logo (home link) + "Open in Sleeper" pill + dark mode toggle
-2. `<nav class="icon-nav">` — 9 icon tabs + 1 refresh button
+1. `<header>` → logo (home link) + "Open in Sleeper" pill + dark mode toggle
+2. `<nav class="icon-nav">` → 9 icon tabs + 1 refresh button
 
 The header logo (`<div class="hdr-logo-link">`) calls `showTab('home')` on click — it IS the home button.
 
@@ -83,7 +76,7 @@ Each tab is `<div class="icon-tab" onclick="showTab('id',this)" data-tab="id">` 
 
 The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick="refreshData()">` — styled with a left border separator; it never gets the active class.
 
-**Mobile layout (≤ 680px):** The nav wraps into two rows of 5 using `flex-wrap: wrap` with each tab at `width: 20%`. Row 1: Scores, Careers, Rosters, Draft, Stats. Row 2: **Trade Eval** (first), Rivalries, **Txns** (label shortened from "Transactions"), League, Refresh. Labels use 8px font with tighter letter-spacing on mobile. Desktop remains a single scrollable row with the same left-to-right order.
+**Mobile layout (≤ 680px):** The nav wraps into two rows of 5 using `flex-wrap: wrap` with each tab at `width: 20%`. Row 1: Careers, Scores, Rivalries, Trade Eval, Rosters. Row 2: Draft, Stats, Txns, League, Refresh. Labels use 8px font with tighter letter-spacing on mobile. Desktop remains a single scrollable row with the same left-to-right order.
 
 ### URL Hash Routing
 `showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash` and navigates to the matching tab. `hashchange` event is also wired. Valid tab IDs are in `VALID_TABS` array in JS.
@@ -97,15 +90,15 @@ Tab order (desktop L→R; mobile row 1 then row 2):
 
 | # | Icon | Tab Label | `showTab` ID | Panel ID | Lazy load? |
 |---|------|-----------|--------------|----------|-----------|
-| — | (logo click) | Home | `home` | `panel-home` | No — static HTML with countdown JS |
-| 1 | 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit. Year tabs: 2026 (default), 2025, 2024, 2023. W15–W17 marked "PLAYOFFS". W4/W13 pills turn pink for rivalry years. |
-| 2 | 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
-| 3 | 📋 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
-| 4 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
-| 5 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
-| 6 | ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit. **First on mobile row 2.** |
-| 7 | ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
-| 8 | 🔄 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
+| ← | (logo click) | Home | `home` | `panel-home` | No — static HTML with countdown JS |
+| 1 | 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
+| 2 | 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit. Year tabs: 2026 (default), 2025, 2024, 2023. W15–W17 marked "PLAYOFFS". W4/W13 pills turn pink for rivalry years. |
+| 3 | ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
+| 4 | ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit. |
+| 5 | 👥 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
+| 6 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
+| 7 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
+| 8 | 📋 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
 | 9 | ℹ️ | League | `league` | `panel-league` | No — static HTML |
 | 10 | ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
 
@@ -342,7 +335,7 @@ Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football
 ```
 `you: true` marks Matt Bova's team. `co` is for co-owned teams.
 
-### `RM` / `RMR` — roster ↔ owner mapping
+### `RM` / `RMR` — roster → owner mapping
 ```javascript
 const RM = { 1: '721908735856967680', ... };  // roster_id → user_id
 const RMR = {};  // user_id → roster_id (computed at boot)
@@ -376,73 +369,74 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 
 ---
 
-## VISUAL THEME — Retro Neon Sports Broadcast
+## VISUAL THEME — Arcade Neon (NFL Blitz)
 
-Aesthetic: late-90s ESPN2 / NFL Blitz / neon arcade sports. Dark UI with neon glow accents.
+Aesthetic: late-90s NFL Blitz / arcade-neon sports broadcast — glossy electric-teal + hot-magenta + neon-purple on near-black, pulled directly from the TOL logo. Premium / "legit" (ESPN/Sleeper-grade), **mobile-first**. Dark is the default theme; light mode is fully supported.
 
-### Color Palette
+**HOW THE REDESIGN IS STRUCTURED — read this before editing styles:**
+- The redesign is a stack of **appended CSS layers at the very END of `<style>`**, each opened by a banner comment: `ARCADE NEON REDESIGN`, then one block per tab (`CAREERS TAB — Arcade Neon polish`, `SCORES TAB…`, `RIVALRIES…`, `TRADE EVALUATOR…`, `DRAFT · STATS · TRANSACTIONS · LEAGUE…`, `HOME TAB…`, `LIGHT MODE…`). They cascade over the original CSS above them — do not delete them.
+- Styling is **by class name and CSS variable**, never by editing individual elements. New content rendered by the existing JS inherits the look automatically **as long as it reuses the existing class names**.
+- **To keep the design when adding things:** (1) reuse existing classes (`.r-card`, `.chip`, `.cp`, `.f-pill`, `.match-card`, `.dtbl`/`.career-tbl`, `.s-pill`, `.ic`, `.note`, …); (2) use the palette **variables**, never hardcode hex; (3) put any NEW css at the very bottom; (4) keep the banner-commented blocks.
+
+### Color Palette — Dark (default)
 
 | Role | Variable | Value |
 |------|----------|-------|
-| Primary accent | `--accent` | `#16E0D6` Electric Teal |
-| Secondary accent | `--accent2` | `#7B2EFF` Neon Purple |
-| Tertiary accent | `--accent3` | `#FF4FD8` Hot Pink |
-| Dark background | `--bg` | `#0B1020` |
-| Panel surface | `--surface` | `#111827` Deep Navy |
-| Card background | `--card` | `#151B2F` |
-| Borders | `--border` | `#253652` |
-| Body text | `--text` | `#F9FAFB` Soft White |
-| Secondary text | `--text2` | `#c4d4e8` |
-| Muted text | `--muted` | `#aabdcf` (brightened — was `#8aa0be`) |
+| Primary accent (teal) | `--accent` | `#21F5E4` |
+| Secondary accent (purple) | `--accent2` | `#9A55FF` |
+| Tertiary accent (magenta) | `--accent3` | `#FF3DBE` |
+| Background | `--bg` | `#06060C` (body uses a purple radial-glow gradient) |
+| Panel surface | `--surface` | `#0B0918` |
+| Card background | `--card` | `#100C22` (cards use a `#120D26 → #0C0920` gradient) |
+| Borders | `--border` | `#27194E` (card borders often `#2A1C54`) |
+| Body text | `--text` | `#FFFFFF` |
+| Secondary text | `--text2` | `#D9D2F2` |
+| Muted text | `--muted` | `#928AB8` |
+| Position QB / RB / WR / TE | `--pos-*` | `#B98CFF` / `#3DF0A6` / `#5BB8FF` / `#FFB24A` |
+
+### Color Palette — Light (toggle)
+`--accent #0E9C92` · `--accent2 #7A33E0` · `--accent3 #D6258F` · `--bg #EEF0F5` · `--surface`/`--card #FFFFFF` · `--border #D6DAE6` · `--text #11151F` · `--text2 #3A4252` · `--muted #6A7384`. Light-mode surface fixes live in the `LIGHT MODE` block — any new **dark-only** rule (a `rgba(255,255,255,…)` background/border, or a hardcoded dark hex) must be paired with a `[data-theme="light"]` override there so the toggle stays clean.
 
 ### Typography System
+Three-font system (Google Fonts):
 
-Three-level hierarchy — **no DM Mono for anything the user sees in main content**:
+| Use | Font | Notes |
+|-----|------|-------|
+| Display — titles, team names, stat values, countdown | **Saira Condensed** | Athletic condensed; **italic** on the marquee bits (`.sec-title`, `.rch-team`, `.champ-name`, `.cd-num`, `.hdr-league-name`) for the Blitz slant + teal neon glow in dark. **Replaced Bebas Neue everywhere.** |
+| Body — chips, table cells, buttons, pills, labels | **DM Sans** | Clean, legible. Player-name chips are DM Sans (not mono). |
+| Technical — timestamps, KTC raw values | **DM Mono** | Sparingly; never for primary content. |
 
-| Use Case | Font | Notes |
-|----------|------|-------|
-| Section titles, stat values | **Bebas Neue** | All-caps display, sporty |
-| Stat pill labels, rivalry record labels | **Bebas Neue** | Larger sizes (11–14px) with letter-spacing |
-| Position badge labels (`.cp` inside `.chip`) | **DM Sans 600** | 10px, colored background badge per position — replaced Bebas Neue for readability |
-| Avg Age badges and other `.bdg` chips | **DM Sans 600** | 10px — replaced Bebas Neue for readability |
-| Nav tab labels | **DM Sans 700** | Bold uppercase, `letter-spacing: .14em` — Bebas Neue was too condensed |
-| Body text, table cells, player chips, buttons, form elements | **DM Sans** | Clean, readable |
-| Code/timestamps/KTC values (intentional monospace) | **DM Mono** | Used sparingly; never in main content areas |
+### Nav (type-only)
+The icon nav is **type-only** — emoji icons are hidden via `.itab-icon{display:none}` (markup untouched; the refresh ↺ still shows). The active tab gets a glowing teal underline (`.icon-tab.active::after`) + glowing label. Mobile: wraps to 2 rows of 5, 46px touch targets, clean per-cell teal underline.
 
-### Pink Usage (accent3 `#FF4FD8`)
-Pink should be prominent throughout dark mode. Currently pink is used on:
-- Stat pill labels (PAST CHAMPIONS, HIGHEST CAREER EARNINGS, etc.)
-- All table headers (`.dtbl th`, `.career-tbl th`) with glow
-- Section subtitles (`.sec-sub`)
-- Fun-card labels (`.fun-label`)
-- Section row labels (`.sec-row-label`)
-- Rivalry card record totals and labels
-- Rivalry card top border accent stripe
-- Scores tab H2H strip at bottom of each matchup card
-- "Open in Sleeper" link in header
-
-### Teal Usage (accent `#16E0D6`)
-- Active nav tab bottom border and label
-- Winning team left border stripe on matchup cards
-- Leading score highlight
-- Primary interactive hover states
+### Accent usage
+- **Teal** — active nav, primary buttons, winner rails, leading scores, links, key numbers.
+- **Magenta/pink** — table headers, section subtitles, position-group labels (`.pl`), rivalry cards/totals, KTC owner column, H2H strips.
+- **Purple** — countdown separators, secondary borders, the `is-you` roster card.
+- **Gold** (`#FFD25A`) — champion card frame + trophy, "CHAMP" badges.
 
 ### Glow System
-All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and the `TYPOGRAPHY OVERHAUL` block near the end of `<style>`. Scoped to `[data-theme="dark"]`. Pattern: `text-shadow: 0 0 Xpx rgba(R,G,B,0.Y)`. Keep values subtle.
+Neon glows are scoped to `[data-theme="dark"]` inside the appended blocks. Pattern: `text-shadow` / `box-shadow: 0 0 Xpx rgba(R,G,B,.Y)`. Keep subtle.
+
+### Mobile-first
+Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`) scroll **inside their own container** with a sticky owner column so the page + nav stay put; card grids collapse to one column; stat strips are swipeable; the body background drops `fixed` attachment on mobile (iOS-safe). Each tab block ends with a `@media(max-width:680px)` section — keep new mobile rules there.
+
+### Team-name shorthand
+`shortName(name)` (defined next to `abbrev()`) returns **first-initial + last name** ("Matt Bova" → "M Bova"). Used on every team filter chip (Rosters, Draft, Transactions, Stats, Trade Eval) because many owners share a first name. Use it for any new team-filter UI.
 
 ### Logo Files (wired in)
-- `TOL Large Logo.png` — sticky header (52px tall) and home panel hero (max 420px)
-- `TOL Small Logo.png` — available if needed
+- `TOL Large Logo.png` — sticky header (76px tall; 46px mobile) + home hero (max 420px; 260px mobile)
 - `TOL Abbreviated Icon.png` — favicon + iOS add-to-homescreen icon
+- `TOL Small Logo.png` — available if needed
 
-### PWA / Mobile
+### PWA / Mobile meta
 ```html
 <link rel="icon" type="image/png" href="TOL Abbreviated Icon.png">
 <link rel="apple-touch-icon" href="TOL Abbreviated Icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Other League">
-<meta name="theme-color" content="#0B1020">
+<meta name="theme-color" content="#06060C">
 ```
 
 ---
@@ -454,7 +448,7 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 - **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
 - **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent
 - **CORS fallback chain** — direct → corsproxy.io → allorigins.win; never remove
-- **Single-file architecture** — all HTML, CSS, JS in `index.html` inside `Sleeper FF/The Other League/`. The repo root `index.html` is only a redirect stub.
+- **Single-file architecture** — all HTML, CSS, JS in `index.html` inside `Sleeper FF/The Other League/` (the outer repo root has only a redirect stub)
 - **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red. Color legend shown at top of Rosters panel using actual `.chip` elements. Number in parentheses after player name = age.
 - **Position badge (`.cp`)** — the position label inside each `.chip` is styled as a small colored badge: DM Sans 600, 10px, `padding: 1px 4px`, `border-radius: 2px`, background from `--pos-XX-bg` CSS variables (semi-transparent, defined for both dark and light themes). Replaced Bebas Neue — do not revert.
 - **Avg Age badges (`.bdg`)** — use DM Sans 600 at 10px. The override block near the end of `<style>` sets `font-family: 'DM Sans'` — this overrides the base `.bdg` rule. Replaced Bebas Neue — do not revert.
@@ -574,7 +568,7 @@ The June 2026 overhaul completed the core feature set:
 - Do not remove the CORS fallback chain
 - Do not add back `getTradeAI()` or AI scoring dimensions to the Trade Evaluator — the June 2026 overhaul replaced them with KTC values intentionally
 - Do not remove the `.cache-bar` DOM or its child IDs — they are used programmatically by `setCacheBar()` and `refreshData()`
-- Do not revert to the old lime-green/blue/orange palette
+- Do not revert the Arcade Neon palette/type (teal #21F5E4 · magenta #FF3DBE · purple #9A55FF on #06060C, Saira Condensed display) — see VISUAL THEME. The redesign lives in appended, banner-commented CSS layers at the end of `<style>`; style by class + variables.
 - Do not use DM Mono for main content — it belongs only for intentional code/timestamp contexts
 - Do not add the consolation winner card back to the home panel
 - Do not add the sidebar back without explicit request
