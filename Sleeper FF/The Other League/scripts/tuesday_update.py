@@ -28,10 +28,10 @@ LEAGUE_ID = '1316225642072662016'   # 2026 TOL league on Sleeper
 YEAR = 2026
 REGULAR_SEASON_WEEKS = list(range(1, 15))  # weeks 1–14 only; 15–17 are playoffs
 
-# Paths relative to repo root (script lives in scripts/, repo root is one level up)
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-H2H_FILE  = os.path.join(REPO_ROOT, 'Sleeper FF', 'The Other League', 'h2h-records.md')
-STATE_FILE = os.path.join(REPO_ROOT, 'scripts', 'bot_state.json')
+# Paths relative to TOL folder (script lives in scripts/, TOL root is one level up)
+TOL_ROOT   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+H2H_FILE   = os.path.join(TOL_ROOT, 'h2h-records.md')
+STATE_FILE = os.path.join(TOL_ROOT, 'scripts', 'bot_state.json')
 
 # roster_id (1–12) → display name — mirrors RM + TEAMS in index.html
 ROSTER_NAMES = {

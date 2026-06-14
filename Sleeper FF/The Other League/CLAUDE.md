@@ -13,21 +13,34 @@ A personal fantasy football dashboard for "The Other League" — a 12-team dynas
 This is a **static HTML/JavaScript project** — no framework, no build step, no package manager. All files are plain `.html` with embedded CSS and JavaScript.
 
 ```
-the-other-league/                      — repo root
-├── index.html                         — THE working file (4700+ lines, all logic embedded)
-├── TOL Large Logo.png                 — hero image (home panel + sticky header)
-├── TOL Small Logo.png                 — available if needed
-├── TOL Abbreviated Icon.png           — favicon + iOS add-to-homescreen icon
-├── TOL iPhone background image.png    — iOS splash screen
-└── Sleeper FF/The Other League/
+the-other-league/                      — repo root (outer git repo)
+├── index.html                         — redirect stub only (→ GitHub Pages URL)
+└── Sleeper FF/The Other League/       — ALL TOL project files live here
     ├── CLAUDE.md                      — you are here
-    ├── index.html                     — redirect stub to root site
-    └── the-other-league-context.md    — master league context document
+    ├── index.html                     — THE working file (4900+ lines, all logic embedded)
+    ├── TOL Large Logo.png             — hero image (home panel + sticky header)
+    ├── TOL Small Logo.png             — available if needed
+    ├── TOL Abbreviated Icon.png       — favicon + iOS add-to-homescreen icon
+    ├── TOL iPhone background image.png — iOS splash screen
+    ├── ktc-values.json                — KTC dynasty values (updated weekly by GitHub Action)
+    ├── stats-history.json             — historical player stats cache
+    ├── generate_stats.py              — one-time script to rebuild stats-history.json
+    ├── h2h_calc.py                    — H2H calculation utility
+    ├── h2h-records.md                 — all-time H2H records (updated weekly by Tuesday bot)
+    ├── the-other-league-context.md    — master league context document
+    └── scripts/
+        ├── tuesday_update.py          — weekly H2H bot
+        ├── fetch_ktc.py               — KTC value fetcher
+        ├── bot_state.json             — Tuesday bot state
+        ├── run_tuesday_update.bat     — Windows Task Scheduler launcher
+        └── setup_scheduled_task.ps1  — one-time Task Scheduler registration
 ```
 
-**Current state:** `index.html` at the **repo root** is the **only** file to edit. It contains all HTML, CSS, and JavaScript in one file. The logo PNGs are also at the repo root alongside it.
+**Current state:** `index.html` inside `Sleeper FF/The Other League/` is the **only** file to edit. It contains all HTML, CSS, and JavaScript in one file. The logo PNGs and JSON data files are in the same directory.
 
-**Deployment:** GitHub Pages (static hosting). Push to `main` → site updates automatically. Live at `https://bova4389.github.io/the-other-league/`
+**Deployment:** GitHub Pages via GitHub Actions (`deploy-pages.yml`). Push to `main` → the workflow deploys `Sleeper FF/The Other League/` as the Pages root. Live at `https://bova4389.github.io/the-other-league/`
+
+**One-time GitHub setup required:** In the repo's GitHub Settings → Pages, set Source to **"GitHub Actions"** (not "Deploy from a branch") for the `deploy-pages.yml` workflow to take effect.
 
 ---
 
@@ -441,7 +454,7 @@ All neon glows live in the `RETRO NEON SPORTS THEME — ENHANCEMENTS` block and 
 - **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
 - **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent
 - **CORS fallback chain** — direct → corsproxy.io → allorigins.win; never remove
-- **Single-file architecture** — all HTML, CSS, JS in `index.html` at the **repo root** (not inside `Sleeper FF/`)
+- **Single-file architecture** — all HTML, CSS, JS in `index.html` inside `Sleeper FF/The Other League/`. The repo root `index.html` is only a redirect stub.
 - **Roster chips colored by position** — QB=purple, RB=green, WR=blue, TE=orange, K=gray, DEF=red. Color legend shown at top of Rosters panel using actual `.chip` elements. Number in parentheses after player name = age.
 - **Position badge (`.cp`)** — the position label inside each `.chip` is styled as a small colored badge: DM Sans 600, 10px, `padding: 1px 4px`, `border-radius: 2px`, background from `--pos-XX-bg` CSS variables (semi-transparent, defined for both dark and light themes). Replaced Bebas Neue — do not revert.
 - **Avg Age badges (`.bdg`)** — use DM Sans 600 at 10px. The override block near the end of `<style>` sets `font-family: 'DM Sans'` — this overrides the base `.bdg` rule. Replaced Bebas Neue — do not revert.

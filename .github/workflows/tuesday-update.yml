@@ -52,13 +52,13 @@ jobs:
           if [ "${{ github.event.inputs.force }}" = "true" ]; then
             ARGS="$ARGS --force"
           fi
-          python scripts/tuesday_update.py $ARGS
+          python "Sleeper FF/The Other League/scripts/tuesday_update.py" $ARGS
 
       - name: Commit and push changes
         run: |
           git config user.name "tuesday-bot"
           git config user.email "tuesday-bot@the-other-league"
-          git add "Sleeper FF/The Other League/h2h-records.md" scripts/bot_state.json
+          git add "Sleeper FF/The Other League/h2h-records.md" "Sleeper FF/The Other League/scripts/bot_state.json"
           if git diff --staged --quiet; then
             echo "✓ No changes — h2h-records.md is already up to date."
           else

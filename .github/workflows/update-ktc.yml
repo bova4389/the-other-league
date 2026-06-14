@@ -7,8 +7,7 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - 'ktc-values.json'        # don't re-run on its own commit
-      - 'Sleeper FF/**'
+      - 'Sleeper FF/The Other League/ktc-values.json'  # don't re-run on its own commit
       - 'Majors Golf Pool/**'
       - 'Basic Bros Ryder Cup/**'
   workflow_dispatch:
@@ -33,13 +32,13 @@ jobs:
         run: pip install requests
 
       - name: Fetch KTC values
-        run: python scripts/fetch_ktc.py
+        run: python "Sleeper FF/The Other League/scripts/fetch_ktc.py"
 
       - name: Commit and push
         run: |
           git config user.name "ktc-bot"
           git config user.email "ktc-bot@the-other-league"
-          git add ktc-values.json
+          git add "Sleeper FF/The Other League/ktc-values.json"
           if git diff --staged --quiet; then
             echo "✓ No changes — ktc-values.json is already up to date."
           else

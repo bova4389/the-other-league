@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Fetch KTC dynasty values (SF+PPR+TEP) and write ktc-values.json to repo root."""
+"""Fetch KTC dynasty values (SF+PPR+TEP) and write ktc-values.json to the TOL folder."""
 
 import json
+import os
 import sys
 import time
 import requests
 
 URL = "https://keeptradecut.com/dynasty-rankings?format=1&tep=1"
-OUT = "ktc-values.json"
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(_SCRIPT_DIR, "..", "ktc-values.json")
 
 
 def bracket_extract(text, marker):
