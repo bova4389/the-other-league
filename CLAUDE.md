@@ -82,19 +82,20 @@ are in before committing — `git -C "<project>" status` rather than assuming th
 |---|---|---|
 | `Majors Golf Pool/` | `bova4389/the-majors-golf` | that directory only |
 | `Basic Bros Ryder Cup/` | `bova4389/basic-bros-ryder-cup` | that directory only |
+| `Poker/` | `bova4389/poker-learning-site` (private) | that directory only |
 | workspace root | `bova4389/the-other-league` | Sleeper FF + root files |
 
-- Commit and push the two project repos **from inside their own directory**.
+- Commit and push the three project repos **from inside their own directory**.
 - All Sleeper FF / The Other League files live under `Sleeper FF/The Other League/` — the repo root `index.html` is only a redirect stub.
 
-**Never `git add` either nested repo from the outer repo** — not `Majors Golf Pool/` and not
-`Basic Bros Ryder Cup/`. Git records them as a gitlink (submodule stub) and their files are
-not tracked. They correctly show as untracked `??` entries in outer-repo `git status`; that is
-expected, not a problem to fix.
+**Never `git add` a nested repo from the outer repo** — not `Majors Golf Pool/`, not
+`Basic Bros Ryder Cup/`, not `Poker/`. Git records them as a gitlink (submodule stub) and their
+files are not tracked. They correctly show as untracked `??` entries in outer-repo
+`git status`; that is expected, not a problem to fix.
 
-**Not under version control at all:** `Poker/`, `Travel Map/`, `NFL Pickems/`. Each is planned
-as its own repo — see the GitHub Setup section in that project's CLAUDE.md. Once created,
-never `git add` them from the outer repo either.
+**Not under version control at all:** `Travel Map/`, `NFL Pickems/`. Each is planned as its own
+repo — see the GitHub Setup section in that project's CLAUDE.md. Once created, never `git add`
+them from the outer repo either.
 
 **`Basic Bros Ryder Cup/` drifts — always `git fetch` before editing it.** Work on this repo
 also happens in cloud sessions that push directly to `main` (and leave `claude/*` branches
@@ -120,5 +121,6 @@ one orientation line each; if you need to correct project status, edit the proje
   phased Dev Roadmap that new work should be picked from.
 - **Basic Bros Ryder Cup** — Seasonal, single-file site. Read its CLAUDE.md *and*
   `REQUIREMENTS.md`, and `git fetch` first (see Git Setup).
-- **Poker / Travel Map / NFL Pickems** — Personal builds, not publicly hosted. Poker is at
-  V0.1; the other two are scaffolding only.
+- **Poker** — Personal build, not hosted anywhere; open the HTML directly. V0.1 complete
+  (calculator + learn page); V0.2 playable game not started. Own private repo.
+- **Travel Map / NFL Pickems** — Scaffolding only, no features built yet.
