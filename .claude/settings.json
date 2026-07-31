@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://site.api.espn.com/*)",
+      "Bash(curl -s https://firestore.googleapis.com/*)",
+      "Bash(curl -s https://keeptradecut.com/*)",
+      "WebFetch(domain:api.sleeper.app)",
+      "WebFetch(domain:keeptradecut.com)",
+      "WebFetch(domain:www.golfchannel.com)",
+      "WebFetch(domain:www.golfdigest.com)",
+      "WebFetch(domain:www.thefriedegg.com)",
+      "WebFetch(domain:sports.yahoo.com)",
+      "WebFetch(domain:dknetwork.draftkings.com)",
+      "WebFetch(domain:www.easyofficepools.com)",
+      "WebFetch(domain:www.oddschecker.com)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:/Users/bovac/OneDrive/Desktop/Claude Code/.claude/hooks/check-curly-quotes.py\"",
+            "timeout": 20,
+            "statusMessage": "Checking for curly quotes..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,4 +1,6 @@
 Sleeper FF/The Other League/scripts/tuesday_update.log
 __pycache__/
 *.pyc
-.claude/
+# Track .claude/settings.json and .claude/hooks/ so shared config and hook scripts
+# are versioned and backed up. Only the machine-local overrides stay ignored.
+.claude/settings.local.json
