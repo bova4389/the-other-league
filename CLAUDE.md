@@ -44,6 +44,24 @@ Verify after deploying with `curl -sI <url>/css/styles.css | grep -i cache-contr
 `no-cache, no-store, must-revalidate`. An empty result or a `max-age` means `.htaccess` is not
 on the server.
 
+## What Reaches the Public Web Server
+
+Both DreamHost workflows have a **"Stage deployable files"** step that rsyncs the repo into
+`_deploy/` minus internal-only paths (`.github`, `.gitignore`, `CLAUDE.md`, and for Majors
+`data-archive`/`archive-scripts`, for BBRC `REQUIREMENTS.md` and PDFs). Both upload steps then
+read from `_deploy/`. Without this, the action's `put -r ./*` published everything tracked —
+`/CLAUDE.md` was live on both domains.
+
+It is an **exclude list, not an allow list, on purpose**: a new site asset that nobody adds to
+the workflow still deploys. Forgetting to exclude a doc is untidy; forgetting to include a
+stylesheet breaks the live site. When adding a genuinely internal file, add an `--exclude` for it.
+
+**Entrant PII must never be committed.** The Majors repo is public *and* deploys to a public
+webroot, so a committed file is published twice over. `data-archive/**/picks.csv`,
+`data-archive/*picks_raw*.json` and `Picks/` hold real emails and phone numbers and are
+gitignored; a `PreToolUse` hook (`.claude/hooks/check-staged-pii.py`) scans staged blobs and
+blocks any commit containing contact details as a backstop.
+
 **Layer 2 — Query string version on CSS/JS links (HTML-side):**
 Every `<link rel="stylesheet">` and `<script src>` tag that references a local file must include a `?v=YYYYMMDD` query string (e.g. `css/styles.css?v=20260522`). **Update the version whenever you make changes to the CSS or JS files.** This breaks any CDN or ISP-level caching that ignores server headers.
 
