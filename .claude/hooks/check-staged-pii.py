@@ -43,6 +43,19 @@ ALLOWED_EMAILS = {
     "noreply@anthropic.com",
     "noreply@github.com",
 }
+# Matt's own number, published on purpose on the BBRC bio-submission page so the
+# Bros can text him a photo. It is the site owner's number, not entrant data, and
+# has been public since the bio form shipped. Every OTHER phone number still
+# blocks — this list exists so one intentional, self-published number does not
+# wedge every BBRC commit. Do not add entrants' numbers here.
+ALLOWED_PHONES = {
+    "317-440-2782",
+}
+
+
+def _normalise_phone(p):
+    """Strip formatting so 317-440-2782, (317) 440-2782 and 317.440.2782 match."""
+    return re.sub(r"\D", "", p).lstrip("1")
 # Extensions worth scanning; anything else is treated as opaque.
 TEXTY = {
     ".csv", ".json", ".txt", ".md", ".html", ".htm", ".js", ".css", ".py",
@@ -94,7 +107,9 @@ def scan_repo(repo):
         if not blob or len(blob) > MAX_BLOB:
             continue
         emails = {e for e in EMAIL.findall(blob) if e.lower() not in ALLOWED_EMAILS}
-        phones = set(PHONE.findall(blob))
+        allowed_digits = {_normalise_phone(p) for p in ALLOWED_PHONES}
+        phones = {p for p in PHONE.findall(blob)
+                  if _normalise_phone(p) not in allowed_digits}
         if emails or phones:
             hits.append((path, len(emails), len(phones)))
     return hits
