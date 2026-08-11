@@ -13,7 +13,7 @@ Independent projects live here. Each has its own detailed CLAUDE.md — read it 
 | Basic Bros Ryder Cup | `Basic Bros Ryder Cup/` | [`Basic Bros Ryder Cup/CLAUDE.md`](Basic Bros Ryder Cup/CLAUDE.md) |
 | Poker Learning Site | `Poker/` | [`Poker/CLAUDE.md`](Poker/CLAUDE.md) |
 | Family Travel Map | `Travel Map/` | [`Travel Map/CLAUDE.md`](Travel%20Map/CLAUDE.md) |
-| NFL Pickem Analyzer | `NFL Pickems/` | [`NFL Pickems/CLAUDE.md`](NFL%20Pickems/CLAUDE.md) |
+| Bova's Picks | `NFL Pickems/` | [`NFL Pickems/CLAUDE.md`](NFL%20Pickems/CLAUDE.md) |
 
 ## Shared Conventions
 
@@ -93,7 +93,7 @@ These layers together ensure users — especially on Safari mobile — always se
 
 ## Git Setup
 
-There are **three separate git repositories** in this workspace. Always check which one you
+There are **four separate git repositories** in this workspace. Always check which one you
 are in before committing — `git -C "<project>" status` rather than assuming the outer repo.
 
 | Repo root | Remote | Covers |
@@ -101,19 +101,19 @@ are in before committing — `git -C "<project>" status` rather than assuming th
 | `Majors Golf Pool/` | `bova4389/the-majors-golf` | that directory only |
 | `Basic Bros Ryder Cup/` | `bova4389/basic-bros-ryder-cup` | that directory only |
 | `Poker/` | `bova4389/poker-learning-site` (private) | that directory only |
+| `NFL Pickems/` | none yet — local only (see its CLAUDE.md GitHub Setup) | that directory only |
 | workspace root | `bova4389/the-other-league` | Sleeper FF + root files |
 
-- Commit and push the three project repos **from inside their own directory**.
+- Commit and push the four project repos **from inside their own directory**.
 - All Sleeper FF / The Other League files live under `Sleeper FF/The Other League/` — the repo root `index.html` is only a redirect stub.
 
 **Never `git add` a nested repo from the outer repo** — not `Majors Golf Pool/`, not
-`Basic Bros Ryder Cup/`, not `Poker/`. Git records them as a gitlink (submodule stub) and their
-files are not tracked. They correctly show as untracked `??` entries in outer-repo
+`Basic Bros Ryder Cup/`, not `Poker/`, not `NFL Pickems/`. Git records them as a gitlink (submodule
+stub) and their files are not tracked. They correctly show as untracked `??` entries in outer-repo
 `git status`; that is expected, not a problem to fix.
 
-**Not under version control at all:** `Travel Map/`, `NFL Pickems/`. Each is planned as its own
-repo — see the GitHub Setup section in that project's CLAUDE.md. Once created, never `git add`
-them from the outer repo either.
+**Not under version control at all:** `Travel Map/`. Planned as its own repo — see the GitHub
+Setup section in its CLAUDE.md. Once created, never `git add` it from the outer repo either.
 
 **`Basic Bros Ryder Cup/` drifts — always `git fetch` before editing it.** Work on this repo
 also happens in cloud sessions that push directly to `main` (and leave `claude/*` branches
@@ -141,4 +141,8 @@ one orientation line each; if you need to correct project status, edit the proje
   `REQUIREMENTS.md`, and `git fetch` first (see Git Setup).
 - **Poker** — Personal build, not hosted anywhere; open the HTML directly. V0.1 complete
   (calculator + learn page); V0.2 playable game not started. Own private repo.
-- **Travel Map / NFL Pickems** — Scaffolding only, no features built yet.
+- **Bova's Picks** (folder: `NFL Pickems/` — renamed from "NFL Pickem Analyzer" 2026-08-11, folder
+  kept as-is; repo slug will be `bovas-picks`) — Active. Pick Sheet, Odds, and Recommend tabs are
+  functional; Lookback and Survivor are next. Own local-only repo, not yet pushed. Status detail is
+  in its CLAUDE.md.
+- **Travel Map** — Scaffolding only, no features built yet.
