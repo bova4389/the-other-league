@@ -142,7 +142,9 @@ one orientation line each; if you need to correct project status, edit the proje
 - **Poker** — Personal build, not hosted anywhere; open the HTML directly. V0.1 complete
   (calculator + learn page); V0.2 playable game not started. Own private repo.
 - **Bova's Picks** (folder: `NFL Pickems/` — renamed from "NFL Pickem Analyzer" 2026-08-11, folder
-  kept as-is; repo slug will be `bovas-picks`) — Active. Pick Sheet, Odds, and Recommend tabs are
-  functional; Lookback and Survivor are next. Own local-only repo, not yet pushed. Status detail is
+  kept as-is; repo slug will be `bovas-picks`) — Active. Schedule, Grid, Pick Sheet, Odds and
+  Recommend tabs are functional; Lookback and the Survivor *planning* panel are the two still
+  stubbed. Own repo (`bova4389/bovas-picks`), pushed since
+  2026-08-11 and live on GitHub Pages at https://bova4389.github.io/bovas-picks/. Status detail is
   in its CLAUDE.md.
 - **Travel Map** — Scaffolding only, no features built yet.
