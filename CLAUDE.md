@@ -14,6 +14,7 @@ Independent projects live here. Each has its own detailed CLAUDE.md — read it 
 | Poker Learning Site | `Poker/` | [`Poker/CLAUDE.md`](Poker/CLAUDE.md) |
 | Family Travel Map | `Travel Map/` | [`Travel Map/CLAUDE.md`](Travel%20Map/CLAUDE.md) |
 | Bova's Picks | `NFL Pickems/` | [`NFL Pickems/CLAUDE.md`](NFL%20Pickems/CLAUDE.md) |
+| Draft Assistant 2026 | `Draft Assistant 2026/` | [`Draft Assistant 2026/README.md`](Draft%20Assistant%202026/README.md) |
 
 ## Shared Conventions
 
@@ -22,6 +23,12 @@ All projects are **static HTML / Vanilla JS** sites. No npm, no Node, no build s
 - **Majors Golf Pool** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-pga-pickems.com
 - **Basic Bros Ryder Cup** is hosted on **DreamHost** — push to `main` and GitHub Actions deploys via SFTP automatically. Live at https://basic-bros-ryder-cup.com
 - **Sleeper FF** is hosted on **GitHub Pages** — push to `main` and the site updates automatically. Live at https://bova4389.github.io/the-other-league/
+- **Draft Assistant 2026** is hosted on **GitHub Pages** — push to `main` and the site updates automatically. Live at https://bova4389.github.io/bovas-draft-assistant/
+
+The "no build step" rule above is about the *sites*: every one of them is static HTML that a
+browser runs as-is. `Draft Assistant 2026` has offline Python scripts that fold ranking CSVs
+into its single HTML file — that is data prep run by hand, not a toolchain the site depends
+on, and the deployed page still has zero build and zero dependencies.
 
 ## Cache Busting (Required on All DreamHost Projects)
 
@@ -93,7 +100,7 @@ These layers together ensure users — especially on Safari mobile — always se
 
 ## Git Setup
 
-There are **four separate git repositories** in this workspace. Always check which one you
+There are **six separate git repositories** in this workspace. Always check which one you
 are in before committing — `git -C "<project>" status` rather than assuming the outer repo.
 
 | Repo root | Remote | Covers |
@@ -102,13 +109,14 @@ are in before committing — `git -C "<project>" status` rather than assuming th
 | `Basic Bros Ryder Cup/` | `bova4389/basic-bros-ryder-cup` | that directory only |
 | `Poker/` | `bova4389/poker-learning-site` (private) | that directory only |
 | `NFL Pickems/` | none yet — local only (see its CLAUDE.md GitHub Setup) | that directory only |
+| `Draft Assistant 2026/` | `bova4389/bovas-draft-assistant` | that directory only |
 | workspace root | `bova4389/the-other-league` | Sleeper FF + root files |
 
-- Commit and push the four project repos **from inside their own directory**.
+- Commit and push the five project repos **from inside their own directory**.
 - All Sleeper FF / The Other League files live under `Sleeper FF/The Other League/` — the repo root `index.html` is only a redirect stub.
 
 **Never `git add` a nested repo from the outer repo** — not `Majors Golf Pool/`, not
-`Basic Bros Ryder Cup/`, not `Poker/`, not `NFL Pickems/`. Git records them as a gitlink (submodule
+`Basic Bros Ryder Cup/`, not `Poker/`, not `NFL Pickems/`, not `Draft Assistant 2026/`. Git records them as a gitlink (submodule
 stub) and their files are not tracked. They correctly show as untracked `??` entries in outer-repo
 `git status`; that is expected, not a problem to fix.
 
@@ -147,4 +155,8 @@ one orientation line each; if you need to correct project status, edit the proje
   stubbed. Own repo (`bova4389/bovas-picks`), pushed since
   2026-08-11 and live on GitHub Pages at https://bova4389.github.io/bovas-picks/. Status detail is
   in its CLAUDE.md.
+- **Draft Assistant 2026** — Single-page fantasy draft board for the "2 Mitchs 1 Cup" Sleeper
+  league, built 2026-08-14 for a draft two days later. Blends three ranking sources, uses
+  FantasyPros' per-position tiers, and syncs picks live from the Sleeper API. Deliberately
+  applies **no** scoring adjustment — see its README for why. Details in its README.
 - **Travel Map** — Scaffolding only, no features built yet.
