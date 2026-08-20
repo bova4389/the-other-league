@@ -26,6 +26,7 @@ the-other-league/                      ← outer repo root
     ├── ktc-values.json                ← KTC dynasty values (updated weekly by GitHub Action)
     ├── projections-<year>.json        ← all 17 weeks of Sleeper projections, trimmed (updated DAILY by GitHub Action)
     ├── stats-history.json             ← historical player stats cache
+    ├── generate_stats.py              ← one-off generator for stats-history.json; re-run only if rosters shift a lot
     ├── roster-grades-<period-id>.json  ← Phase 6 frozen grading period, e.g. roster-grades-2026-preseason.json
     │                                     (exists as of 2026-08-20). One file per grading run; hand-committed from the
     │                                     Export panel in Rosters > Grades & Outlook with ?admin=1 on the URL
@@ -35,6 +36,8 @@ the-other-league/                      ← outer repo root
         ├── fetch_projections.py       ← daily Sleeper projections pull → projections-<year>.json
         └── bot_state.json             ← tracks which weeks have been applied
 ```
+
+**Housekeeping (2026-08-20):** deleted `h2h_calc.py` (a one-off with 2023-25 scores pasted inline that only printed to stdout — `scripts/tuesday_update.py` supersedes it, pulling from the API and maintaining `h2h-records.md`) and `scripts/check_js.py` / `check_js2.py` (bracket-balance debuggers hardcoded to `Desktop/Claude Code/index.html`, a path that has only held the redirect stub since the project moved into this folder — they were broken *and* unreferenced). Together with the dead-code removal in `index.html`, that is ~36 KB gone.
 
 **Current state:** `Sleeper FF/The Other League/index.html` is the **only** file to edit for features. It contains all HTML, CSS, and JavaScript in one file. The logo PNGs, `ktc-values.json`, and `stats-history.json` are in the same folder.
 
@@ -64,7 +67,7 @@ the-other-league/                      ← outer repo root
 ### Anthropic API
 - The "Ask Claude" tab was removed from the UI (panel and icon tab are gone)
 - `getTradeAI()` was also removed in the June 2026 Trade Evaluator overhaul
-- `sendAI()`, `addMsg()`, `clearChat()`, `aiMessages`, `LEAGUE_CONTEXT`, `QUICK_PROMPTS` remain in JS as dead code — safe to clean up in a future pass but do not remove without confirming no other callers exist
+- **All of it was removed 2026-08-20.** `sendAI()`, `addMsg()`, `clearChat()`, `quickPrompt()`, `aiMessages`, `LEAGUE_CONTEXT`, `QUICK_PROMPTS`, the `.ai-*` CSS block and its four theme variables are gone. Verified first that `getTradeAI` had **zero** occurrences left, so the old "do not remove — `getTradeAI()` calls them" caveat was already false. No AI markup had existed for a while either; this was an orphaned browser-side Anthropic API caller with no UI and no key. Nothing calls into it — don't reintroduce it.
 
 ---
 
@@ -102,13 +105,13 @@ Tab order (desktop L→R; mobile row 1 then row 2):
 | 3 | ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
 | 4 | ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit. |
 | 5 | 👥 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
-| 6 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraft2026()` at boot; past years on demand |
+| 6 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraftHistory()` on demand (all years, 2026 included) |
 | 7 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
 | 8 | 📋 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
 | 9 | ℹ️ | League | `league` | `panel-league` | No — static HTML |
 | 10 | ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
 
-**Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI. The underlying JS functions are dead code (see Anthropic API section).
+**Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI; the underlying JS and CSS were deleted 2026-08-20 (see Anthropic API section).
 
 ### Home Panel (`panel-home`)
 Contains:
@@ -131,7 +134,7 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 
 ## REMOVED / HIDDEN ELEMENTS
 
-- **Sidebar** (`.sidebar`) — `display: none !important` — the All Teams team list is gone. `buildSidebar()` and `scrollToTeam()` still exist in JS but sidebar is invisible.
+- **Sidebar** (`.sidebar`) — **fully removed 2026-08-20.** Markup, `buildSidebar()`, `scrollToTeam()`, the boot call and the `.sidebar`/`.sb-label`/`.t-item`/`.t-av`/`.t-info`/`.ti-n`/`.ti-o` CSS are all gone. It had been `display:none` while still running a DOM-building pass on every page load, and `scrollToTeam` targeted `.tab[onclick*="rosters"]` — a selector the icon-nav rewrite had already broken.
 - **Cache bar** (`.cache-bar`) — `display: none !important` inline style — the "Cached data · Last fetched Xm ago · Refresh" row is hidden. The DOM elements and IDs (`cache-dot`, `cache-status-txt`, `refresh-btn`) still exist in the HTML so `setCacheBar()` and `refreshData()` work correctly.
 - **Sleeper bar** (`.sleeper-bar`) — removed from HTML. "Open in Sleeper" link moved to the header.
 
@@ -314,7 +317,7 @@ State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `
 - `runPlayerSearch(query)` — searches all seasons + draft history for a player
 
 ### Draft
-- `buildDraft2026()` — **never called** — dead code; `d26-tbody` is never populated; `draft-view-2026` stays hidden
+- `buildDraft2026()` — **deleted 2026-08-20** (was never called). The hidden `draft-view-2026` markup and its `setDraft26View()` toggle still exist and are still wired to each other, so that cluster was left alone — it is inert but not cleanly separable. Remove it as a unit if you ever touch the Draft tab.
 - `buildDraftHistory(year)` — fetches and renders past draft results for ALL years (including 2026); calls `buildTeamFilterChips` after rendering
 - `renderDraftPicks(container, picks, year)` — filters picks by `currentDraftTeams` before rendering
 - `renderDraftBoard(picks, year)` — filters picks by `currentDraftTeams` before rendering (shows only selected teams' columns on board view)
@@ -438,7 +441,6 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 ### `SDATA` / `SLABELS` — scoring values and display names
 ### `DRAFT_ORDER_2026` — 2026 round 1 order (13 picks — includes consolation bonus pick 1.13)
 ### `KTC_SNAPSHOT` — hardcoded dynasty player values (Superflex + PPR + TE Premium, June 2026). ~80 players + all 2027/2028 pick tiers (Early/Mid/Late × 4 rounds). Used as fallback when live KTC fetch fails. Pick values represent the +25% slider position (full KTC). Format: `name → value (number)` for snapshot; `name → {value, position, nflTeam, age, rank, trend}` for live cached data.
-### `LEAGUE_CONTEXT` — static context string (dead code — `getTradeAI()` was removed)
 ### `RIVALRY_WEEKS` — rivalry week numbers per year: `{ 2025: [4, 13], 2026: [4, 13] }`. Controls pink pill styling on Scores tab and rivalry banner on matchup cards.
 ### `PLAYOFF_BRACKET_INFO` — playoff bracket labels for W15/W16/W17. Keyed `year → week → { "NameA|NameB" → { label, style } }`. Names are sorted alphabetically before joining with `|`. Covers 2023, 2024, 2025 fully. Add 2026 data here once playoff matchup pairings are known. Styles: `'gold'` (championship), `'bronze'` (3rd/5th place), `'silver'` (consolation final), omit for regular bracket rounds.
 
@@ -550,11 +552,11 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - **Avg Age badges (`.bdg`)** — use DM Sans 600 at 10px. The override block near the end of `<style>` sets `font-family: 'DM Sans'` — this overrides the base `.bdg` rule. Replaced Bebas Neue — do not revert.
 - **Rivalries from 2025 forward only** — pre-2025 matchups excluded from rivalry records. Rivalry weeks: W4 and W13 (both 2025 and 2026). W14 is NOT a rivalry week — a prior mistake that was corrected.
 - **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1
-- **Sidebar is permanently hidden** — `display: none !important`. `scrollToTeam()` and `buildSidebar()` exist in JS but sidebar is not visible.
+- **Sidebar is gone entirely** — removed 2026-08-20, markup and JS and CSS. Do not add it back without explicit request.
 - **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
 - **Perpetual stats live in `panel-careers`** — the `.career-status-bar` inside `panel-careers` holds the stat pills. They are populated by `buildLeaderStats()` which is called at boot and after each background fetch.
 - **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
-- **"Ask Claude" tab removed from UI** — the panel and icon tab are gone, but the underlying JS (`sendAI`, `addMsg`, etc.) must remain because `getTradeAI()` calls them
+- **"Ask Claude" is fully gone** — panel, icon tab, JS and CSS all removed (the last of it 2026-08-20). The old note here claimed the JS "must remain because `getTradeAI()` calls them"; `getTradeAI()` had itself been removed in the June 2026 overhaul, so that was stale and kept ~20 KB of dead code alive for two months.
 
 ---
 

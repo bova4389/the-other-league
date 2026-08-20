@@ -25,8 +25,6 @@
   --tag-trd-bg:rgba(255,79,216,0.16); --tag-trd-fg:#FF4FD8;
   --note-bg:rgba(22,224,214,0.06); --note-bdr:#16E0D6;
   --shadow:0 4px 24px rgba(0,0,0,0.7);
-  --ai-bg:rgba(22,224,214,0.06); --ai-border:rgba(22,224,214,0.25);
-  --ai-resp-bg:#0a1628; --ai-resp-border:rgba(22,224,214,0.35);
   --pos-qb:#c084fc; --pos-rb:#4ade80; --pos-wr:#60a5fa;
   --pos-te:#fb923c; --pos-k:#94a3b8; --pos-def:#f87171;
   --pos-qb-bg:rgba(192,132,252,.2); --pos-rb-bg:rgba(74,222,128,.2);
@@ -46,8 +44,6 @@
   --tag-trd-bg:rgba(190,24,93,0.1); --tag-trd-fg:#be185d;
   --note-bg:rgba(8,145,178,0.06); --note-bdr:#0891b2;
   --shadow:0 2px 14px rgba(0,0,0,0.12);
-  --ai-bg:rgba(8,145,178,0.05); --ai-border:rgba(8,145,178,0.25);
-  --ai-resp-bg:#f0f9ff; --ai-resp-border:rgba(8,145,178,0.35);
   --pos-qb:#7c3aed; --pos-rb:#15803d; --pos-wr:#1d4ed8;
   --pos-te:#c2410c; --pos-k:#475569; --pos-def:#dc2626;
   --pos-qb-bg:rgba(124,58,237,.15); --pos-rb-bg:rgba(21,128,61,.15);
@@ -98,19 +94,10 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 
 /* LAYOUT */
 .main{display:flex;min-height:calc(100vh - 180px);}
-.sidebar{display:none !important;}
 
 .content{flex:1;padding:20px 24px;overflow-x:auto;min-width:0;}
 
 /* SIDEBAR */
-.sb-label{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:0 12px;margin-bottom:6px;}
-.t-item{display:flex;align-items:center;padding:6px 12px;cursor:pointer;transition:background .1s;border-left:3px solid transparent;gap:8px;}
-.t-item:hover{background:var(--bg);}
-.t-item.is-you{border-left-color:transparent;}
-.t-av{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--muted);flex-shrink:0;}
-.t-info{flex:1;min-width:0;}
-.ti-n{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
-.ti-o{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:1px;}
 
 /* TABS */
 .tabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto;}
@@ -392,36 +379,8 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .fun-sub{font-size:11px;color:var(--text2);margin-top:3px;}
 .s-pill .sn{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);margin-top:2px;line-height:1.4;}
 
-/* ── AI TAB ── */
-.ai-wrap{max-width:860px;}
-.ai-prompt-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
-.ai-btn{background:var(--ai-bg);border:1px solid var(--ai-border);color:var(--accent2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:8px 14px;cursor:pointer;border-radius:2px;transition:all .15s;}
-.ai-btn:hover{background:rgba(123,46,255,0.12);border-color:var(--accent2);}
-.ai-btn:disabled{opacity:.4;cursor:not-allowed;}
-.ai-input-row{display:flex;gap:8px;margin-bottom:20px;}
-.ai-input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;border-radius:2px;transition:border-color .15s;}
-.ai-input:focus{border-color:var(--accent2);}
-.ai-input::placeholder{color:var(--muted);}
-.ai-send{background:var(--accent2);color:var(--bg);border:none;font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;padding:10px 18px;cursor:pointer;border-radius:2px;transition:opacity .15s;white-space:nowrap;}
-.ai-send:hover{opacity:.85;}
-.ai-send:disabled{opacity:.4;cursor:not-allowed;}
-.ai-history{display:flex;flex-direction:column;gap:14px;}
-.ai-msg{border-radius:2px;padding:14px 16px;font-size:13px;line-height:1.7;}
-.ai-msg.user{background:var(--card);border:1px solid var(--border);color:var(--text2);}
-.ai-msg.user::before{content:'YOU · ';font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
-.ai-msg.assistant{background:var(--ai-resp-bg);border:1px solid var(--ai-resp-border);color:var(--text);}
-.ai-msg.assistant::before{content:'CLAUDE · ';font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
-.ai-msg.loading{background:var(--card);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;}
-.ai-msg p{margin-bottom:10px;}
-.ai-msg p:last-child{margin-bottom:0;}
-.ai-msg strong{color:var(--accent);font-weight:600;}
-.ai-msg ul,.ai-msg ol{padding-left:20px;margin-bottom:10px;}
-.ai-msg li{margin-bottom:4px;}
-.ai-clear{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all .15s;}
-.ai-clear:hover{border-color:var(--accent3);color:var(--accent3);}
-.ai-context-note{background:var(--ai-bg);border:1px solid var(--ai-border);padding:10px 14px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);line-height:1.6;}
 
-@media(max-width:680px){.sidebar{display:none;}.content{padding:14px;}.status{overflow-x:auto;-webkit-overflow-scrolling:touch;}.s-pill{padding:8px 10px;}.cache-bar{padding:6px 14px;}}
+@media(max-width:680px){.content{padding:14px;}.status{overflow-x:auto;-webkit-overflow-scrolling:touch;}.s-pill{padding:8px 10px;}.cache-bar{padding:6px 14px;}}
 
 /* ══════════════════════════════════════════════
    RETRO NEON SPORTS THEME — ENHANCEMENTS
@@ -470,7 +429,6 @@ header { position: relative; }
 [data-theme="dark"] .tab.ai-tab.active { text-shadow: 0 0 12px rgba(123,46,255,0.55); }
 
 /* Sidebar hover */
-[data-theme="dark"] .t-item:hover { background: rgba(22,224,214,0.04); border-left-color: var(--accent); }
 
 /* Button glows */
 [data-theme="dark"] .toggle-btn:hover      { border-color: var(--accent); box-shadow: 0 0 16px rgba(22,224,214,0.22); }
@@ -480,8 +438,6 @@ header { position: relative; }
 [data-theme="dark"] .f-pill.active         { box-shadow: 0 0 16px rgba(123,46,255,0.32); }
 [data-theme="dark"] .trade-eval-btn:hover  { opacity: 1; box-shadow: 0 0 20px rgba(22,224,214,0.38); }
 [data-theme="dark"] .ai-btn:hover          { box-shadow: 0 0 14px rgba(123,46,255,0.3); }
-[data-theme="dark"] .ai-send:hover         { opacity: 1; box-shadow: 0 0 18px rgba(123,46,255,0.38); }
-[data-theme="dark"] .ai-input:focus        { border-color: var(--accent2); box-shadow: 0 0 12px rgba(123,46,255,0.2); }
 
 /* Card hover glows */
 [data-theme="dark"] .r-card:hover     { border-color: rgba(22,224,214,0.45); box-shadow: 0 0 22px rgba(22,224,214,0.09), var(--shadow); }
@@ -507,8 +463,6 @@ header { position: relative; }
 /* Spinner glow */
 [data-theme="dark"] .spin { box-shadow: 0 0 10px rgba(22,224,214,0.2); }
 
-/* AI response label glow */
-[data-theme="dark"] .ai-msg.assistant::before { text-shadow: 0 0 8px rgba(22,224,214,0.4); }
 
 /* Rounded corners for that modern-retro card feel */
 .r-card,.match-card,.riv-card,.fun-card,.ic { border-radius: 4px; }
@@ -519,7 +473,6 @@ header { position: relative; }
 @keyframes countdown-tick { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
 
 /* ── HOME-ONLY LAYOUT: hide sidebar, utility bars, stat pills ── */
-body.is-home .sidebar { display: none !important; }
 body.is-home .status { display: none !important; }
 body.is-home .sleeper-bar { display: none !important; }
 body.is-home .cache-bar { display: none !important; }
@@ -606,7 +559,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .match-name { color: var(--text); font-weight: 600; }
 .rv-n { font-weight: 600; color: var(--text); }
 /* Sidebar team names */
-.ti-n { font-weight: 600; }
 /* Status pill labels — bold hot pink */
 .s-pill .sl { font-weight: 700; }
 [data-theme="dark"] .s-pill .sl { color: var(--accent3); opacity: 1; text-shadow: 0 0 10px rgba(255,79,216,0.4); }
@@ -988,7 +940,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .s-pill .sl   { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: .07em; }
 .fun-label    { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: .07em; }
 .trade-sec-lbl{ font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: .07em; }
-.sb-label     { font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: .07em; }
 .itab-label   { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: .14em; }
 .bdg          { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: .03em; }
 
@@ -1035,7 +986,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .trade-score-dim { font-family: 'DM Sans', sans-serif; font-size: 11px; }
 .trade-verdict-sub{ font-family: 'DM Sans', sans-serif; font-size: 11px; }
 .sleeper-link    { font-family: 'DM Sans', sans-serif; font-size: 11px; }
-.ai-context-note { font-family: 'DM Sans', sans-serif; }
 
 /* ── PINK POP in dark mode ── */
 [data-theme="dark"] .dtbl th      { color: var(--accent3); opacity: 1; text-shadow: 0 0 10px rgba(255,79,216,0.28); }
@@ -1572,10 +1522,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 
 
 <div class="main">
-  <div class="sidebar">
-    <div class="sb-label" style="margin-bottom:8px;">All Teams</div>
-    <div id="team-list"></div>
-  </div>
   <div class="content">
 
     <!-- HOME -->
@@ -2911,58 +2857,6 @@ function renderHistoricalScores(container,matchups,week,projTotals){
   container.innerHTML=html;
 }
 
-// ── DRAFT 2026 ──
-// Fetches traded picks from Sleeper and builds a map: currentRosterId → originalRosterId (for traded 1st round picks)
-async function buildDraft2026(){
-  const tbody=document.getElementById('d26-tbody');
-  if(!tbody)return;
-  // Fetch ALL 2026 traded picks across all rounds
-  let tradedFrom={};  // "round.origRid" → currentOwnerRid
-  try{
-    const tp=await api(`/league/${LID}/traded_picks`);
-    (tp||[]).filter(p=>String(p.season)==='2026'&&p.roster_id!==p.owner_id)
-      .forEach(p=>{tradedFrom[`${p.round}.${p.roster_id}`]=p.owner_id;});
-  }catch(e){}
-
-  // Base 12-team order (indices 0-11); pick 1.13 is consolation-only extra
-  const base12=DRAFT_ORDER_2026.slice(0,12);
-
-  const allRows=[];
-  // Round 1: full 13 picks (includes consolation 1.13)
-  DRAFT_ORDER_2026.forEach(row=>{
-    const origRid=RMR[row.uid];
-    const currentRid=tradedFrom[`1.${origRid}`]||origRid;
-    allRows.push({rd:1,pick:row.pick,currentUid:RM[currentRid],origUid:row.uid,traded:currentRid!==origRid,how:row.how});
-  });
-  // Rounds 2-4: 12 picks each, linear format (same order every round)
-  for(let rd=2;rd<=4;rd++){
-    base12.forEach((row,i)=>{
-      const origRid=RMR[row.uid];
-      const currentRid=tradedFrom[`${rd}.${origRid}`]||origRid;
-      allRows.push({rd,pick:`${rd}.${String(i+1).padStart(2,'0')}`,currentUid:RM[currentRid],origUid:row.uid,traded:currentRid!==origRid,how:''});
-    });
-  }
-  window._draft2026Rows=allRows;
-
-  let curRd=0;
-  tbody.innerHTML=allRows.map(row=>{
-    const td_=t(row.currentUid);
-    const tradedCol=row.traded
-      ?`<span style="color:var(--accent2);font-family:'DM Mono',monospace;font-size:10px;">From ${t(row.origUid).name}</span>`
-      :`<span style="color:var(--muted)">—</span>`;
-    let rdHdr='';
-    if(row.rd!==curRd){
-      curRd=row.rd;
-      rdHdr=`<tr><td colspan="4" style="background:var(--surface);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:8px 11px;border-bottom:1px solid var(--border);">Round ${row.rd}</td></tr>`;
-    }
-    return rdHdr+`<tr>
-      <td class="pk-r">${row.pick}</td>
-      <td>${td_.name}<span style="color:var(--muted);margin-left:6px;font-size:10px">${td_.team}</span></td>
-      <td>${tradedCol}</td>
-      <td>${row.how}</td>
-    </tr>`;
-  }).join('');
-}
 
 // Builds a map of future pick ownership (2027 + 2028) keyed by user_id.
 // Each entry: [{year, round, fromUid}] — fromUid is null if it's the team's own pick.
@@ -3048,32 +2942,6 @@ function setDraft26View(view,el){
   }
 }
 
-// ── SIDEBAR ──
-function buildSidebar(){
-  const el=document.getElementById('team-list');
-  Object.entries(RM).forEach(([,uid])=>{
-    const td=t(uid);
-    el.innerHTML+=`<div class="t-item" onclick="scrollToTeam('${uid}')" style="cursor:pointer">
-      <div class="t-av">${td.name.charAt(0)}</div>
-      <div class="t-info"><div class="ti-n">${td.team}</div><div class="ti-o">${td.name}</div></div>
-    </div>`;
-  });
-}
-
-// Navigate to a team's roster card — switches to Rosters tab, scrolls, and briefly highlights
-function scrollToTeam(uid){
-  // Find the Rosters tab button and activate it
-  const rosterTab=document.querySelector('.tab[onclick*="rosters"]');
-  if(rosterTab)showTab('rosters',rosterTab);
-  setTimeout(()=>{
-    const card=document.getElementById('roster-card-'+uid);
-    if(!card)return;
-    card.scrollIntoView({behavior:'smooth',block:'start'});
-    card.style.transition='border-color .3s';
-    card.style.borderColor='var(--accent)';
-    setTimeout(()=>{card.style.borderColor='';},1400);
-  },80);
-}
 
 // ── ROSTERS ──
 async function buildRosters(rostersData,playersData){
@@ -6373,110 +6241,9 @@ async function init(){
   buildDraftHistory('2026').catch(()=>{});
 }
 
-// ── AI CHAT ──
-let aiMessages=[];
-const LEAGUE_CONTEXT=`You are a dynasty fantasy football analyst assistant for "The Other League." You know every detail about this league. Here is the full context:
-
-LEAGUE: The Other League | Dynasty | Sleeper | Commissioner: Matt Bova (that's the user — their team is "Show Me Your Penix") | 12 teams | ~Year 4 | Pre-2026 draft
-
-SCORING: Non-PPR (rec=0), TE premium (+0.5/rec), Super Flex, distance bonuses on receptions (0.5 for 0-4yds, 0.75 for 5-9yds, 1.0 for 10-19yds, 1.0 for 20-29yds, 1.0 for 30-39yds, 2.0 for 40+yds), rush 40+ yd bonus, pass TD 40+ bonus, bonus 400+ pass yds, bonus 200+ rush yds, bonus 200+ rec yds. Rush 0.1/yd, Pass 0.04/yd, Rec 0.1/yd.
-
-2027 RULE CHANGE (already voted in): 1 WRRB_FLEX becomes WR/RB/TE FLEX — dramatically increases TE value on top of existing TE premium.
-
-LINEUP: 1 QB, 2 RB, 2 WR, 1 TE, 1 FLEX (WR/RB), 3 WRRB FLEX, 1 SUPER FLEX = 11 starters + 15 bench + 3 taxi + 2 IR
-
-ALL 12 TEAMS:
-1. Matt Bova — "Show Me Your Penix" (YOU/commissioner, mid-tier, between contender and rebuild)
-2. Jake Bogardus (Bo) + Katie — "BoKnows723" (CONTENDER, co-owned)
-3. Jared Hayes — "SirWinsAlot"
-4. Chris Bova — "Titsburg Feelers" (CONTENDER, Matt's brother, 2024 champion)
-5. Nick Bova — "Nabers in Paris" (Matt's brother, 2025 Runner-Up)
-6. Erin Jacobs — "eejacobs"
-7. Jake Blackwell — "Nacua Matata" (2025 CHAMPION 🏆, pick 1.12 in 2026 draft)
-8. Chris Merkel — "Your Team is the PITTsMAN" (HEAVY TRADER)
-9. Mitch Blackwell + Andrew Evans — "i LOVE mendoza" (co-owned, Jake's brother)
-10. Nick Merkel — "Breeces Peanut ButterCups" (HEAVY TRADER, 2025 consolation 🥈, pick 1.13)
-11. Andrew Bova — "Joshin Around"
-12. Duane Gillenwater — "Enter the Maye-Trix"
-
-HISTORY:
-2023 ($50 buy-in): 1st Mitch Blackwell $400, 2nd Duane Gillenwater $200
-2024 ($100 buy-in): 1st Chris Bova $400, 2nd Nick Merkel $200, 3rd Jake Bogardus $100
-2025 ($100 buy-in): 1st Jake Blackwell $455, 2nd Nick Bova $205, no 3rd place payout
-
-RIVALRY MATCHUPS (play twice, H2H only — no median win):
-Matt Bova vs Duane Gillenwater | Jake Blackwell vs Mitch Blackwell | Erin vs Andrew Bova | Chris Bova vs Nick Bova | Chris Merkel vs Nick Merkel | Jared Hayes vs Jake Bogardus
-
-Be direct, specific, and analytical. Reference real team/owner names. Give actionable advice. Bold key names with **text**.`;
-
-const QUICK_PROMPTS={
-  draft:"Looking at the 2026 rookie draft — what's the best strategy for each contending team, and what rookie positions should Matt target?",
-  trade:"Based on team tiers and scoring settings, who are the best trade targets for Matt Bova? Which teams might sell and what should he offer?",
-  roster:"Grade all 12 rosters — who are the true contenders for 2026, who's rebuilding, who's a sleeper?",
-  waiver:"Given this league's non-PPR + TE premium + distance bonus scoring, what player archetypes are undervalued on waivers?",
-  rivalry:"Break down all 6 rivalry matchups. Who has the edge? Any key backstory?",
-  tes:"With the 2027 TE flex rule change on top of TE premium, how should teams value TEs right now?",
-  contenders:"Deep dive on Chris Bova and Jake Bogardus. Strengths, weaknesses, and what would it take for Matt to close the gap?",
-  myteam:"Give Matt Bova an honest assessment of Show Me Your Penix — strengths, weaknesses, and 2026 outlook.",
-};
-
-function quickPrompt(key){document.getElementById('ai-input').value=QUICK_PROMPTS[key];sendAI();}
-function clearChat(){aiMessages=[];document.getElementById('ai-history').innerHTML='';}
-
-function addMsg(role,content){
-  aiMessages.push({role,content});
-  const el=document.createElement('div');
-  el.className=`ai-msg ${role}`;
-  if(role==='assistant'){
-    const html=content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n- /g,'<br>• ').replace(/\n(\d+)\. /g,'<br>$1. ');
-    el.innerHTML='<p>'+html+'</p>';
-  }else{el.textContent=content;}
-  document.getElementById('ai-history').appendChild(el);
-  el.scrollIntoView({behavior:'smooth',block:'nearest'});
-  return el;
-}
-
-async function sendAI(){
-  const inp=document.getElementById('ai-input');
-  const btn=document.getElementById('ai-send-btn');
-  const promptBtns=document.querySelectorAll('.ai-btn');
-  const userText=inp.value.trim();
-  if(!userText)return;
-  inp.value='';btn.disabled=true;promptBtns.forEach(b=>b.disabled=true);
-  addMsg('user',userText);
-  const loadEl=document.createElement('div');
-  loadEl.className='ai-msg loading';
-  loadEl.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div class="spin" style="width:14px;height:14px;border-width:2px"></div> Claude is thinking...</div>';
-  document.getElementById('ai-history').appendChild(loadEl);
-  loadEl.scrollIntoView({behavior:'smooth',block:'nearest'});
-  try{
-    const messages=[{role:'user',content:LEAGUE_CONTEXT+'\n\n---\n\nNow answer this question from Matt: '+userText}];
-    if(aiMessages.length>1){
-      const prior=aiMessages.slice(0,-1);
-      const rebuilt=[{role:'user',content:LEAGUE_CONTEXT+'\n\n---\n\nNow answer this question from Matt: '+prior[0].content}];
-      for(let i=1;i<prior.length;i++)rebuilt.push({role:prior[i].role,content:prior[i].content});
-      rebuilt.push({role:'user',content:userText});
-      messages.splice(0,messages.length,...rebuilt);
-    }
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
-        system:'You are a dynasty fantasy football analyst for The Other League. Be direct, specific, and analytical. Use bullet points for lists. Bold key names with **text**. Keep responses focused and actionable.',
-        messages})
-    });
-    const data=await res.json();
-    loadEl.remove();
-    if(data.content&&data.content[0]&&data.content[0].text)addMsg('assistant',data.content[0].text);
-    else if(data.error)addMsg('assistant',`⚠ API error: ${data.error.message||JSON.stringify(data.error)}`);
-    else addMsg('assistant','⚠ Unexpected response format.');
-  }catch(e){loadEl.remove();addMsg('assistant',`⚠ Error: ${e.message}`);}
-  btn.disabled=false;promptBtns.forEach(b=>b.disabled=false);
-}
 
 // ── BOOT ──
 applyTheme();
-buildSidebar();
 buildScoring();
 buildRivalries();
 init();
