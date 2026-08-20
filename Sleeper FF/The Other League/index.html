@@ -1803,7 +1803,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       <div style="margin-top:28px;">
         <div class="sec-row-label">Scoring Settings</div>
         <div class="sec-sub">PPR · TE Premium · Distance Bonuses · Super Flex</div>
-        <div class="note"><strong>Key implications:</strong> PPR rewards volume receivers. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
+        <div class="note"><strong>Key implications:</strong> Receptions pay by distance rather than a flat point each (0.5&ndash;2.0 per catch), so this rewards volume receivers who also push the ball downfield. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
         <div class="sc-grid" id="score-grid"></div>
       </div>
     </div>
@@ -2120,7 +2120,7 @@ const SLABELS = {
   bonus_pass_yd_400:'Bonus 400+ Pass Yds',pass_td_40p:'Pass TD 40+ yds',
   rush_td:'Rush TD',rush_yd:'Rush Yd (per)',rush_2pt:'Rush 2PT',
   rush_40p:'Rush 40+ yd bonus',bonus_rush_yd_200:'Bonus 200+ Rush Yds',
-  rec:'Reception (PPR)',rec_td:'Rec TD',rec_yd:'Rec Yd (per)',rec_2pt:'Rec 2PT',
+  rec:'Reception (flat)',rec_td:'Rec TD',rec_yd:'Rec Yd (per)',rec_2pt:'Rec 2PT',
   bonus_rec_te:'TE Premium (per rec)',rec_0_4:'Rec 0–4 yds',rec_5_9:'Rec 5–9 yds',
   rec_10_19:'Rec 10–19 yds',rec_20_29:'Rec 20–29 yds',rec_30_39:'Rec 30–39 yds',
   rec_40p:'Rec 40+ yds',bonus_rec_yd_200:'Bonus 200+ Rec Yds',
@@ -2136,7 +2136,56 @@ const SLABELS = {
   pts_allow_28_34:'Pts Allowed 28–34',pts_allow_35p:'Pts Allowed 35+',
 };
 
-const SDATA = {"sack":1.0,"fgm_40_49":4.0,"bonus_rec_te":0.5,"pass_int":-2.0,"pts_allow_0":10.0,"bonus_pass_yd_400":2.0,"pass_2pt":2.0,"rec_0_4":0.5,"st_td":6.0,"rec_30_39":1.0,"rec_td":6.0,"rec_20_29":1.0,"fgm_30_39":3.0,"xpmiss":-1.0,"rush_td":6.0,"pass_td_40p":2.0,"rec_2pt":2.0,"pass_int_td":-1.0,"st_fum_rec":1.0,"fgmiss":-1.0,"ff":1.0,"rec":1.0,"pts_allow_14_20":1.0,"fgm_0_19":3.0,"int":2.0,"def_st_fum_rec":1.0,"fum_lost":-2.0,"pts_allow_1_6":7.0,"kr_yd":0.04,"rec_5_9":0.75,"fgm_20_29":3.0,"pts_allow_21_27":0.0,"xpm":1.0,"rec_40p":2.0,"rush_2pt":2.0,"fum_rec":2.0,"rec_10_19":1.0,"bonus_rec_yd_200":2.0,"def_st_td":6.0,"fgm_50p":5.0,"def_td":6.0,"bonus_rush_yd_200":2.0,"safe":2.0,"pass_yd":0.04,"blk_kick":2.0,"pass_td":4.0,"rush_yd":0.1,"rush_40p":1.0,"pr_yd":0.04,"fum":0.0,"pts_allow_28_34":-1.0,"pts_allow_35p":-4.0,"fum_rec_td":6.0,"rec_yd":0.1,"def_st_ff":1.0,"pts_allow_7_13":4.0,"st_ff":1.0};
+const SDATA = {"sack":1.0,"fgm_40_49":4.0,"bonus_rec_te":0.5,"pass_int":-2.0,"pts_allow_0":10.0,"bonus_pass_yd_400":2.0,"pass_2pt":2.0,"rec_0_4":0.5,"st_td":6.0,"rec_30_39":1.0,"rec_td":6.0,"rec_20_29":1.0,"fgm_30_39":3.0,"xpmiss":-1.0,"rush_td":6.0,"pass_td_40p":2.0,"rec_2pt":2.0,"pass_int_td":-1.0,"st_fum_rec":1.0,"fgmiss":-1.0,"ff":1.0,"rec":0.0,"pts_allow_14_20":1.0,"fgm_0_19":3.0,"int":2.0,"def_st_fum_rec":1.0,"fum_lost":-2.0,"pts_allow_1_6":7.0,"kr_yd":0.04,"rec_5_9":0.75,"fgm_20_29":3.0,"pts_allow_21_27":0.0,"xpm":1.0,"rec_40p":2.0,"rush_2pt":2.0,"fum_rec":2.0,"rec_10_19":1.0,"bonus_rec_yd_200":2.0,"def_st_td":6.0,"fgm_50p":5.0,"def_td":6.0,"bonus_rush_yd_200":2.0,"safe":2.0,"pass_yd":0.04,"blk_kick":2.0,"pass_td":4.0,"rush_yd":0.1,"rush_40p":1.0,"pr_yd":0.04,"fum":0.0,"pts_allow_28_34":-1.0,"pts_allow_35p":-4.0,"fum_rec_td":6.0,"rec_yd":0.1,"def_st_ff":1.0,"pts_allow_7_13":4.0,"st_ff":1.0};
+
+/* ── WHY rec IS 0.0 (read before "fixing" it back to 1.0) ─────────────────
+   This IS a PPR league — it just pays for catches by DISTANCE rather than a
+   flat point each. Every reception scores through rec_0_4 / rec_5_9 /
+   rec_10_19 / rec_20_29 / rec_30_39 / rec_40p (0.5 / 0.75 / 1 / 1 / 1 / 2),
+   plus the TE premium (bonus_rec_te 0.5). Those buckets ARE the PPR.
+   Setting rec:1.0 on top of them pays for the same catch twice.
+
+   Verified 2026-08-20 against live data, not assumed. Sleeper reports
+   rec:0 for this league in all four seasons (2023-2026). Replaying 2025
+   Week 3 through calcPts() reproduces Sleeper's own team totals exactly at
+   rec:0 (105.58 / 143.00 / 155.13 / 159.58, dead on) and overshoots by
+   23-40 points per team at rec:1.0. The 1.0 was left over from an early
+   KTC comparison, not a real league rule.
+   ───────────────────────────────────────────────────────────────────── */
+
+// The hardcoded SDATA above is the offline fallback. The live league's own
+// scoring_settings are overlaid on top of it whenever they're available, so
+// a commissioner tweak on Sleeper flows through without a code edit and
+// SDATA can never silently drift out of sync again.
+function applyLeagueScoring(scoring){
+  // Sanity-check that this really is a settings object before trusting it —
+  // a truncated/garbage response must not blank out the fallback values.
+  if(!scoring||typeof scoring!=='object')return false;
+  if(typeof scoring.rec_yd!=='number'||typeof scoring.pass_td!=='number')return false;
+  Object.assign(SDATA,scoring);
+  return true;
+}
+
+function loadScoringOverlay(){
+  try{
+    const raw=localStorage.getItem('tol_scoring_v1');
+    if(raw)applyLeagueScoring((JSON.parse(raw)||{}).scoring);
+  }catch(e){}
+}
+
+async function refreshScoringOverlay(){
+  try{
+    const league=(cachedLeague&&cachedLeague.scoring_settings)?cachedLeague:await api(`/league/${LID}`);
+    if(!cachedLeague)cachedLeague=league;
+    if(applyLeagueScoring(league&&league.scoring_settings)){
+      try{localStorage.setItem('tol_scoring_v1',JSON.stringify({scoring:league.scoring_settings,ts:Date.now()}));}catch(e){}
+    }
+  }catch(e){}
+}
+
+// Applied synchronously at parse time so the very first render already uses
+// the league's real values on any repeat visit.
+loadScoringOverlay();
 
 // 2026 draft order derived from 2025 final standings
 // Picks 1.01–1.06: reg season finishers 12th→7th; 1.07–1.11: playoff bracket; 1.12: champ; 1.13: consolation
@@ -2330,8 +2379,8 @@ function setCacheBar(fromCache,ts){
 async function refreshData(){
   clearCache();
   try{localStorage.removeItem('tol_txn_2026');}catch(e){} // re-fetch current season trades
-  try{localStorage.removeItem('tol_matchups_2026');}catch(e){} // re-fetch current season scores
-  _stats2026Cache=null;_projCache={}; // re-fetch current season stats+projections
+  try{localStorage.removeItem('tol_matchups_2026');localStorage.removeItem('tol_matchups_ts_2026');}catch(e){} // re-fetch current season scores
+  _stats2026Cache=null;_projCache={};_projFilePromise={};_nflStatePromise=null; // re-fetch current season stats+projections
   cachedRosters=null;cachedPlayers=null;cachedLeague=null;window._futurePicksMap=null;
   _rosterReady=new Promise(r=>{_rosterReadyResolve=r;});
   document.getElementById('cache-dot').className='cache-dot';
@@ -2378,23 +2427,41 @@ async function findLeagueIds(){
 }
 
 // ── FETCH ALL MATCHUPS FOR A SEASON (for H2H computation) ──
+// Completed seasons are immutable, so they stay in permanent localStorage.
+// The CURRENT season is not: `starters` changes every time a manager sets a
+// lineup, and the Scores tab projects off those starters — a permanent cache
+// there would pin the whole year to whatever lineups were set the first time
+// anyone opened the tab. Current season gets a 1h TTL instead.
+//
+// The stored shape no longer carries `projected_points`. Sleeper's matchup
+// payload has never included that field; it was always null, and reading it
+// is what made the 2026 Scores tab render dashes forever. Projections now
+// come from computeWeekProjections(). Cache key bumped to _v2 so old entries
+// carrying the dead field are dropped rather than migrated.
+// The freshness stamp lives in its OWN key, not wrapped around the data.
+// Eight other places (buildH2HMap, buildLeaderStats, the Rivalries tab...)
+// read `tol_matchups_{year}` straight out of localStorage and expect the bare
+// {week: [...]} shape — don't nest it.
+const MATCHUP_CACHE_TTL = 60 * 60 * 1000;
+
 async function fetchAllMatchups(leagueId,year){
   const key=`tol_matchups_${year}`;
+  const st=await getNflState().catch(()=>null);
+  const isCurrentSeason=st?Number(st.season)===Number(year):false;
   const cached=loadPerm(key);
   if(cached){
-    // Migrate old cache entries that are missing projected_points (added later)
-    const sample=(cached[1]||[])[0];
-    if(!sample||'projected_points' in sample)return cached;
-    // Old format — clear and re-fetch below
-    try{localStorage.removeItem(key);}catch(e){}
+    if(!isCurrentSeason)return cached;
+    const ts=loadPerm(`tol_matchups_ts_${year}`)||0;
+    if(Date.now()-ts<MATCHUP_CACHE_TTL)return cached;
   }
   const weeks=Array.from({length:17},(_,i)=>i+1);
   const results=await Promise.all(weeks.map(w=>api(`/league/${leagueId}/matchups/${w}`).catch(()=>[])));
   const matchups={};
   weeks.forEach((w,i)=>{
-    matchups[w]=(results[i]||[]).map(r=>({roster_id:r.roster_id,points:r.points||0,matchup_id:r.matchup_id,starters:r.starters||[],projected_points:r.projected_points||null}));
+    matchups[w]=(results[i]||[]).map(r=>({roster_id:r.roster_id,points:r.points||0,matchup_id:r.matchup_id,starters:r.starters||[]}));
   });
   savePerm(key,matchups);
+  savePerm(`tol_matchups_ts_${year}`,Date.now());
   return matchups;
 }
 
@@ -2496,56 +2563,167 @@ function goToScoresWeek(year,week){
   buildScores();
 }
 
-async function fetchWeekProjections(year,week){
+// ── PROJECTIONS DATA LAYER ─────────────────────────────────────────────────
+//
+// Sleeper's projections endpoint returns RAW STAT LINES (pass_yd, rec,
+// rec_yd, and the rec_0_4..rec_40p distance buckets), not points. The
+// pts_ppr/pts_std/pts_half_ppr fields it also ships are Sleeper's own
+// generic scoring and know nothing about this league — never display them.
+// Everything here scores the raw line through calcPts()/SDATA, which is
+// this league's actual ruleset, so "projected points" always means
+// "projected under OUR rules."
+//
+// TWO SOURCES, on purpose:
+//   1. projections-<year>.json — all 17 weeks, trimmed to skill players and
+//      the ~30 keys we score, committed daily by scripts/fetch_projections.py.
+//      ~176 KB gzipped. This is the fast path.
+//   2. The live API — one week at a time, ~590 KB each. Used for the CURRENT
+//      NFL week (so injury news mid-week isn't stale) and as the fallback for
+//      everything if the committed file is missing.
+// Pulling all 17 weeks live is ~10 MB, which is what the Stats tab used to
+// do on every visit. Don't go back to that.
+//
+// The URL needs "regular" in the PATH:
+//   /projections/nfl/regular/{season}/{week}   ✓ real data
+//   /projections/nfl/{season}/{week}?season_type=regular   ✗ HTTP 200, all empty
+// The second form returns 200 with an empty {} for every player, silently.
+
+let _projFilePromise={};   // year -> Promise<{weeks:{...}}|null>
+let _nflStatePromise=null;
+
+async function getNflState(){
+  if(!_nflStatePromise)_nflStatePromise=api('/state/nfl').catch(()=>null);
+  return _nflStatePromise;
+}
+
+// The week whose projections are worth spending a live request on.
+async function getLiveProjectionWeek(year){
+  const st=await getNflState();
+  if(!st||String(st.season)!==String(year))return null;
+  // In preseason Sleeper reports season_type 'pre' with its own week
+  // numbering, which has nothing to do with the fantasy week — treat the
+  // whole preseason as "week 1 is next up."
+  if(st.season_type!=='regular')return 1;
+  return st.week||null;
+}
+
+async function loadProjectionsFile(year){
+  if(_projFilePromise[year]!==undefined)return _projFilePromise[year];
+  _projFilePromise[year]=(async()=>{
+    try{
+      // Hourly cache-buster: the bot commits at most once a day, and
+      // GitHub Pages serves this with its own caching.
+      const r=await fetch(`projections-${year}.json?_=`+Math.floor(Date.now()/3600000));
+      if(!r.ok)return null;
+      const data=await r.json();
+      return(data&&data.weeks)?data:null;
+    }catch(e){return null;}
+  })();
+  return _projFilePromise[year];
+}
+
+async function fetchWeekProjectionsLive(year,week){
   const key=`${year}_${week}`;
   if(_projCache[key]!==undefined)return _projCache[key];
-  try{const d=await api(`/projections/nfl/${year}/${week}?season_type=regular`);_projCache[key]=d||{};}
+  try{const d=await api(`/projections/nfl/regular/${year}/${week}`);_projCache[key]=d||{};}
   catch(e){_projCache[key]={};}
   return _projCache[key];
 }
 
-function projPts(stats,pos){
-  // Projections API uses different field names than stats API — use pre-calculated pts_ppr,
-  // then add TE premium (0.5/rec) which pts_ppr doesn't include
-  const base=stats.pts_ppr||stats.pts_half_ppr||stats.pts_std||0;
-  const teBonus=(pos==='TE'&&stats.rec)?stats.rec*(SDATA.bonus_rec_te||0.5):0;
-  return base+teBonus;
+// Raw projected stat lines for one week: {player_id: {stat: value}}.
+async function getWeekProjections(year,week){
+  const liveWeek=await getLiveProjectionWeek(year);
+  if(liveWeek===week){
+    const live=await fetchWeekProjectionsLive(year,week);
+    if(live&&Object.keys(live).length)return live;
+  }
+  const file=await loadProjectionsFile(year);
+  const fromFile=file&&file.weeks&&file.weeks[String(week)];
+  if(fromFile&&Object.keys(fromFile).length)return fromFile;
+  return fetchWeekProjectionsLive(year,week);
 }
 
-function calcTeamProjected(starters,rosterPlayers,projData){
-  // In-season: use actual starters when they have real projections
-  const active=(starters||[]).filter(id=>id&&id!=='0');
-  if(active.length>0){
-    let total=0,hasAny=false;
-    active.forEach(pid=>{
-      const stats=projData[pid];if(!stats)return;
-      const pos=cachedPlayers?.[pid]?.position||null;
-      const pts=projPts(stats,pos);if(pts<=0)return;
-      total+=pts;hasAny=true;
-    });
-    if(hasAny)return Math.round(total*100)/100;
-    // starters have no non-zero projections — fall through to roster optimal lineup
-  }
-  // Pre-season / future week: compute optimal lineup from full roster
-  if(!rosterPlayers?.length||!cachedPlayers)return null;
-  const pool=[];
-  rosterPlayers.forEach(pid=>{
-    const p=cachedPlayers[String(pid)];if(!p)return;
-    const pos=p.position;if(!['QB','RB','WR','TE'].includes(pos))return;
-    const stats=projData[String(pid)];if(!stats)return;
-    const pts=projPts(stats,pos);if(pts<=0)return;
-    pool.push({pid:String(pid),pos,pts});
+// Projected points per player_id for one week, under THIS league's scoring.
+async function getWeekProjectedPoints(year,week){
+  const data=await getWeekProjections(year,week);
+  const pts={};
+  Object.entries(data||{}).forEach(([pid,stats])=>{
+    const pos=cachedPlayers&&cachedPlayers[pid]&&cachedPlayers[pid].position;
+    if(!pos)return;
+    const v=calcPts(stats,pos);
+    if(v)pts[pid]=v;
   });
-  if(!pool.length)return null;
-  const byPos={QB:[],RB:[],WR:[],TE:[]};
-  pool.forEach(p=>byPos[p.pos].push(p));
-  Object.values(byPos).forEach(arr=>arr.sort((a,b)=>b.pts-a.pts));
-  const used=new Set();let total=0;
-  const take=(arr,n=1)=>{let c=0;for(const p of arr){if(c>=n)break;if(!used.has(p.pid)){total+=p.pts;used.add(p.pid);c++;}}};
-  take(byPos.QB);take(byPos.RB,2);take(byPos.WR,2);take(byPos.TE);
-  take([...byPos.WR,...byPos.RB,...byPos.TE].filter(p=>!used.has(p.pid)).sort((a,b)=>b.pts-a.pts),4);
-  take([...byPos.QB,...byPos.WR,...byPos.RB,...byPos.TE].filter(p=>!used.has(p.pid)).sort((a,b)=>b.pts-a.pts));
-  return used.size>0?Math.round(total*100)/100:null;
+  return pts;
+}
+
+// ── PROJECTED TEAM TOTAL FOR ONE MATCHUP ───────────────────────────────────
+// Uses the manager's ACTUAL starters — that's who is really going to play.
+// But an unset slot ("0" in the starters array) must not be scored as zero:
+// in preseason at least one team in this league leaves half its lineup
+// blank, and reading that as "this team will score 60" is just wrong. Empty
+// slots get filled with the best eligible player left on the roster, most-
+// restrictive slot first (same greedy approach as computeOptimalLineup),
+// and the result is flagged so the UI can say so.
+function projectTeamWeek(entry,roster,pointsByPid,rosterPositions){
+  const slots=(rosterPositions||[]).filter(sl=>LINEUP_SLOT_ELIGIBILITY[sl]);
+  const starters=(entry.starters||[]).map(id=>id?String(id):'0');
+  if(!slots.length&&!starters.length)return null;
+
+  const used=new Set();
+  let total=0,counted=0;
+  const emptySlotIdx=[];
+
+  // Sleeper's starters array is index-aligned to the non-BN slots.
+  const slotList=slots.length?slots:starters.map(()=>'FLEX');
+  slotList.forEach((slot,i)=>{
+    const pid=starters[i];
+    if(pid&&pid!=='0'){
+      used.add(pid);
+      total+=pointsByPid[pid]||0;
+      counted++;
+    }else{
+      emptySlotIdx.push(i);
+    }
+  });
+
+  let autoFilled=0;
+  if(emptySlotIdx.length&&roster){
+    const txSet=new Set((roster.taxi||[]).map(String));
+    const irSet=new Set((roster.reserve||[]).map(String));
+    const pool=(roster.players||[]).map(String)
+      .filter(id=>id!=='0'&&!used.has(id)&&!txSet.has(id)&&!irSet.has(id))
+      .map(id=>({pid:id,position:cachedPlayers&&cachedPlayers[id]&&cachedPlayers[id].position,points:pointsByPid[id]||0}))
+      .filter(pl=>pl.position);
+    emptySlotIdx
+      .sort((a,b)=>(LINEUP_SLOT_ELIGIBILITY[slotList[a]]||[]).length-(LINEUP_SLOT_ELIGIBILITY[slotList[b]]||[]).length)
+      .forEach(i=>{
+        const elig=LINEUP_SLOT_ELIGIBILITY[slotList[i]]||['QB','RB','WR','TE'];
+        const best=pool.filter(pl=>elig.includes(pl.position)&&!used.has(pl.pid))
+          .sort((a,b)=>b.points-a.points)[0];
+        if(best){used.add(best.pid);total+=best.points;counted++;autoFilled++;}
+      });
+  }
+
+  if(!counted)return null;
+  return{total:Math.round(total*100)/100,autoFilled};
+}
+
+// roster_id -> {total, autoFilled} for every team in a week. Returns {} when
+// there's no projection data at all (past seasons, or Sleeper not publishing).
+async function computeWeekProjections(year,week,weekEntries){
+  if(!weekEntries||!weekEntries.length||!cachedPlayers)return{};
+  const[pointsByPid,rosterPositions]=await Promise.all([
+    getWeekProjectedPoints(year,week),
+    getLeagueRosterPositions().catch(()=>[])
+  ]);
+  if(!Object.keys(pointsByPid).length)return{};
+  const out={};
+  weekEntries.forEach(e=>{
+    const roster=(cachedRosters||[]).find(r=>r.roster_id===e.roster_id);
+    const res=projectTeamWeek(e,roster,pointsByPid,rosterPositions);
+    if(res)out[e.roster_id]=res;
+  });
+  return out;
 }
 
 async function buildScores(){
@@ -2556,13 +2734,27 @@ async function buildScores(){
     const lids=await findLeagueIds();
     const lid=lids[currentScoresYear]||LID;
     const matchups=await fetchAllMatchups(lid,currentScoresYear);
-    renderHistoricalScores(c,matchups,currentScoresWeek);
+    // Projections are scored per player, so they need cachedPlayers. On a cold
+    // load straight to #scores this tab builds before /players/nfl comes back —
+    // without this wait every score rendered as a dash and stayed that way
+    // until the user changed weeks.
+    if(!cachedPlayers)await Promise.race([_rosterReady,new Promise(r=>setTimeout(r,8000))]);
+    // Projections only exist for the season Sleeper is currently publishing.
+    // Read from /state/nfl rather than a hardcoded year so this keeps working
+    // in 2027 without an edit.
+    const st=await getNflState();
+    const projYear=st?Number(st.season):null;
+    const projTotals=(projYear===currentScoresYear)
+      ?await computeWeekProjections(currentScoresYear,currentScoresWeek,matchups[currentScoresWeek]||[]).catch(()=>({}))
+      :{};
+    renderHistoricalScores(c,matchups,currentScoresWeek,projTotals);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load scores.<br><small>${e.message}</small></div>`;
   }
 }
 
-function renderHistoricalScores(container,matchups,week){
+function renderHistoricalScores(container,matchups,week,projTotals){
+  projTotals=projTotals||{};
   const h2h=buildH2HMap();
   const is2026=currentScoresYear===2026;
   const weekData=matchups[week]||[];
@@ -2574,17 +2766,30 @@ function renderHistoricalScores(container,matchups,week){
     return;
   }
   const isRivalry=(RIVALRY_WEEKS[currentScoresYear]||[]).includes(week);
-  const showProjBanner=is2026&&pairs.some(p=>!(p[0].points||0)&&(p[0].projected_points||p[1].projected_points));
+  // A team's score is "projected" when it hasn't scored yet AND we have a
+  // projection for it. Sleeper's matchup payload has NO projected_points
+  // field (verified live — it returns roster_id/points/starters/players and
+  // nothing else), which is why this used to render an endless row of dashes.
+  const projFor=e=>{
+    if((e.points||0)>0)return null;
+    const pr=projTotals[e.roster_id];
+    return(pr&&typeof pr.total==='number')?pr:null;
+  };
+  const showProjBanner=pairs.some(p=>projFor(p[0])||projFor(p[1]));
+  const anyAutoFilled=pairs.some(p=>[p[0],p[1]].some(e=>{const pr=projFor(e);return pr&&pr.autoFilled;}));
   let html='';
   if(isRivalry)html+='<div class="rivalry-banner">&#9876; Rivalry Week</div>';
-  if(showProjBanner)html+='<div class="proj-banner">&#9889; Projected scores &mdash; updates as games are played. Not yet final.</div>';
+  if(showProjBanner)html+='<div class="proj-banner">&#9889; Projected scores, using this league&#39;s own scoring &mdash; updates as games are played. Not yet final.'
+    +(anyAutoFilled?'<br><span style="color:var(--muted)">&#9679; = lineup not fully set; empty slots projected with that team&#39;s best available player.</span>':'')
+    +'</div>';
   html+='<div class="match-grid">';
   pairs.forEach(pair=>{
     const[a,b]=pair;
     const ta=rToTeam(a.roster_id),tb=rToTeam(b.roster_id);
     const aActual=a.points||0,bActual=b.points||0;
-    const aProj=(aActual===0&&is2026&&a.projected_points)?a.projected_points:null;
-    const bProj=(bActual===0&&is2026&&b.projected_points)?b.projected_points:null;
+    const aProjInfo=projFor(a),bProjInfo=projFor(b);
+    const aProj=aProjInfo?aProjInfo.total:null;
+    const bProj=bProjInfo?bProjInfo.total:null;
     const aDisplay=aActual>0?aActual:(aProj!==null?aProj:null);
     const bDisplay=bActual>0?bActual:(bProj!==null?bProj:null);
     const noScores=aDisplay===null&&bDisplay===null;
@@ -2593,8 +2798,9 @@ function renderHistoricalScores(container,matchups,week){
     const aWin=noScores?false:(aDisplay||0)>=(bDisplay||0);
     const aScoreStr=aDisplay!==null?aDisplay.toFixed(2):'&mdash;';
     const bScoreStr=bDisplay!==null?bDisplay.toFixed(2):'&mdash;';
-    const aChip=aIsProj?'<span class="proj-chip">PROJ</span>':'';
-    const bChip=bIsProj?'<span class="proj-chip">PROJ</span>':'';
+    const dot=info=>(info&&info.autoFilled)?'<span title="Lineup not fully set — empty slots filled with the best available player" style="color:var(--muted);margin-left:3px">&#9679;</span>':'';
+    const aChip=aIsProj?'<span class="proj-chip">PROJ</span>'+dot(aProjInfo):'';
+    const bChip=bIsProj?'<span class="proj-chip">PROJ</span>'+dot(bProjInfo):'';
     const aWinCls=!noScores&&aWin?'winner':'';
     const bWinCls=!noScores&&!aWin?'winner':'';
     const ridA=a.roster_id,ridB=b.roster_id;
@@ -4001,29 +4207,33 @@ async function fetchWeekStats(year,week){
   return result;
 }
 
+// Stat keys this league actually scores. Shared by the season and week
+// fetchers so the two can't drift apart.
+const SEASON_STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt',
+  'pass_td_40p','pass_int_td','bonus_pass_yd_400',
+  'rush_att','rush_yd','rush_td','rush_2pt','rush_40p','bonus_rush_yd_200',
+  'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
+  'bonus_rec_yd_200','kr_yd','pr_yd','fum_lost'];
+
+function rosteredPlayerIds(){
+  const ids=new Set();
+  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>ids.add(String(id))));
+  return ids;
+}
+
+// Whole-season view: completed weeks from actuals, the rest from projections.
+// Projections come through getWeekProjections(), which prefers the committed
+// projections-<year>.json over 17 live API calls — that swap took the Stats
+// tab from ~10 MB per visit to ~176 KB.
 async function fetch2026SeasonStats(){
   if(_stats2026Cache)return _stats2026Cache;
-  const rosterPlayerIds=new Set();
-  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
+  const rosterPlayerIds=rosteredPlayerIds();
   if(!rosterPlayerIds.size)return{actual:{},proj:{},completedWeeks:new Set()};
-  const STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt','pass_td_40p',
-    'rush_att','rush_yd','rush_td','rush_2pt','rush_40p',
-    'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
-    'kr_yd','pr_yd','fum_lost','bonus_pass_yd_400','bonus_rush_yd_200','bonus_rec_yd_200'];
   const weeks=Array.from({length:17},(_,i)=>i+1);
-  const[actualResults,projResults]=await Promise.all([
-    Promise.all(weeks.map(w=>api(`/stats/nfl/regular/2026/${w}`).catch(()=>({})))),
-    // 2026-08-19 fix: this endpoint needs "regular" in the path
-    // (/projections/nfl/regular/{season}/{week}) — without it, Sleeper
-    // returns HTTP 200 with an empty {} for every real player (confirmed
-    // live: Josh Allen, Jahmyr Gibbs, Malik Nabers, Sam Darnold all came
-    // back empty at the old URL, populated at this one). The old URL was
-    // silently returning nothing all along, for both 2026 and completed
-    // past seasons — this wasn't a preseason-only gap.
-    Promise.all(weeks.map(w=>api(`/projections/nfl/regular/2026/${w}`).catch(()=>({}))))
-  ]);
+
+  const actualResults=await Promise.all(weeks.map(w=>api(`/stats/nfl/regular/2026/${w}`).catch(()=>({}))));
   const completedWeeks=new Set();
-  const actual={},proj={};
+  const actual={};
   actualResults.forEach((weekData,idx)=>{
     const week=idx+1;
     let hasData=false;
@@ -4031,30 +4241,32 @@ async function fetch2026SeasonStats(){
       if(!rosterPlayerIds.has(String(pid)))return;
       if(stats.gp>=1)hasData=true;
       if(!actual[pid])actual[pid]={};
-      STAT_KEYS.forEach(k=>{if(stats[k])actual[pid][k]=(actual[pid][k]||0)+stats[k];});
+      SEASON_STAT_KEYS.forEach(k=>{if(stats[k])actual[pid][k]=(actual[pid][k]||0)+stats[k];});
     });
     if(hasData)completedWeeks.add(week);
   });
-  projResults.forEach((weekData,idx)=>{
-    if(completedWeeks.has(idx+1))return;
+
+  // Only fetch projections for weeks that haven't been played.
+  const remaining=weeks.filter(w=>!completedWeeks.has(w));
+  const projResults=await Promise.all(remaining.map(w=>getWeekProjections(2026,w).catch(()=>({}))));
+  const proj={};
+  projResults.forEach(weekData=>{
     Object.entries(weekData||{}).forEach(([pid,stats])=>{
       if(!rosterPlayerIds.has(String(pid)))return;
       if(!proj[pid])proj[pid]={};
-      Object.entries(stats).forEach(([k,v])=>{if(v&&typeof v==='number')proj[pid][k]=(proj[pid][k]||0)+v;});
+      SEASON_STAT_KEYS.forEach(k=>{const v=stats[k];if(typeof v==='number'&&v)proj[pid][k]=(proj[pid][k]||0)+v;});
     });
   });
+
   _stats2026Cache={actual,proj,completedWeeks};
   return _stats2026Cache;
 }
 
+// Single-week view: real stats once the week has been played, projections
+// until then.
 async function fetch2026WeekStats(week){
-  const rosterPlayerIds=new Set();
-  (cachedRosters||[]).forEach(r=>(r.players||[]).forEach(id=>rosterPlayerIds.add(String(id))));
+  const rosterPlayerIds=rosteredPlayerIds();
   if(!rosterPlayerIds.size)return{data:{},isProjected:true};
-  const STAT_KEYS=['gp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_2pt','pass_td_40p',
-    'rush_att','rush_yd','rush_td','rush_2pt','rush_40p',
-    'rec','rec_yd','rec_td','rec_2pt','rec_0_4','rec_5_9','rec_10_19','rec_20_29','rec_30_39','rec_40p',
-    'kr_yd','pr_yd','fum_lost','bonus_pass_yd_400','bonus_rush_yd_200','bonus_rec_yd_200'];
   const actualData=await api(`/stats/nfl/regular/2026/${week}`).catch(()=>({}));
   const result={};
   let hasActual=false;
@@ -4062,16 +4274,17 @@ async function fetch2026WeekStats(week){
     if(!rosterPlayerIds.has(String(pid)))return;
     if(stats.gp>=1)hasActual=true;
     const filtered={};
-    STAT_KEYS.forEach(k=>{if(stats[k])filtered[k]=stats[k];});
+    SEASON_STAT_KEYS.forEach(k=>{if(stats[k])filtered[k]=stats[k];});
     if(Object.keys(filtered).length)result[pid]=filtered;
   });
   if(hasActual)return{data:result,isProjected:false};
-  const projData=await api(`/projections/nfl/regular/2026/${week}`).catch(()=>({})); // 2026-08-19 fix, see fetch2026SeasonStats()
+
+  const projData=await getWeekProjections(2026,week).catch(()=>({}));
   const projResult={};
   Object.entries(projData||{}).forEach(([pid,stats])=>{
     if(!rosterPlayerIds.has(String(pid)))return;
     const filtered={};
-    Object.entries(stats).forEach(([k,v])=>{if(v&&typeof v==='number')filtered[k]=v;});
+    SEASON_STAT_KEYS.forEach(k=>{const v=stats[k];if(typeof v==='number'&&v)filtered[k]=v;});
     if(Object.keys(filtered).length)projResult[pid]=filtered;
   });
   return{data:projResult,isProjected:true};
@@ -4085,6 +4298,7 @@ function calcPts(stats,pos){
   pts+=(stats.pass_int||0)*(SDATA.pass_int||0);
   pts+=(stats.pass_2pt||0)*(SDATA.pass_2pt||0);
   pts+=(stats.pass_td_40p||0)*(SDATA.pass_td_40p||0);
+  pts+=(stats.pass_int_td||0)*(SDATA.pass_int_td||0); // pick-six thrown
   pts+=(stats.bonus_pass_yd_400||0)*(SDATA.bonus_pass_yd_400||0);
   pts+=(stats.rush_yd||0)*(SDATA.rush_yd||0);
   pts+=(stats.rush_td||0)*(SDATA.rush_td||0);
@@ -4143,10 +4357,23 @@ async function build2026Stats(c,pos){
       const actualStats=statsData?.[pid]||{};
       const projStats=projStatsData?.[pid]||{};
       const actPts=calcPts(actualStats,position);
-      const rawProjPts=is2026Season?calcPts(projStats,position):0;
-      const projPts=rawProjPts||(is2026Season?Math.round(((projStats.pts_std||projStats.pts_half_ppr||projStats.pts_ppr||0))*10)/10:0);
+      // No pts_ppr/pts_std fallback here on purpose — those are Sleeper's
+      // generic scoring, not this league's. calcPts() over the raw projected
+      // stat line is the only figure that reflects our actual rules.
+      const projPts=is2026Season?calcPts(projStats,position):0;
       const pts=is2026Season?actPts+projPts:actPts;
-      rows.push({pid,name,position,nflTeam,rid:rid||0,owner:teamData.name,you:teamData.you,stats:actualStats,projStats,actPts,projPts,pts,fmtActPts:fmtPts(actPts),fmtProjPts:fmtPts(projPts)});
+      // Season view columns show actual + projected combined, so a player who
+      // hasn't played yet reads as their projected line instead of a row of
+      // dashes. Week views keep showing whichever single source applies.
+      let disp=actualStats;
+      if(is2026Season){
+        disp={};
+        SEASON_STAT_KEYS.forEach(k=>{
+          const v=(actualStats[k]||0)+(projStats[k]||0);
+          if(v)disp[k]=v;
+        });
+      }
+      rows.push({pid,name,position,nflTeam,rid:rid||0,owner:teamData.name,you:teamData.you,stats:disp,actualStats,projStats,actPts,projPts,pts,fmtActPts:fmtPts(actPts),fmtProjPts:fmtPts(projPts)});
     });
     const filtered=pos==='rookie'
       ?rows.filter(r=>['QB','RB','WR','TE'].includes(r.position)&&isRookieInYear(r.pid,2026))
@@ -4162,10 +4389,10 @@ async function build2026Stats(c,pos){
     const rk=(r)=>isRookieInYear(r.pid,2026)?'<span class="rk-tag">[RK]</span>':'';
     let topHtml='';
     if(is2026Season&&completedWeeks.size===0){
-      topHtml=`<div class="proj-banner">&#9889; Pre-season projections &mdash; season actuals will replace projected weeks as games are played.</div>`;
+      topHtml=`<div class="proj-banner">&#9889; Pre-season projections &mdash; full-season Sleeper projections, scored under this league's rules. Actuals replace them week by week as games are played.</div>`;
     }else if(is2026Season){
       const maxWk=Math.max(...completedWeeks);
-      topHtml=`<div class="proj-banner">&#9889; Through Week ${maxWk} actual + projected remaining weeks. Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections.</div>`;
+      topHtml=`<div class="proj-banner">&#9889; Through Week ${maxWk} actual + projected remaining weeks. Stat columns are actual + projected combined &middot; Act. Pts = completed weeks &middot; Proj Pts = remaining weeks.</div>`;
     }else if(isProjectedWeek){
       topHtml=`<div class="proj-banner">&#9889; Week ${currentStatsWeek} &mdash; projected stats, not yet final.</div>`;
     }
@@ -4206,7 +4433,7 @@ async function build2026Stats(c,pos){
     c.innerHTML=`${topHtml}
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">${filtered.length} players &middot; 2026 ${weekLabel} &middot; sorted by ${sortLabel}</div>
       <div style="overflow-x:auto"><table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table></div>
-      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: PPR, TE premium (+0.5/rec), distance bonuses, rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.${is2026Season?' Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections for remaining weeks.':''}</div>
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: distance-based PPR (every catch scores 0.5&ndash;2.0 by length), TE premium (+0.5/rec), rush/pass yardage, 40+ yd bonuses, and 2pt conversions.${is2026Season?' Act. Pts = completed weeks &middot; Proj Pts = Sleeper projections for remaining weeks.':''}</div>
       ${hasRookies2026?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
     buildStatsTeamChips();
     applyStatsFilters();
@@ -4288,7 +4515,7 @@ async function buildPlayerStats(year,posFilter){
       <div style="overflow-x:auto">
         <table class="dtbl"><thead>${thead}</thead><tbody>${filtered.map(rowFn).join('')}</tbody></table>
       </div>
-      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: PPR, TE premium (+0.5/rec), distance bonuses (rec_0–4 thru 40+), rush/pass yardage thresholds, 40+ yd bonuses, and 2pt conversions.</div>
+      <div class="note" style="margin-top:14px;font-size:10px">Est. Pts uses this league's scoring: distance-based PPR (every catch scores 0.5&ndash;2.0 by length, via rec_0&ndash;4 thru 40+), TE premium (+0.5/rec), rush/pass yardage, 40+ yd bonuses, and 2pt conversions.</div>
       ${hasRookies?`<div class="note" style="margin-top:6px;font-size:10px"><span class="rk-tag">[RK]</span> = rookie (first NFL season)</div>`:''}`;
     buildStatsTeamChips();
     applyStatsFilters();
@@ -5673,6 +5900,9 @@ async function init(){
       setCacheBar(false,Date.now());
     }catch(e){buildRosters(null,null);}
   }
+  // Keep SDATA in sync with the league's real scoring settings (see
+  // applyLeagueScoring). Fire-and-forget — the hardcoded fallback is correct.
+  refreshScoringOverlay();
   // Populate the leaders banner immediately from static + any already-cached data
   buildLeaderStats();
   // Background: discover past league IDs, then prefetch historical data for banner stats

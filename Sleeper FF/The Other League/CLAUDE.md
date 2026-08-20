@@ -24,11 +24,13 @@ the-other-league/                      ← outer repo root
     ├── TOL Abbreviated Icon.png       ← favicon + iOS add-to-homescreen icon
     ├── TOL iPhone background image.png ← iOS splash screen
     ├── ktc-values.json                ← KTC dynasty values (updated weekly by GitHub Action)
+    ├── projections-<year>.json        ← all 17 weeks of Sleeper projections, trimmed (updated DAILY by GitHub Action)
     ├── stats-history.json             ← historical player stats cache
     ├── roster-grades-snapshot-<year>.json ← Phase 6 frozen preseason grade — does NOT exist yet; manually committed once/year (Aug1-mid Sep) via the Export panel in Rosters > Grades & Outlook
     └── scripts/
         ├── tuesday_update.py          ← weekly H2H records updater
         ├── fetch_ktc.py               ← KTC values scraper
+        ├── fetch_projections.py       ← daily Sleeper projections pull → projections-<year>.json
         └── bot_state.json             ← tracks which weeks have been applied
 ```
 
@@ -53,7 +55,8 @@ the-other-league/                      ← outer repo root
   - `/draft/{draft_id}/picks` → picks for a draft
   - `/players/nfl` → full player database (~5MB, slow)
   - `/stats/nfl/regular/{year}/{week}` → actual player stats for a completed week
-  - `/projections/nfl/regular/{year}/{week}` → projected player stats. **Corrected 2026-08-19** — this note previously said "no regular in path," which was wrong (or the API changed): that URL returns HTTP 200 with an empty `{}` for every player, always, silently. Confirmed live against multiple real players and multiple weeks, including a completed 2025 week, that `regular` in the path (matching the stats endpoint's format) is required to get real data.
+  - `/state/nfl` → current season + week; drives "is this the live season/week" decisions instead of hardcoded years
+  - `/projections/nfl/regular/{year}/{week}` → projected player **stat lines** (NOT points — the `pts_ppr`/`pts_std`/`pts_half_ppr` fields it also returns are Sleeper's generic scoring and know nothing about this league; never display them. Score the raw line through `calcPts()`/`SDATA` instead). ~590 KB per week for all ~9,400 players, which is why the committed `projections-<year>.json` exists. **Corrected 2026-08-19** — this note previously said "no regular in path," which was wrong (or the API changed): that URL returns HTTP 200 with an empty `{}` for every player, always, silently. Confirmed live against multiple real players and multiple weeks, including a completed 2025 week, that `regular` in the path (matching the stats endpoint's format) is required to get real data.
 - CORS note: Direct browser fetch may fail. Fallback proxies in order: `corsproxy.io`, `api.allorigins.win`
 
 ### Anthropic API
@@ -235,11 +238,35 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 State variables: `currentScoresYear` (default 2026), `currentScoresWeek` (default 1)
 
 - `buildScores()` — fetches matchups for `currentScoresYear` via `findLeagueIds()` + `fetchAllMatchups()`, then calls `renderHistoricalScores()`
-- `renderHistoricalScores(container, matchups, week)` — renders matchup cards; handles 2026 "projected" banner + `—` scores for pre-season; applies bracket chips from `PLAYOFF_BRACKET_INFO`; applies rivalry banner from `RIVALRY_WEEKS`
+- `renderHistoricalScores(container, matchups, week, projTotals)` — renders matchup cards; shows a projected score + `PROJ` chip for any team that hasn't scored yet and has a projection; applies bracket chips from `PLAYOFF_BRACKET_INFO`; applies rivalry banner from `RIVALRY_WEEKS`.
+  **2026-08-20 fix:** this used to read `entry.projected_points` from the matchups payload. **Sleeper's matchup endpoint has no such field** — verified live, it returns `roster_id`/`points`/`matchup_id`/`starters`/`players`/`players_points`/`starters_points` and nothing else — so the value was always `null` and every 2026 matchup rendered `—` forever. The two helpers written to fix this (`fetchWeekProjections`, `calcTeamProjected`) were never wired to a caller, and `fetchWeekProjections` used the dead URL form on top of that. All three are gone; projections now come from `computeWeekProjections()`.
 - `setScoresYear(year, el)` — switches year tab, resets to W1, calls `updateRivalryPills(year)`, rebuilds scores
 - `setScoresWeek(week, el)` — switches week pill, rebuilds scores
 - `goToScoresWeek(year, week)` — navigates from Rivalries tab: switches to scores tab, sets year+week, calls `updateRivalryPills(year)`, rebuilds scores
 - `updateRivalryPills(year)` — toggles `.rivalry` class on W4/W13 pills based on `RIVALRY_WEEKS[year]`; called whenever year changes
+
+### Projections Data Layer
+Everything projected on the site funnels through here, so "projected points" always means *scored under this league's rules* (`calcPts`/`SDATA`), never Sleeper's generic `pts_ppr`.
+
+- `getNflState()` — cached `/state/nfl`. Used instead of hardcoded years so Scores/Stats keep working in 2027 without an edit.
+- `getLiveProjectionWeek(year)` — which week is worth spending a live API request on. Returns `1` during preseason (Sleeper reports `season_type: 'pre'` with its own week numbering, unrelated to the fantasy week).
+- `loadProjectionsFile(year)` — fetches the committed `projections-<year>.json` (same no-CORS pattern as `ktc-values.json`); `null` if absent.
+- `fetchWeekProjectionsLive(year, week)` — one week straight from Sleeper, memoized in `_projCache`.
+- `getWeekProjections(year, week)` — **the entry point.** Live API for the current week (so mid-week injury news isn't stale), committed file for everything else, live as the fallback if the file is missing. Returns raw stat lines.
+- `getWeekProjectedPoints(year, week)` — the above run through `calcPts()`, keyed by player_id.
+- `projectTeamWeek(entry, roster, pointsByPid, rosterPositions)` — one team's projected total from the manager's **actual** starters. Unset slots (`"0"`) are **not** scored as zero — at least one team in this league leaves half its lineup blank in preseason (roster 9, 5 of 11 empty, confirmed live), and reading that as "this team will score 60" is simply wrong. Empty slots get filled with the best eligible player left on the roster, most-restrictive slot first, and the count comes back as `autoFilled` so the UI can mark the card with a `●`.
+- `computeWeekProjections(year, week, weekEntries)` — `roster_id → {total, autoFilled}` for a whole week.
+
+**Why a committed file at all:** pulling all 17 weeks live is ~10 MB, which is what the Stats tab did on every single visit. `scripts/fetch_projections.py` trims the same data to skill players and the ~30 keys this league scores — 1.4 MB raw, **~176 KB gzipped** — and a daily Action commits it. The live fallback means nothing breaks if the bot stops running.
+
+**The trim is verified lossless, not assumed** (2026-08-20). Three things it could have dropped, each checked against live data:
+1. *Positions.* It keeps QB/RB/WR/TE only. The league has no K/DEF slots, and a sweep of all 12 rosters found **0** non-skill players out of 361 — nothing to lose.
+2. *Stat keys.* Every key the UI renders or `calcPts()` scores is in `STAT_KEYS`, and none is kept unnecessarily — diffed mechanically against every `stats.<key>` read in `index.html`.
+3. *Which players survive the filter.* Then the decisive test: projected points recomputed for every rostered player for all 17 weeks, from the trimmed file vs. straight from the live API. **6,137 player-weeks, 0 mismatches, worst season-level delta 0.00.**
+
+**Do not filter players on `pts_ppr`.** The first version of the script did, and it's the wrong yardstick — that's Sleeper's *generic* scoring, which weighs things differently than this league (flat PPR, no distance buckets, no return yards), so it lets Sleeper decide who matters to us. It would drop e.g. a pure return specialist who scores here via `kr_yd`/`pr_yd` at 0.04/yd but rounds to nothing under generic PPR. The gate is now "has at least one stat this league scores" (any key other than `gp`), which recovered 5 player-weeks the `pts_ppr` gate had silently dropped, at identical file size.
+
+**The endpoint needs `regular` in the PATH:** `/projections/nfl/regular/{season}/{week}` returns real data; `/projections/nfl/{season}/{week}?season_type=regular` returns **HTTP 200 with an empty `{}` for every player**, silently. Confirmed again 2026-08-20: the working form returns 953 players with a populated `pts_ppr` for 2026 W1, the dead form returns 7,623 entries and **zero** with any points.
 
 ### Team Filter Chips (shared — Rosters, Draft, Transactions)
 State variables: `currentTxnTeams`, `currentRosterTeams`, `currentDraftTeams` — each a `Set` of `roster_id` numbers; empty = all teams.
@@ -262,10 +289,11 @@ State variables: `currentTxnTeams`, `currentRosterTeams`, `currentDraftTeams` �
 State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `'all'`), `currentStatsWeek` (default `'season'`), `statsShowPass`, `statsShowRush`, `statsShowRec` (all default `true` — control column group visibility), `currentStatsTeams` (Set — roster_ids; `0` = free agents; empty = all teams).
 
 - `fetchPlayerStats(year)` / `fetchWeekStats(year, week)` — fetches and caches stat data for 2023–2025 (permanent localStorage)
-- `fetch2026SeasonStats()` — fetches all 17 weeks of actuals (`/stats/nfl/regular/2026/{week}`) + projections (`/projections/nfl/regular/2026/{week}`) in parallel; identifies completed weeks by `gp >= 1`; aggregates actuals and projected separately; caches in session-only `_stats2026Cache` (cleared on Refresh, not localStorage). **2026-08-19 fix:** the projections URL was missing `regular` in the path (was `/projections/nfl/2026/{week}`) — Sleeper returns HTTP 200 with an empty `{}` for every real player at that URL, silently, for any season/week (confirmed against a completed 2025 week too, not just 2026 preseason). This means the Stats tab's "Proj Pts" column for 2026 had been silently broken since this function was written — it's been showing nothing/zero, not erroring, so nobody would have noticed. Found and fixed while building Phase 6's Current-Year Readiness (which needed real projections and forced the investigation). Confirmed the corrected URL returns real populated stat lines by testing several real players directly (Sam Darnold, Jahmyr Gibbs, Malik Nabers) across multiple weeks.
-- `fetch2026WeekStats(week)` — tries actuals first; falls back to projections if no `gp >= 1` data (same URL fix applied)
-- `calcPts(stats, pos)` — calculates fantasy points using `SDATA`. **Note:** Projections API returns different field names than stats API — projection aggregation must capture all numeric fields (not filter by STAT_KEYS) or use `pts_std`/`pts_half_ppr`/`pts_ppr` fallback.
-- `build2026Stats(c, pos)` — 2026 renderer; season view shows dual "Act. Pts" / "Proj Pts" columns; week view shows actuals or projected with PROJ chip; uses unified column builder (same as `buildPlayerStats`)
+- `fetch2026SeasonStats()` — fetches all 17 weeks of actuals (`/stats/nfl/regular/2026/{week}`), identifies completed weeks by `gp >= 1`, then pulls projections **only for the weeks not yet played** via `getWeekProjections()` (see Projections Data Layer). Aggregates actuals and projections separately; caches in session-only `_stats2026Cache` (cleared on Refresh, not localStorage).
+- `fetch2026WeekStats(week)` — actuals first; falls back to `getWeekProjections()` if no `gp >= 1` data.
+- `SEASON_STAT_KEYS` / `rosteredPlayerIds()` — shared by both fetchers so the key list can't drift between them. `pass_int_td` is in the list.
+- `calcPts(stats, pos)` — fantasy points from a raw stat line using `SDATA`. Works identically on actual and projected lines (they share field names for everything this league scores). **Never** substitute Sleeper's `pts_ppr`/`pts_std`/`pts_half_ppr` as a fallback — those are Sleeper's generic scoring, not this league's, and a `build2026Stats` fallback that did exactly that was removed 2026-08-20. **2026-08-20:** added the missing `pass_int_td` term (pick-six, −1); it was in `SDATA` and in Sleeper's stat lines but not in the function, which overstated QB scores. With that plus the `rec: 0` fix, `calcPts` reproduces Sleeper's own weekly team totals exactly.
+- `build2026Stats(c, pos)` — 2026 renderer; season view shows dual "Act. Pts" / "Proj Pts" columns; week view shows actuals or projected with PROJ chip; uses unified column builder (same as `buildPlayerStats`). **2026-08-20:** in the season view the *stat* columns (Gms/Att/Pass Yds/Rush/Rec/…) now render **actual + projected combined** via the row's `disp` object, instead of actuals only — before this the whole preseason season view was a wall of `—` with a single lonely Proj Pts number. `r.stats` is the display object; `r.actualStats`/`r.projStats` keep the two sources separately for the points columns.
 - `buildPlayerStats(year, posFilter)` — renders stats table for all years; routes to `build2026Stats` if year is 2026; uses unified column builder (no position-specific if/else)
 - `toggleStatGroup(group, el)` — toggles `statsShowPass`/`statsShowRush`/`statsShowRec`, calls `buildPlayerStats`
 - `setStatsYear()`, `setStatsWeek()`, `setStatsPos()` — filter handlers
@@ -362,6 +390,12 @@ Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football
 - **`scripts/setup_scheduled_task.ps1`** — one-time setup to register the Windows Task Scheduler task. Task is **dormant until Sep 9, 2026** (`StartBoundary`); fires on next boot if PC was off at 9am.
 - **`.github/workflows/season-reminder.yml`** — GitHub Actions creates a GitHub Issue on Sep 2, 2026 as a reminder to activate the bot; GitHub emails the repo owner automatically.
 
+### Automation (Projections Bot — added 2026-08-20)
+- **`scripts/fetch_projections.py`** — pulls all 17 weeks of `/projections/nfl/regular/{year}/{week}`, keeps only QB/RB/WR/TE with a real projection and only the ~30 keys this league scores, writes `projections-<year>.json`. Flags: `--year N`, `--dry-run`. Aborts rather than overwriting a good file if a pull comes back gutted (<200 players in week 1).
+- **`.github/workflows/update-projections.yml`** — daily cron at 11:00 UTC (7 AM ET); commits the file only when it changed.
+- **Deploy chaining (important):** commits pushed by a job using the default `GITHUB_TOKEN` do **not** fire `push`-triggered workflows — GitHub blocks that to stop workflows recursing. So the projections and KTC bots would commit their data files and the live Pages site would never pick them up. `deploy-pages.yml` therefore also triggers on `workflow_run` for both bot workflows (guarded by a `conclusion == 'success'` check). Don't remove that trigger thinking the `push` one already covers it — this was a latent gap for the KTC bot too.
+- `update-ktc.yml` has `projections-*.json` in its `paths-ignore` so the daily projections commit doesn't pointlessly re-run the KTC scraper.
+
 ---
 
 ## DATA OBJECTS
@@ -397,7 +431,9 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 | `tol_ktc_v3` | 24h | Live KTC player values (Superflex+PPR+TEP) — map of `{playerName: {value,position,nflTeam,age,rank,trend}}` |
 | `tol_theme` | permanent | User theme preference |
 | `tol_lids` | permanent | Past league IDs |
-| `tol_matchups_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All 17 weeks of matchup data |
+| `tol_matchups_{year}` | permanent for completed seasons; **1h TTL for the current season** (+ cleared on Refresh) | All 17 weeks of matchup data. The current season needs a TTL because `starters` changes whenever a manager sets a lineup, and the Scores tab projects off those starters — a permanent cache pinned the whole year to whatever lineups happened to be set on first load. |
+| `tol_matchups_ts_{year}` | permanent | Fetch stamp for the TTL above. Kept in a *separate* key because eight other call sites read `tol_matchups_{year}` directly and expect the bare `{week: [...]}` shape. |
+| `tol_scoring_v1` | permanent (refreshed each boot) | The league's live `scoring_settings`, overlaid onto `SDATA` at parse time |
 | `tol_txn_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All completed transactions |
 | `tol_drafts_{year}` | permanent | All draft picks |
 | `tol_stats_{year}` | permanent | Season stats aggregated from 17 weeks (2023–2025 only) |
@@ -480,7 +516,9 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 
 ## KEY DESIGN DECISIONS (don't change without asking)
 
-- **PPR scoring** with TE premium (+0.5/rec) and distance bonuses. `SDATA` has `rec: 1.0` (PPR). Do not set back to 0.0.
+- **Distance-based PPR scoring** with TE premium (+0.5/rec). `SDATA` has **`rec: 0.0`** — corrected 2026-08-20, and this entry previously said the exact opposite ("has `rec: 1.0` (PPR). Do not set back to 0.0"), so don't trust a memory of the old rule. This IS a PPR league; it just pays for catches by *distance* (`rec_0_4` 0.5 / `rec_5_9` 0.75 / `rec_10_19` 1 / `rec_20_29` 1 / `rec_30_39` 1 / `rec_40p` 2) instead of a flat point each. Those buckets **are** the PPR — adding `rec: 1.0` on top pays for the same catch twice.
+  **Evidence, so this doesn't get "fixed" back again:** Sleeper reports `rec: 0` for this league in all four seasons (2023, 2024, 2025, 2026 — checked via `previous_league_id` chain). Replaying 2025 Week 3 starters through `calcPts()` reproduces Sleeper's own team totals *exactly* at `rec: 0` (105.58 / 143.00 / 155.13 / 159.58) and overshoots by 23–40 points per team at `rec: 1.0`. The `1.0` was left over from an early KTC comparison, not a league rule. Effect of the fix: Puka Nacua's 2026 season projection went 467.5 → 346.8; every Est. Pts / Proj Pts figure on the site dropped accordingly.
+- **`SDATA` is overlaid from the live league at runtime** — `applyLeagueScoring()` merges `/league/{LID}`'s `scoring_settings` over the hardcoded `SDATA`, cached in `localStorage['tol_scoring_v1']` and applied synchronously at parse time. The hardcoded block is now only an offline fallback, so a commissioner scoring change on Sleeper flows through without a code edit and `SDATA` can't silently drift again.
 - **Trade Evaluator uses KTC Superflex + PPR + TE Premium** (`format=1&tep=1` → `superflexValues.tep.value`). Pick values are KTC raw at slider +25%; default 0% = 80% of KTC. 2026 picks excluded (draft complete). Player Values table builds from Sleeper rosters first for guaranteed ownership, then adds unrostered KTC entries.
 - **Dark/light theme toggle** — persists via `localStorage['tol_theme']`
 - **LocalStorage caching** — Sleeper roster data cached 6h; historical data permanent

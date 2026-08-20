@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths-ignore:
       - 'Sleeper FF/The Other League/ktc-values.json'  # don't re-run on its own commit
+      - 'Sleeper FF/The Other League/projections-*.json'  # the projections bot's commit isn't KTC's business
       - 'Majors Golf Pool/**'
       - 'Basic Bros Ryder Cup/**'
   workflow_dispatch:

@@ -5,6 +5,15 @@ on:
     branches: [main]
     paths:
       - 'Sleeper FF/The Other League/**'
+  # Commits pushed by a bot job using the default GITHUB_TOKEN do NOT fire
+  # `push` workflows — GitHub blocks that to stop workflows recursing. So the
+  # KTC and projections bots would commit their data files and the live site
+  # would never pick them up. Chaining off workflow_run is what actually
+  # publishes them. Don't remove this thinking `push` already covers it.
+  workflow_run:
+    workflows: ["Daily Projections Update", "Weekly KTC Values Update"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,6 +28,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # workflow_run fires on completion regardless of outcome — don't redeploy
+    # off the back of a bot run that failed.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

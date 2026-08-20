@@ -1,0 +1,52 @@
+name: Daily Projections Update
+
+on:
+  schedule:
+    # Every day at 11:00 UTC (7:00 AM ET) — after overnight injury/news churn,
+    # before anyone is realistically setting a lineup.
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Season to fetch (leave blank to auto-detect from Sleeper)'
+        required: false
+        default: ''
+
+jobs:
+  update-projections:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch projections
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.year }}" ]; then
+            ARGS="--year ${{ github.event.inputs.year }}"
+          fi
+          python "Sleeper FF/The Other League/scripts/fetch_projections.py" $ARGS
+
+      - name: Commit and push
+        run: |
+          git config user.name "projections-bot"
+          git config user.email "projections-bot@the-other-league"
+          git add "Sleeper FF/The Other League/projections-"*.json
+          if git diff --staged --quiet; then
+            echo "No changes — projections are already up to date."
+          else
+            git commit -m "chore(bot): update Sleeper projections [automated]"
+            git push
+            echo "Pushed updated projections."
+          fi
