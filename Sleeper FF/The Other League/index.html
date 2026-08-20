@@ -1590,15 +1590,24 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     <div class="panel" id="panel-rosters">
       <div class="sec-title">LEAGUE ROSTERS</div>
       <div class="sec-sub">Live from Sleeper &middot; Number in parentheses = player age</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
-        <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Position colors:</span>
-        <span class="chip pos-qb"><span class="cp">QB</span>Quarterback</span>
-        <span class="chip pos-wr"><span class="cp">WR</span>Wide Receiver</span>
-        <span class="chip pos-rb"><span class="cp">RB</span>Running Back</span>
-        <span class="chip pos-te"><span class="cp">TE</span>Tight End</span>
+      <div class="roster-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
+        <button class="yr-btn active" id="rview-teams-btn" onclick="setRosterView('teams',this)">Team Rosters</button>
+        <button class="yr-btn" id="rview-grades-btn" onclick="setRosterView('grades',this)">Grades &amp; Outlook</button>
       </div>
-      <div id="roster-team-chips" class="filter-bar"></div>
-      <div id="rosters-container"><div class="ld"><div class="spin"></div><div class="lt">Connecting to Sleeper...</div></div></div>
+      <div id="roster-view-teams">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+          <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Position colors:</span>
+          <span class="chip pos-qb"><span class="cp">QB</span>Quarterback</span>
+          <span class="chip pos-wr"><span class="cp">WR</span>Wide Receiver</span>
+          <span class="chip pos-rb"><span class="cp">RB</span>Running Back</span>
+          <span class="chip pos-te"><span class="cp">TE</span>Tight End</span>
+        </div>
+        <div id="roster-team-chips" class="filter-bar"></div>
+        <div id="rosters-container"><div class="ld"><div class="spin"></div><div class="lt">Connecting to Sleeper...</div></div></div>
+      </div>
+      <div id="roster-view-grades" style="display:none">
+        <div id="roster-grades-container"><div class="ld"><div class="spin"></div><div class="lt">Loading dynasty values...</div></div></div>
+      </div>
     </div>
 
     <!-- PLAYER STATS -->
@@ -4004,7 +4013,14 @@ async function fetch2026SeasonStats(){
   const weeks=Array.from({length:17},(_,i)=>i+1);
   const[actualResults,projResults]=await Promise.all([
     Promise.all(weeks.map(w=>api(`/stats/nfl/regular/2026/${w}`).catch(()=>({})))),
-    Promise.all(weeks.map(w=>api(`/projections/nfl/2026/${w}`).catch(()=>({}))))
+    // 2026-08-19 fix: this endpoint needs "regular" in the path
+    // (/projections/nfl/regular/{season}/{week}) — without it, Sleeper
+    // returns HTTP 200 with an empty {} for every real player (confirmed
+    // live: Josh Allen, Jahmyr Gibbs, Malik Nabers, Sam Darnold all came
+    // back empty at the old URL, populated at this one). The old URL was
+    // silently returning nothing all along, for both 2026 and completed
+    // past seasons — this wasn't a preseason-only gap.
+    Promise.all(weeks.map(w=>api(`/projections/nfl/regular/2026/${w}`).catch(()=>({}))))
   ]);
   const completedWeeks=new Set();
   const actual={},proj={};
@@ -4050,7 +4066,7 @@ async function fetch2026WeekStats(week){
     if(Object.keys(filtered).length)result[pid]=filtered;
   });
   if(hasActual)return{data:result,isProjected:false};
-  const projData=await api(`/projections/nfl/2026/${week}`).catch(()=>({}));
+  const projData=await api(`/projections/nfl/regular/2026/${week}`).catch(()=>({})); // 2026-08-19 fix, see fetch2026SeasonStats()
   const projResult={};
   Object.entries(projData||{}).forEach(([pid,stats])=>{
     if(!rosterPlayerIds.has(String(pid)))return;
@@ -4624,27 +4640,55 @@ function updatePickScaler(val){
 
 // ── KTC VALUES TABLE ──
 
-// Normalize a name for fuzzy matching: lowercase, strip apostrophes/periods
-function normalizeName(n){return n.toLowerCase().replace(/[‘’’ʼ`.]/g,'').replace(/\s+/g,' ').trim();}
+// Normalize a name for fuzzy matching: lowercase, strip apostrophes/periods.
+// Must include the plain ASCII apostrophe (') alongside the curly/backtick
+// variants — without it, "Tre' Harris" (Sleeper) never normalizes to match
+// a KTC key spelled "Tre Harris" (no apostrophe at all).
+function normalizeName(n){return n.toLowerCase().replace(/['‘’’ʼ`.]/g,'').replace(/\s+/g,' ').trim();}
 
 // Strip name suffix (Jr./Sr./II/III/IV) for cross-source matching
 function stripSuffix(n){return n.replace(/\s+(Jr\.?|Sr\.?|IV|III|II|V)$/i,'').trim();}
 
-// KTC entry lookup: exact → normalized → suffix-stripped → skip
+// Known nickname / display-name mismatches between Sleeper and KTC that no
+// amount of punctuation/suffix normalization can bridge (Sleeper stores a
+// player's preferred/short name, e.g. "Chig Okonkwo"; KTC uses the full
+// legal name, e.g. "Chigoziem Okonkwo"). Checked BEFORE fuzzy matching.
+// Key = normalizeName(Sleeper name); value = the exact KTC source key.
+// Grow this table from the Roster Grades "Unmatched Players" report (see
+// buildUnmatchedReport()) — whenever a real, active-roster/starter-caliber
+// player shows up there, check if it's a name mismatch and add an entry;
+// if KTC genuinely doesn't track them, leave it unmatched.
+const KTC_NAME_ALIASES={
+  'chig okonkwo':'Chigoziem Okonkwo',
+  // 2026-08-19: confirmed via the Kenny Gainwell "unmatched starter" flag —
+  // KTC tracks him under his full first name. Real player, real value
+  // (2963 as of this date), was being silently excluded from Matt's own
+  // team's total. Not a genuine coverage gap.
+  'kenny gainwell':'Kenneth Gainwell',
+};
+
+// KTC entry lookup: alias → exact → normalized → suffix-stripped → skip
 function getKTCEntryFuzzy(name){
   const src=_ktcValues||KTC_SNAPSHOT;
+  // 0. Known alias (nickname/display-name mismatch)
+  const aliasKey=KTC_NAME_ALIASES[normalizeName(name)];
+  if(aliasKey&&src[aliasKey]!=null)return getKTCEntry(aliasKey);
   // 1. Exact match
   if(src[name]!=null)return getKTCEntry(name);
   // 2. Normalized match (strips apostrophes/periods/backticks)
   const norm=normalizeName(name);
   const normKey=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&normalizeName(k)===norm);
   if(normKey)return getKTCEntry(normKey);
-  // 3. Suffix-stripped match (handles Jr./II/III differences between KTC and Sleeper)
+  // 3. Suffix-stripped match (handles Jr./II/III differences between KTC and Sleeper).
+  // Must run even when `name` itself has no suffix — a Sleeper name like
+  // "Kenneth Walker" needs to match a KTC key like "Kenneth Walker III".
+  // (Previously guarded by `if(normStripped!==norm)`, which skipped this
+  // step whenever the query had no suffix — silently failing every
+  // Sleeper-name-without-suffix vs KTC-key-with-suffix case, e.g. Kenneth
+  // Walker III, Marvin Harrison Jr., Brian Thomas Jr., Michael Penix Jr.)
   const normStripped=normalizeName(stripSuffix(name));
-  if(normStripped!==norm){
-    const strKey=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&normalizeName(stripSuffix(k))===normStripped);
-    if(strKey)return getKTCEntry(strKey);
-  }
+  const strKey=Object.keys(src).find(k=>!k.match(/^\d{4}/)&&normalizeName(stripSuffix(k))===normStripped);
+  if(strKey)return getKTCEntry(strKey);
   return null;
 }
 
@@ -4977,6 +5021,634 @@ function evaluateTrade(){
     <div class="trade-result-delta" style="color:${vColor};">${delta>=0?'+':''}${delta.toLocaleString()} (${pct}% difference)</div>
     <div class="trade-result-verdict" style="color:${vColor};">${verdict}</div>
     ${winnerName?`<div class="trade-result-sub">${winnerName} wins by ${absDelta.toLocaleString()} KTC pts · Pick scaler: ${document.getElementById('pick-scaler-val')?.textContent||'Balanced'}</div>`:''}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// PHASE 6 — ROSTER GRADES & OUTLOOK (scaffolding)
+// Two-axis dynasty health read per team: total KTC value (Value axis)
+// crossed with an age-curve-weighted "runway" score (Timeline axis).
+// Two pieces per spec, computed separately so they can drift independently:
+//  - SNAPSHOT: frozen grade+quadrant taken once/year in the Aug1-mid Sep
+//    window, read from a committed JSON file so it does NOT drift with KTC.
+//  - OUTLOOK: live roster composition/depth flags, safe to recompute anytime.
+// ══════════════════════════════════════════════════════════
+
+// Sub-tab toggle inside the existing Rosters panel (not a new top-level
+// tab). Kept as two self-contained divs so this can be lifted into its own
+// panel later if the nav gets restructured, without touching the JS below.
+function setRosterView(view,el){
+  document.querySelectorAll('.roster-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  document.getElementById('roster-view-teams').style.display=view==='teams'?'':'none';
+  document.getElementById('roster-view-grades').style.display=view==='grades'?'':'none';
+  if(view==='grades')buildRosterGrades();
+}
+
+// Aging curves per position — prime window + where decline risk starts.
+// RB additionally has a `cliff` age where the score falls off much faster
+// than the ordinary post-prime decay (dynasty RBs really do cliff; QB/WR/TE
+// decline more gradually). Source: Phase 6 spec as confirmed by Matt.
+const AGE_CURVES={
+  QB:{primeStart:26,primeEnd:34,declineStart:35,cliff:null},
+  RB:{primeStart:23,primeEnd:27,declineStart:28,cliff:29},
+  WR:{primeStart:24,primeEnd:31,declineStart:32,cliff:null},
+  TE:{primeStart:27,primeEnd:30,declineStart:31,cliff:null},
+};
+
+// 0-1 "runway" score for a player's age at their position: 1.0 = full
+// runway ahead (pre-prime), decaying through/after prime, with RB dropping
+// sharply past its cliff age. Positions with no curve (K/DEF/RDP) return
+// null — callers skip them rather than treating them as "old".
+function ageTimelineScore(pos,age){
+  const c=AGE_CURVES[pos];
+  if(!c||!age)return null;
+  if(age<c.primeStart)return 1.0;
+  if(age<=c.primeEnd)return 1.0-0.3*((age-c.primeStart)/Math.max(1,c.primeEnd-c.primeStart));
+  if(c.cliff&&age>=c.cliff)return Math.max(0,0.25-0.12*(age-c.cliff));
+  return Math.max(0,0.55-0.1*(age-c.declineStart));
+}
+
+// Resolve one player's dynasty value WITH match provenance. Unlike
+// getDynastyValue() (used by the Trade Evaluator, which collapses a
+// no-match to a floor of 0), this never silently zeroes a player out —
+// callers decide what to do with matched:false based on roster slot.
+function resolveRosterPlayerValue(pid){
+  const p=cachedPlayers&&cachedPlayers[pid];
+  if(!p)return{value:0,matched:false,reason:'unknown-player',position:null,age:0,name:`#${pid}`};
+  const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
+  const fuzzy=getKTCEntryFuzzy(name); // exact -> normalized -> suffix-stripped (Jr/Sr/II/III/IV)
+  if(fuzzy)return{value:fuzzy.value,matched:true,reason:'ktc',position:p.position,age:p.age||0,name};
+  return{value:0,matched:false,reason:'no-ktc-match',position:p.position,age:p.age||0,name};
+}
+
+// Slots where a nominal floor value is acceptable per spec — taxi/IR only.
+// Starters and bench NEVER get a silent floor; an unmatched player there
+// is excluded from the total and surfaced as a "needs verification" flag.
+const ROSTER_GRADE_FLOOR_SLOTS=new Set(['taxi','ir']);
+const ROSTER_GRADE_FLOOR_VALUE=200;
+
+// Confirmed-but-negligible-value threshold, on the KTC scale (elite ~10000,
+// this league's tracked pool is ~500 players). A player at or below this is
+// EXCLUDED from the timeline score entirely — not just down-weighted — so a
+// roster full of scrubs doesn't quietly skew the average. This is distinct
+// from `flagged` (no KTC match at all, a data-quality gap): these players
+// DO have a confirmed KTC value, it's just negligible. v1 guess; tune once
+// seen against more rosters.
+const NEAR_ZERO_KTC_THRESHOLD=500;
+
+// "Speculative depth" (lottery-ticket) threshold. A player counts as
+// speculative depth when they are BOTH pre-prime for their position (per
+// AGE_CURVES.primeStart — full runway ahead) AND below this value — an
+// unproven young player unlikely to ever see the field, as opposed to a
+// rostered veteran with negligible value (that's just NEAR_ZERO_KTC_THRESHOLD,
+// no age component). Deliberately higher than NEAR_ZERO_KTC_THRESHOLD: this
+// is meant to catch "real bench stash, unproven" not only "basically zero."
+// v1 guess; tune once seen against real rosters.
+const SPECULATIVE_VALUE_THRESHOLD=2000;
+
+// "Unproven" for risk-composition purposes: years_exp 0 or 1 (rookie or
+// 2nd-year). First-pass definition per spec — deliberately simple, no
+// depth-chart component (that's what CURRENT-YEAR READINESS below is for;
+// unproven-risk is about how much of the team's DYNASTY VALUE rides on
+// unproven youth, independent of whether they're playing right now).
+function isUnproven(pid){
+  const p=cachedPlayers&&cachedPlayers[pid];
+  return!!(p&&p.years_exp!=null&&p.years_exp<=1);
+}
+
+// 2026-08-19: the flat "% of value in unproven players" trigger below was
+// replaced — Matt found it flagged 10 of 12 teams, and correctly diagnosed
+// why: any healthy dynasty roster carries real value in recent rookie-draft
+// picks (a 1st-round rookie gets real KTC value on draft night), so a flat
+// percentage mostly measures normal roster construction, not risk.
+// `unprovenPct`/`unprovenValue` are still computed below (informational —
+// still an accurate fact about roster composition) but no longer drive the
+// quadrant flag or grade cap. That's now driven by "Bench Dead Weight" —
+// the mirror-image idea: instead of asking "how much value sits in young
+// players" (which conflates good rookies with bad ones), ask "how many
+// bench spots are washed VETERANS with confirmed-low value" — a genuinely
+// wasted roster spot, not upside. Tested against real data: a flat ≤500
+// threshold found zero veterans league-wide (KTC's ranked pool is already
+// pre-curated to ~500 "relevant" players, so a truly worthless veteran
+// isn't in the pool at all, not a low score in it); SPECULATIVE_VALUE_THRESHOLD
+// (2000) found a real, discriminating 2-9 per team spread, so it's reused
+// here as the same "real value, but modest" bar applied to the old end of
+// the roster instead of the young end.
+function isDeadWeight(pid,value){
+  const p=cachedPlayers&&cachedPlayers[pid];
+  return!!(p&&p.years_exp!=null&&p.years_exp>=2&&value<=SPECULATIVE_VALUE_THRESHOLD);
+}
+
+// Used only by getTopAssets()'s `unprovenNoPayoff` flag now (is a specific
+// ROOKIE ASSET's value backed by a real role right now) — NOT for team-wide
+// Current-Year Readiness anymore. 2026-08-19: the team-wide readiness used
+// to be built from this (see git history for the old computeTeamReadiness),
+// but Matt correctly flagged that "who's currently in the starters array"
+// conflates two different things — a manager who hasn't touched their
+// lineup since the draft reads as "Weak" for the wrong reason, while a
+// manager who's stacked their bench with better players than their
+// starters reads as "Strong" for the wrong reason too. Team-wide readiness
+// is now driven entirely by computeOptimalLineup()/computeReadinessRankings()
+// below, which ignores the manager's actual lineup choices and projected-
+// points-optimizes across the whole roster instead.
+const READINESS_INACTIVE_STATUSES=new Set(['Inactive','Injured Reserve','PUP','Suspended','NA','Non Football Injury','Reserve/Retired']);
+const READINESS_OUT_INJURY_STATUSES=new Set(['Out','Doubtful','IR','PUP','Suspended']);
+
+function isStarterSlotShaky(pid){
+  if(!pid||pid==='0')return true; // empty starter slot
+  const p=cachedPlayers&&cachedPlayers[pid];
+  if(!p)return true;
+  if(!p.team)return true; // not on an NFL roster
+  if(p.status&&READINESS_INACTIVE_STATUSES.has(p.status))return true;
+  if(p.injury_status&&READINESS_OUT_INJURY_STATUSES.has(p.injury_status))return true;
+  // Clearly buried on the depth chart (3rd string or lower)
+  if(p.depth_chart_order&&p.depth_chart_order>=3)return true;
+  // True rookie (years_exp===0, i.e. this is their first NFL season) with
+  // no confirmed starting job. depth_chart_order===1 means the team's own
+  // depth chart has them at the top of the position — that's treated as
+  // "has the job" even for a rookie; only years_exp 2+ rookies-turned-
+  // sophomores (already proven) skip this check entirely.
+  if(p.years_exp===0&&p.depth_chart_order!==1)return true;
+  return false;
+}
+
+// ── CURRENT-YEAR READINESS (2026-08-19 rebuild) ──
+// Ranks all 12 teams by the season-long PROJECTED point total of each
+// team's own OPTIMAL lineup (best legal combination of their rostered
+// players, not whatever the manager happens to have set) — this answers
+// "if everyone played their best possible lineup all year, where would
+// this team's roster rank." Fully decoupled from the manager's actual
+// starters/bench choices per Matt's correction.
+
+// Season-long projected points per rostered player_id, scored through this
+// league's own custom rules (calcPts/SDATA), not Sleeper's generic pts_ppr.
+// Blends confirmed actual production (completed weeks) with rest-of-season
+// projections via the now-fixed fetch2026SeasonStats() — so as the season
+// progresses this naturally shifts from "pure projection" to "actual +
+// remaining projection," which is the more accurate read either way.
+let _seasonPointsByPid=null;
+async function getSeasonPointsByPid(){
+  if(_seasonPointsByPid)return _seasonPointsByPid;
+  const{actual,proj}=await fetch2026SeasonStats();
+  const pts={};
+  new Set([...Object.keys(actual||{}),...Object.keys(proj||{})]).forEach(pid=>{
+    const p=cachedPlayers&&cachedPlayers[pid];
+    if(!p)return;
+    pts[pid]=calcPts(actual[pid],p.position)+calcPts(proj[pid],p.position);
+  });
+  _seasonPointsByPid=pts;
+  return pts;
+}
+
+// League roster_positions (slot structure) isn't in the 6h roster cache —
+// only fetched fresh at boot (cachedLeague). Lazy-fetch it if missing,
+// same pattern as fetchKTCValues().
+async function getLeagueRosterPositions(){
+  if(cachedLeague&&cachedLeague.roster_positions)return cachedLeague.roster_positions;
+  try{
+    const league=await api(`/league/${LID}`);
+    if(!cachedLeague)cachedLeague=league;
+    return league.roster_positions||[];
+  }catch(e){return[];}
+}
+
+// Sleeper flex-slot eligibility. This league carries no K/DEF slots
+// (confirmed via live roster_positions: QB/RB/RB/WR/WR/TE/FLEX/
+// WRRB_FLEX×3/SUPER_FLEX/BN×14), so those aren't handled here — if the
+// league ever adds one, it'll just be skipped (falls through the
+// LINEUP_SLOT_ELIGIBILITY[slot] guards below) rather than erroring.
+const LINEUP_SLOT_ELIGIBILITY={QB:['QB'],RB:['RB'],WR:['WR'],TE:['TE'],
+  FLEX:['RB','WR','TE'],WRRB_FLEX:['RB','WR'],SUPER_FLEX:['QB','RB','WR','TE']};
+
+// Greedy optimal-lineup solve: fills the most position-restrictive slots
+// first (single-position slots, then WRRB_FLEX, then FLEX, then
+// SUPER_FLEX last — ordered by ascending eligible-position count) so a
+// scarce single-position starter never loses their spot to a more
+// flexible slot filled out of order. Standard "optimizer" heuristic, not
+// a full ILP solve, but correct for this slot structure. Excludes
+// taxi/IR (not eligible to play).
+function computeOptimalLineup(roster,pointsByPid,rosterPositions){
+  const txSet=new Set((roster.taxi||[]).map(String));
+  const irSet=new Set((roster.reserve||[]).map(String));
+  const pool=(roster.players||[]).map(String)
+    .filter(id=>id!=='0'&&!txSet.has(id)&&!irSet.has(id))
+    .map(id=>({pid:id,position:cachedPlayers[id]&&cachedPlayers[id].position,points:pointsByPid[id]||0}))
+    .filter(p=>p.position);
+  const orderedSlots=(rosterPositions||[]).filter(s=>LINEUP_SLOT_ELIGIBILITY[s])
+    .sort((a,b)=>LINEUP_SLOT_ELIGIBILITY[a].length-LINEUP_SLOT_ELIGIBILITY[b].length);
+  const used=new Set();
+  let total=0;
+  const assignments=[];
+  orderedSlots.forEach(slot=>{
+    const elig=LINEUP_SLOT_ELIGIBILITY[slot];
+    const best=pool.filter(p=>elig.includes(p.position)&&!used.has(p.pid)).sort((a,b)=>b.points-a.points)[0];
+    if(best){used.add(best.pid);total+=best.points;assignments.push({slot,pid:best.pid,name:pname(best.pid),position:best.position,points:best.points});}
+    else assignments.push({slot,pid:null,name:null,position:null,points:0});
+  });
+  return{total:Math.round(total*10)/10,assignments,slotsTotal:orderedSlots.length,slotsFilled:assignments.filter(a=>a.pid).length};
+}
+
+// Computes every team's optimal lineup, ranks 1-12 by total projected
+// points, and tiers by thirds (top4 Strong / mid4 Average / bottom4 Weak —
+// same tiering convention as the Value axis) — attaches `.readiness` to
+// each teamData. Must run after computeTeamRosterData() for all 12 teams
+// (needs every team's total to rank), before gradeRoster() (reads
+// `.readiness.tier`).
+async function computeReadinessRankings(allTeamsData){
+  const pointsByPid=await getSeasonPointsByPid();
+  const rosterPositions=await getLeagueRosterPositions();
+  allTeamsData.forEach(teamData=>{
+    const roster=(cachedRosters||[]).find(r=>r.roster_id===teamData.rid);
+    teamData._optimalLineup=roster?computeOptimalLineup(roster,pointsByPid,rosterPositions):{total:0,assignments:[],slotsTotal:0,slotsFilled:0};
+  });
+  const byPoints=[...allTeamsData].sort((a,b)=>b._optimalLineup.total-a._optimalLineup.total);
+  byPoints.forEach((teamData,i)=>{
+    const rank=i+1;
+    const tier=rank<=4?'Strong':rank<=8?'Average':'Weak';
+    teamData.readiness={tier,rank,total:teamData._optimalLineup.total,
+      assignments:teamData._optimalLineup.assignments,slotsTotal:teamData._optimalLineup.slotsTotal,
+      slotsFilled:teamData._optimalLineup.slotsFilled};
+  });
+}
+
+// Full value+timeline+depth breakdown for one team (by user_id). Requires
+// cachedRosters/cachedPlayers (Rosters tab boot data) to already be set.
+// `picksMap` (from buildFuturePicksMap(), fetched once in buildRosterGrades)
+// is optional — pass it to fold future draft-pick value into `total`.
+function computeTeamRosterData(uid,picksMap){
+  const rid=RMR[uid];
+  const roster=(cachedRosters||[]).find(r=>r.roster_id===rid);
+  if(!roster)return null;
+  const sSet=new Set((roster.starters||[]).map(String));
+  const txSet=new Set((roster.taxi||[]).map(String));
+  const irSet=new Set((roster.reserve||[]).map(String));
+  // K/DEF carry no dynasty trade value in KTC — exclude so they never get
+  // wrongly flagged as an "unverified" no-match.
+  const all=(roster.players||[]).map(String).filter(id=>{
+    if(id==='0')return false;
+    const pos=cachedPlayers[id]&&cachedPlayers[id].position;
+    return pos&&!['K','DEF'].includes(pos);
+  });
+  const slotOf=id=>txSet.has(id)?'taxi':irSet.has(id)?'ir':sSet.has(id)?'starter':'bench';
+
+  let total=0;
+  const flagged=[]; // starter/bench players with no KTC match — needs manual check, NOT counted in total
+  const byPos={QB:{starterValue:0,benchValue:0,starterCount:0,benchCount:0},
+               RB:{starterValue:0,benchValue:0,starterCount:0,benchCount:0},
+               WR:{starterValue:0,benchValue:0,starterCount:0,benchCount:0},
+               TE:{starterValue:0,benchValue:0,starterCount:0,benchCount:0}};
+  let weightedScoreSum=0,weightedValueSum=0; // KTC-value-weighted timeline score
+  let nearZeroExcludedCount=0; // confirmed-matched but excluded from timeline (audit only)
+  let unprovenValue=0; // confirmed-matched value sitting in years_exp<=1 players (informational, see isDeadWeight note above)
+  const speculativePlayers=[]; // young + confirmed low-value "lottery ticket" spots — separate signal, not folded into timeline score
+  const deadWeightPlayers=[]; // washed veterans (years_exp>=2, confirmed low value) — mirror of speculativePlayers on the old end
+
+  all.forEach(id=>{
+    const slot=slotOf(id);
+    const resolved=resolveRosterPlayerValue(id);
+    let value=resolved.value;
+    if(!resolved.matched){
+      if(ROSTER_GRADE_FLOOR_SLOTS.has(slot)){
+        value=ROSTER_GRADE_FLOOR_VALUE; // acceptable floor: deep/taxi/IR spot
+      }else{
+        flagged.push({pid:id,name:resolved.name,position:resolved.position,slot});
+        return; // starter/bench no-match: excluded from total, flagged instead of zeroed
+      }
+    }
+    total+=value;
+    if(byPos[resolved.position]&&(slot==='starter'||slot==='bench')){
+      const b=byPos[resolved.position];
+      if(slot==='starter'){b.starterValue+=value;b.starterCount++;}
+      else{b.benchValue+=value;b.benchCount++;}
+    }
+    if(resolved.matched&&isUnproven(id))unprovenValue+=value;
+    const ageScore=ageTimelineScore(resolved.position,resolved.age);
+    // Timeline score: only confirmed matches above the near-zero floor count.
+    // (resolved.matched is implied by reaching here for starter/bench —
+    // unmatched ones already `return`ed above — but taxi/IR floor values
+    // are NOT "confirmed," so gate on resolved.matched explicitly.)
+    if(ageScore!=null&&resolved.matched&&value>NEAR_ZERO_KTC_THRESHOLD){
+      weightedScoreSum+=ageScore*value;weightedValueSum+=value;
+    }else if(ageScore!=null&&resolved.matched){
+      nearZeroExcludedCount++;
+    }
+    // Speculative depth: confirmed match, pre-prime for position, value
+    // below the (higher) speculative threshold — independent of the
+    // timeline score above.
+    const curve=AGE_CURVES[resolved.position];
+    if(resolved.matched&&curve&&resolved.age>0&&resolved.age<curve.primeStart&&value<SPECULATIVE_VALUE_THRESHOLD){
+      speculativePlayers.push({name:resolved.name,position:resolved.position,age:resolved.age,value,slot});
+    }
+    if(resolved.matched&&isDeadWeight(id,value)){
+      deadWeightPlayers.push({name:resolved.name,position:resolved.position,age:resolved.age,value,slot});
+    }
+  });
+
+  // Future draft-pick value (2027/2028, per buildFuturePicksMap — already
+  // accounts for trades) folded into `total` BEFORE unprovenPct is computed,
+  // so the % denominator stays consistent with the final displayed total.
+  // Uses the RAW KTC pick value (getKTCPickValue with no slot — defaults to
+  // "Mid" tier, same simplification the Trade Evaluator uses when draft
+  // slot isn't knowable yet), NOT getPickValue()'s slider-adjusted value —
+  // that slider is a Trade Evaluator negotiation control, not a true asset
+  // value, and shouldn't leak into roster grading.
+  const picks=(picksMap&&picksMap[uid])||[];
+  const pickValue=picks.reduce((sum,p)=>sum+getKTCPickValue(p.year,p.round,null),0);
+  total+=pickValue;
+
+  const timelineScore=weightedValueSum>0?weightedScoreSum/weightedValueSum:null;
+  const unprovenPct=total>0?unprovenValue/total:0;
+  // `readiness` is NOT set here — it depends on all 12 teams' optimal-lineup
+  // totals (needs the full field to rank), so it's attached in a later pass
+  // by computeReadinessRankings() inside buildRosterGrades(). Same for
+  // deadWeightRank/highDeadWeightRisk — attached by classifyRosters().
+  return{uid,rid,total,pickValue,picks,flagged,byPos,timelineScore,nearZeroExcludedCount,speculativePlayers,
+    speculativeCount:speculativePlayers.length,deadWeightPlayers,deadWeightCount:deadWeightPlayers.length,
+    unprovenValue,unprovenPct};
+}
+
+// Flags positions where value is concentrated in the starter(s) and the
+// bench is much thinner than league norms for that position — a team can
+// look fine on total value while being one injury away from a real hole.
+function computeDepthFlags(allTeamsData){
+  const positions=['QB','RB','WR','TE'];
+  const medianBenchByPos={};
+  positions.forEach(pos=>{
+    const vals=allTeamsData.map(td=>td.byPos[pos].benchValue).sort((a,b)=>a-b);
+    medianBenchByPos[pos]=vals[Math.floor(vals.length/2)]||0;
+  });
+  allTeamsData.forEach(teamData=>{
+    teamData.depthFlags=[];
+    positions.forEach(pos=>{
+      const b=teamData.byPos[pos];
+      if(b.starterValue<=0)return; // doesn't start this position — not a "thin" flag
+      const median=medianBenchByPos[pos];
+      const thin=median>0?b.benchValue<median*0.4:b.benchCount===0;
+      if(thin)teamData.depthFlags.push({position:pos,benchValue:Math.round(b.benchValue),leagueMedianBench:Math.round(median),benchCount:b.benchCount});
+    });
+  });
+}
+
+// Value axis: rank all 12 teams by total KTC value, split into thirds.
+// Timeline axis: split at the median runway score (better half = "young").
+// The four spec'd quadrants are the TOP/BOTTOM value thirds crossed with
+// young/old; the MIDDLE value third isn't one of the four named quadrants,
+// so it gets its own two labels below — flagged as an assumption for Matt
+// to confirm rather than silently picking a side.
+function classifyRosters(allTeamsData){
+  const byValue=[...allTeamsData].sort((a,b)=>b.total-a.total);
+  byValue.forEach((teamData,i)=>{teamData.valueRank=i+1;teamData.valueTier=i<4?'high':i<8?'mid':'low';});
+  const withTimeline=allTeamsData.filter(td=>td.timelineScore!=null);
+  const byTimeline=[...withTimeline].sort((a,b)=>b.timelineScore-a.timelineScore);
+  byTimeline.forEach((teamData,i)=>{teamData.timelineRank=i+1;});
+  const median=Math.ceil(withTimeline.length/2);
+  allTeamsData.forEach(teamData=>{teamData.timelineTier=(teamData.timelineRank&&teamData.timelineRank<=median)?'young':'old';});
+  // Bench Dead Weight axis (2026-08-19, replaces the old flat "% unproven"
+  // trigger) — rank all 12 by deadWeightCount, flag the worst third (most
+  // washed veteran bench spots) the same way Value/Timeline use thirds.
+  const byDeadWeight=[...allTeamsData].sort((a,b)=>b.deadWeightCount-a.deadWeightCount);
+  byDeadWeight.forEach((teamData,i)=>{teamData.deadWeightRank=i+1;});
+  allTeamsData.forEach(teamData=>{teamData.highDeadWeightRisk=teamData.deadWeightRank<=4;});
+  allTeamsData.forEach(teamData=>{
+    if(teamData.valueTier==='high')teamData.quadrant=teamData.timelineTier==='young'?'Stacked Contender':'Win-Now / Aging Window';
+    else if(teamData.valueTier==='low')teamData.quadrant=teamData.timelineTier==='young'?'Genuine Rebuild':'Bad & No Future Currency';
+    else teamData.quadrant=teamData.timelineTier==='young'?'Building':'Treading Water';
+    // Display label only — `quadrant` itself stays the bare 4/2-way label
+    // so gradeRoster()'s string checks below keep working unchanged.
+    teamData.quadrantLabel=teamData.quadrant+(teamData.highDeadWeightRisk?' — High Bench Dead Weight':'');
+  });
+}
+
+// Rule-based grade — value tier + quadrant + depth flags + unresolved
+// matches + Current-Year Readiness + Bench Dead Weight, no AI / free-text
+// generation (matches the Trade Evaluator precedent). Deliberately coarse
+// for v1; tune the thresholds once Matt has seen it run against real data.
+//
+// 2026-08-19: Readiness and (as of the Dead Weight rework) the risk cap are
+// real grade inputs, not just labels — per Matt: "don't give a real team an
+// A grade if they're unlikely to make a run this year and their value is
+// mostly unproven rookie talent." Readiness moves the score like any other
+// input; Bench Dead Weight is a hard CAP (applied after everything else) so
+// a team can't out-value its way to an A while carrying a heavy dead-weight
+// bench AND Weak/Average readiness — elite value + strong readiness + a
+// clean bench is still fully eligible for an A.
+function gradeRoster(teamData){
+  let score=teamData.valueRank<=2?4.0:teamData.valueRank<=4?3.3:teamData.valueRank<=8?2.3:teamData.valueRank<=10?1.3:0.7;
+  if(teamData.quadrant==='Stacked Contender')score+=0.4;
+  if(teamData.quadrant==='Bad & No Future Currency')score-=0.4;
+  score-=0.25*teamData.depthFlags.length;
+  score-=0.3*Math.min(teamData.flagged.length,2); // unresolved matches drag confidence, capped
+  if(teamData.readiness.tier==='Strong')score+=0.4;
+  else if(teamData.readiness.tier==='Weak')score-=0.8;
+  score=Math.max(0,Math.min(4.3,score));
+  // CAP, not a modifier: High Bench Dead Weight + anything short of Strong
+  // readiness cannot reach A- or A (3.4 sits just below the 3.5 A- cutoff,
+  // so the ceiling becomes B+), no matter how high the raw score climbed.
+  if(teamData.highDeadWeightRisk&&teamData.readiness.tier!=='Strong'){
+    score=Math.min(score,3.4);
+  }
+  const scale=[[4.0,'A'],[3.5,'A-'],[3.0,'B+'],[2.5,'B'],[2.0,'B-'],[1.5,'C+'],[1.0,'C'],[0.5,'D'],[-Infinity,'F']];
+  const grade=scale.find(([min])=>score>=min)[1];
+  return{grade,score,rationale:buildGradeRationale(teamData)};
+}
+
+// Template sentence assembled from the actual computed values — no
+// AI/free-text generation, per the "no AI scoring" precedent.
+function buildGradeRationale(teamData){
+  const parts=[`Ranked #${teamData.valueRank} of 12 in roster value (${Math.round(teamData.total).toLocaleString()} KTC, incl. ${Math.round(teamData.pickValue).toLocaleString()} in future picks)`,
+    teamData.quadrant.toLowerCase(),
+    `${teamData.readiness.tier.toLowerCase()} current-year readiness (#${teamData.readiness.rank} of 12 projected, ${teamData.readiness.total.toLocaleString()} pts optimal lineup)`];
+  if(teamData.readiness.slotsFilled<teamData.readiness.slotsTotal)parts.push(`${teamData.readiness.slotsTotal-teamData.readiness.slotsFilled} lineup slot${teamData.readiness.slotsTotal-teamData.readiness.slotsFilled>1?'s':''} with no eligible player at all`);
+  // Must mirror gradeRoster()'s actual cap condition exactly (highDeadWeightRisk
+  // AND readiness not Strong) — otherwise this can claim "grade capped" on a
+  // team that has heavy dead weight but Strong readiness, which exempts the
+  // cap and was never actually applied. Confirmed this exact false-positive
+  // happened before the fix (Titsburg Feelers: highDeadWeightRisk=true,
+  // readiness=Strong, grade=A, but the text said "grade capped").
+  if(teamData.highDeadWeightRisk&&teamData.readiness.tier!=='Strong')parts.push(`${teamData.deadWeightCount} washed veteran bench spot${teamData.deadWeightCount>1?'s':''} — grade capped`);
+  else if(teamData.highDeadWeightRisk)parts.push(`${teamData.deadWeightCount} washed veteran bench spots (heaviest in the league, but Strong readiness exempts the cap)`);
+  if(teamData.depthFlags.length)parts.push(`thin at ${teamData.depthFlags.map(f=>f.position).join('/')}`);
+  if(teamData.flagged.length)parts.push(`${teamData.flagged.length} player${teamData.flagged.length>1?'s':''} unverified`);
+  return parts.join(' · ');
+}
+
+// `unprovenNoPayoff` flags a core asset that's both unproven (years_exp<=1)
+// AND has no confirmed 2026 role per isStarterSlotShaky() — a rookie/2nd-
+// year player whose dynasty value is propping up the team's headline
+// number without a current-year payoff (the case Matt described: a rookie
+// buried on a depth chart or off an active NFL roster entirely). Reuses
+// the same depth-chart/injury/roster signal as Current-Year Readiness
+// rather than a one-off rule, so it's consistent and not hardcoded to any
+// specific player.
+function getTopAssets(uid,n){
+  const rid=RMR[uid];
+  const roster=(cachedRosters||[]).find(r=>r.roster_id===rid);
+  if(!roster)return[];
+  return(roster.players||[]).map(String).filter(id=>id!=='0')
+    .map(id=>{const r=resolveRosterPlayerValue(id);return r.matched?{pid:id,name:r.name,position:r.position,value:r.value,unprovenNoPayoff:isUnproven(id)&&isStarterSlotShaky(id)}:null;})
+    .filter(Boolean).sort((a,b)=>b.value-a.value).slice(0,n);
+}
+
+// ── SNAPSHOT (frozen preseason grade) ──
+// Read a committed JSON file the same way ktc-values.json already works
+// (no CORS, no backend). This is a static GitHub Pages site with no write
+// access from the browser, so "taking" a snapshot is a manual step: visit
+// this view in the Aug1-mid Sep window, use the Export panel at the bottom
+// to copy the computed JSON, and commit it as
+// roster-grades-snapshot-<year>.json at the repo root — the same manual
+// pattern already used to hand-maintain KTC_SNAPSHOT.
+async function loadRosterGradeSnapshot(year){
+  try{
+    const r=await fetch(`roster-grades-snapshot-${year}.json?_=`+Math.floor(Date.now()/3600000));
+    if(!r.ok)return null;
+    const data=await r.json();
+    return data&&data.teams?data:null;
+  }catch(e){return null;}
+}
+
+function buildSnapshotPayload(allTeamsData,year){
+  const teams={};
+  allTeamsData.forEach(teamData=>{
+    teams[teamData.uid]={grade:teamData.gradeInfo.grade,quadrant:teamData.quadrant,quadrantLabel:teamData.quadrantLabel,
+      valueRank:teamData.valueRank,valueTier:teamData.valueTier,timelineTier:teamData.timelineTier,total:Math.round(teamData.total),
+      // Readiness/dead-weight-risk are now real grade inputs (2026-08-19),
+      // so they're frozen alongside the grade for audit — this is what the
+      // grade was BASED ON at snapshot time, even though live Outlook
+      // readiness (injuries, depth charts) will keep changing all season.
+      readinessTier:teamData.readiness.tier,deadWeightCount:teamData.deadWeightCount,highDeadWeightRisk:teamData.highDeadWeightRisk,
+      pickValue:Math.round(teamData.pickValue),
+      rationale:teamData.gradeInfo.rationale};
+  });
+  return{season:year,generatedAt:new Date().toISOString(),teams};
+}
+
+function buildSnapshotExportHtml(allTeamsData,year){
+  return `<div style="margin-top:24px;border-top:1px solid var(--border);padding-top:16px;">
+    <div class="sec-row-label">Snapshot Export (admin)</div>
+    <div class="note">Run this in the Aug 1&ndash;mid-Sep window, before the season locks rosters in via waivers/trades. Copy the JSON below into <code>roster-grades-snapshot-${year}.json</code> at the repo root and commit it &mdash; that freezes this year's grade so it stops drifting with KTC. The Outlook section above keeps updating live regardless.</div>
+    <textarea readonly style="width:100%;height:120px;font-family:'DM Mono',monospace;font-size:10px;background:var(--card);color:var(--text2);border:1px solid var(--border);padding:8px;" onclick="this.select()">${JSON.stringify(buildSnapshotPayload(allTeamsData,year),null,2)}</textarea>
+  </div>`;
+}
+
+// ── VALIDATION: AGGREGATE UNMATCHED-PLAYER REPORT ──
+// Cross-team rollup of every starter/bench player still unmatched after
+// alias + fuzzy matching. This is the ongoing discovery mechanism for
+// growing KTC_NAME_ALIASES: run this, scan the list for real players hiding
+// behind a name mismatch (add an alias), and leave genuine KTC gaps alone.
+function buildUnmatchedReport(allTeamsData){
+  const rows=[];
+  allTeamsData.forEach(teamData=>{
+    const info=t(teamData.uid);
+    teamData.flagged.forEach(f=>rows.push({team:info.team,owner:info.name,name:f.name,position:f.position||'?',slot:f.slot,pid:f.pid}));
+  });
+  return rows;
+}
+
+function buildUnmatchedReportHtml(rows){
+  if(!rows.length)return'<div class="note green">No unmatched starter/bench players across all 12 rosters &mdash; every active KTC-relevant player resolved.</div>';
+  const body=rows.map(r=>`<tr><td>${r.team}</td><td>${r.name}</td><td>${r.position}</td><td style="text-transform:capitalize">${r.slot}</td></tr>`).join('');
+  return`<div style="margin-bottom:20px;">
+    <div class="sec-row-label">Unmatched Players &mdash; Aggregate Report (${rows.length})</div>
+    <div class="note orange">Every player below has no confident KTC match and is excluded from that team's total. Check each: if it's a real player hiding behind a nickname/display-name mismatch, add it to <code>KTC_NAME_ALIASES</code>; if KTC genuinely doesn't track them, leave as-is.</div>
+    <div style="overflow-x:auto;"><table class="career-tbl"><thead><tr><th>Team</th><th>Player</th><th>Pos</th><th>Slot</th></tr></thead><tbody>${body}</tbody></table></div>
+  </div>`;
+}
+
+// ── MAIN BUILD ──
+async function buildRosterGrades(){
+  const c=document.getElementById('roster-grades-container');
+  if(!cachedRosters||!cachedPlayers){c.innerHTML='<div class="note">Roster data still loading &mdash; give it a second and reopen this view.</div>';return;}
+  if(!_ktcValues&&_ktcSource==='snapshot')await fetchKTCValues().catch(()=>{});
+  const year=new Date().getFullYear();
+  const picksMap=await buildFuturePicksMap().catch(()=>({}));
+  const allTeamsData=Object.keys(TEAMS).map(uid=>computeTeamRosterData(uid,picksMap)).filter(Boolean);
+  await computeReadinessRankings(allTeamsData);
+  computeDepthFlags(allTeamsData);
+  classifyRosters(allTeamsData);
+  allTeamsData.forEach(teamData=>{teamData.gradeInfo=gradeRoster(teamData);});
+  const snapshot=await loadRosterGradeSnapshot(year);
+  const unmatchedRows=buildUnmatchedReport(allTeamsData);
+  console.log(`[Phase 6] Unmatched KTC report — ${unmatchedRows.length} player(s) across all 12 rosters`);
+  if(unmatchedRows.length)console.table(unmatchedRows);
+  renderRosterGrades(allTeamsData,snapshot,year,unmatchedRows);
+}
+
+function renderRosterGrades(allTeamsData,snapshot,year,unmatchedRows){
+  const c=document.getElementById('roster-grades-container');
+  const byValue=[...allTeamsData].sort((a,b)=>a.valueRank-b.valueRank);
+  const snapNote=snapshot
+    ?`<div class="note green">Frozen ${snapshot.season} Preseason Grade loaded from <code>roster-grades-snapshot-${year}.json</code> (generated ${new Date(snapshot.generatedAt).toLocaleDateString()}). Live figures below are the Outlook &mdash; they will drift from this frozen grade as the season goes; that's expected.</div>`
+    :`<div class="note orange">No frozen snapshot found for ${year} yet. Grades below are a <strong>live DRAFT</strong> &mdash; take the real snapshot in the Aug 1&ndash;mid-Sep window (before waivers/trades start moving values) using the Export panel at the bottom, then commit it as <code>roster-grades-snapshot-${year}.json</code>.</div>`;
+  c.innerHTML=snapNote+buildUnmatchedReportHtml(unmatchedRows)+'<div class="roster-grid" id="roster-grades-grid"></div>'+buildSnapshotExportHtml(allTeamsData,year);
+  document.getElementById('roster-grades-grid').innerHTML=byValue.map(teamData=>renderGradeCard(teamData,snapshot,year)).join('');
+}
+
+function renderGradeCard(teamData,snapshot,year){
+  const info=t(teamData.uid);
+  const snap=snapshot&&snapshot.teams[teamData.uid];
+  const gradeLabel=snap?snap.grade:teamData.gradeInfo.grade;
+  const gradeSrc=snap?`${year} Preseason (frozen)`:'Live draft — unofficial';
+  const topAssets=getTopAssets(teamData.uid,3);
+  const depthHtml=teamData.depthFlags.length
+    ?teamData.depthFlags.map(f=>`<span class="tag tg-t">⚠ Thin ${f.position}</span>`).join(' ')
+    :`<span class="tag tg-y">Depth OK</span>`;
+  const flaggedHtml=teamData.flagged.length
+    ?`<div class="note orange" style="margin-top:8px;font-size:11px;">⚠ ${teamData.flagged.length} player${teamData.flagged.length>1?'s':''} need verification &mdash; no KTC match found, NOT counted in the total below: ${teamData.flagged.map(f=>`${f.name} (${f.position||'?'}, ${f.slot})`).join(', ')}</div>`
+    :'';
+  const readiness=teamData.readiness;
+  const readinessTagClass=readiness.tier==='Strong'?'tg-y':readiness.tier==='Weak'?'tg-t':'tg-s';
+  const emptySlots=readiness.slotsTotal-readiness.slotsFilled;
+  const readinessDetail=emptySlots>0
+    ?`<div style="font-size:10px;color:var(--accent3);margin-top:4px;">⚠ ${emptySlots} lineup slot${emptySlots>1?'s':''} with no eligible rostered player at all</div>`
+    :'';
+  const lineupPreview=readiness.assignments.filter(a=>a.pid).slice(0,3)
+    .map(a=>`${a.name} (${a.position}, ${a.points.toLocaleString()})`).join(', ');
+  const unprovenAssetNote=topAssets.some(a=>a.unprovenNoPayoff)
+    ?`<div style="font-size:10px;color:var(--accent3);margin-top:4px;">⚠ = unproven (years_exp&le;1) with no confirmed 2026 role &mdash; value not expected to pay off this season</div>`
+    :'';
+  return `<div class="r-card" id="grade-card-${teamData.uid}">
+    <div class="rch">
+      <div><div class="rch-team">${info.team}</div><div class="rch-own">${info.name}</div></div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">
+        <span class="bdg bdg-m" style="font-size:14px;">${gradeLabel}</span>
+      </div>
+    </div>
+    <div class="rcb">
+      <div class="pg">
+        <div class="pl">Roster Value</div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;">#${teamData.valueRank} of 12 &middot; ${Math.round(teamData.total).toLocaleString()} KTC ${teamData.flagged.length?`<span style="color:var(--accent3)">(+${teamData.flagged.length} unverified, not counted)</span>`:''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${Math.round(teamData.total-teamData.pickValue).toLocaleString()} players + ${Math.round(teamData.pickValue).toLocaleString()} future picks${teamData.picks.length?` (${teamData.picks.length})`:''}</div>
+      </div>
+      <div class="pg">
+        <div class="pl">Quadrant</div>
+        <div style="font-size:12px;">${teamData.quadrantLabel} <span style="color:var(--muted);font-size:10px;">(value: ${teamData.valueTier} &middot; timeline: ${teamData.timelineTier||'n/a'})</span></div>
+      </div>
+      <div class="pg">
+        <div class="pl">Current-Year Readiness</div>
+        <div style="font-size:12px;"><span class="tag ${readinessTagClass}">${readiness.tier}</span> <span style="color:var(--muted);font-size:10px;">#${readiness.rank} of 12 projected &middot; ${readiness.total.toLocaleString()} pts (best possible lineup, full season)</span></div>
+        ${lineupPreview?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">Led by: ${lineupPreview}</div>`:''}
+        ${readinessDetail}
+      </div>
+      <div class="pg">
+        <div class="pl">Top 3 Core Assets</div>
+        <div class="pchips">${topAssets.map(a=>`<span class="chip pos-${(a.position||'').toLowerCase()}"><span class="cp">${a.position||''}</span>${a.name} (${a.value.toLocaleString()})${a.unprovenNoPayoff?' ⚠':''}</span>`).join('')||'<span style="color:var(--muted);font-size:11px;">&mdash;</span>'}</div>
+        ${unprovenAssetNote}
+      </div>
+      <div class="pg">
+        <div class="pl">Position Depth</div>
+        ${depthHtml}
+      </div>
+      <div class="pg">
+        <div class="pl">Speculative Depth</div>
+        <div style="font-size:12px;">${teamData.speculativeCount} lottery-ticket spot${teamData.speculativeCount!==1?'s':''} <span style="color:var(--muted);font-size:10px;">(young + confirmed low value — separate from timeline score)</span></div>
+      </div>
+      <div class="pg">
+        <div class="pl">Bench Dead Weight ${teamData.highDeadWeightRisk?'<span class="tag tg-t" style="margin-left:4px;">⚠ Heaviest 4</span>':''}</div>
+        <div style="font-size:12px;">${teamData.deadWeightCount} washed veteran spot${teamData.deadWeightCount!==1?'s':''} <span style="color:var(--muted);font-size:10px;">(years_exp&ge;2, confirmed low value — mirror of Speculative Depth)</span></div>
+      </div>
+      <div class="pg" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Grade source: ${gradeSrc}${!snap?' &middot; '+teamData.gradeInfo.rationale:''}</div>
+      ${flaggedHtml}
+    </div>
   </div>`;
 }
 
