@@ -4,3 +4,7 @@ __pycache__/
 # Track .claude/settings.json and .claude/hooks/ so shared config and hook scripts
 # are versioned and backed up. Only the machine-local overrides stay ignored.
 .claude/settings.local.json
+# launch.json is written by Claude Code's preview tooling, not by hand — every
+# session that starts a dev server appends an entry, so it accreted six stale
+# duplicate-port configs in a few days. Machine-local like settings.local.json.
+.claude/launch.json
