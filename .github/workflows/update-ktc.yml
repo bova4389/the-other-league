@@ -4,13 +4,18 @@ on:
   schedule:
     # Every Monday at noon UTC (8 AM ET) — fresh values for the week
     - cron: '0 12 * * 1'
+  # ALLOW-list, not paths-ignore (fixed 2026-08-20). `paths-ignore` only skips a
+  # push whose files are ALL ignored, so every ordinary code push — index.html,
+  # CLAUDE.md, anything — fired a full KTC scrape. Confirmed in the log: four
+  # consecutive code pushes each produced an immediate `chore(bot)` commit, and
+  # each of those redeployed Pages via the workflow_run chain below. The scrape
+  # now costs ~7 extra requests (the deep-lookup pass), so this churn is not
+  # free. Scheduled cron + manual dispatch are the intended cadence; the only
+  # push worth reacting to is a change to the scraper itself.
   push:
     branches: [main]
-    paths-ignore:
-      - 'Sleeper FF/The Other League/ktc-values.json'  # don't re-run on its own commit
-      - 'Sleeper FF/The Other League/projections-*.json'  # the projections bot's commit isn't KTC's business
-      - 'Majors Golf Pool/**'
-      - 'Basic Bros Ryder Cup/**'
+    paths:
+      - 'Sleeper FF/The Other League/scripts/fetch_ktc.py'
   workflow_dispatch:
     # Manual trigger from GitHub Actions UI for on-demand refresh
 
