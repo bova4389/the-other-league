@@ -179,7 +179,11 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .sec-row-label{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.05em;color:var(--text2);margin-bottom:8px;margin-top:4px;border-bottom:1px solid var(--border);padding-bottom:4px;}
 
 /* ROSTER */
-.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+/* min(320px,100%) not a bare 320px: below a 320px container the track stays
+   320 wide and every card overflows the page, which forced a horizontal scroll
+   to reach the grade badge sitting at the right edge of .rch. The min() only
+   changes behaviour when the container is narrower than the track. */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px;}
 .r-card{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);transition:border-color .2s;}
 .r-card:hover{border-color:var(--accent);}
 .r-card.is-you{border-color:var(--accent2);}
@@ -1416,6 +1420,80 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .home-hero-logo { max-width: 260px; }
   .cd-num { font-size: clamp(28px, 7vw, 42px); }
 }
+
+/* ══════════════════════════════════════════════════════════
+   ROSTER GRADES — LEAGUE-FACING LIST (2026-08-20)
+   Replaces the 12-metric card grid, which was an internal
+   working view: every team could read every other team's
+   dead-weight count and speculative-depth tally. The league
+   sees a ranked row list; one click opens that team's
+   write-up. The raw metrics still exist behind ?admin=1.
+   ══════════════════════════════════════════════════════════ */
+.gr-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
+
+.gr-row { background: var(--card); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; transition: border-color .15s; }
+.gr-row.open { border-color: var(--accent); }
+
+.gr-head { display: flex; align-items: center; gap: clamp(7px, 2.4vw, 12px); padding: 11px clamp(10px, 3vw, 14px); cursor: pointer; user-select: none; }
+.gr-head:hover { background: var(--surface); }
+
+.gr-rank { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); min-width: 24px; text-align: right; flex-shrink: 0; }
+.gr-names { flex: 1; min-width: 0; }
+/* Explicit color, never inherited: `body` computes to white in BOTH themes on
+   this site, so anything that leans on inheritance is invisible in light mode.
+   Every new rule in this block names its own color for that reason. */
+/* Wraps to a second line rather than truncating. The grade is the thing the
+   reader came for, so the name yields space to it — but silently ellipsing a
+   team name to buy that space is worse than one extra line of row height. */
+.gr-team { font-family: 'Saira Condensed', sans-serif; font-size: clamp(15px, 3.6vw, 17px); font-weight: 600; letter-spacing: .02em; line-height: 1.15; color: var(--text); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gr-owner { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+/* Grade chip. Colour bands are deliberately coarse (A / B / C / D-F) so the
+   list reads at a glance without implying more precision than the rubric has. */
+/* Never shrinks, never wraps, never leaves the viewport: the whole point of
+   the row is that you can read the grade without scrolling anywhere. Sized in
+   vw so it stays proportionate on a phone instead of eating the name. */
+.gr-grade { font-family: 'Saira Condensed', sans-serif; font-size: clamp(17px, 5vw, 21px); font-weight: 700; line-height: 1; padding: 5px clamp(7px, 2.4vw, 11px); border-radius: 4px; flex-shrink: 0; min-width: clamp(38px, 11vw, 46px); text-align: center; white-space: nowrap; }
+.gr-a { background: var(--accent); color: #06060C; }
+.gr-b { background: var(--accent2); color: #FFFFFF; }
+.gr-c { background: var(--border); color: var(--text2); }
+.gr-d { background: var(--accent3); color: #FFFFFF; }
+
+.gr-caret { font-size: 10px; color: var(--muted); flex-shrink: 0; transition: transform .18s; }
+.gr-row.open .gr-caret { transform: rotate(180deg); }
+
+.gr-body { display: none; padding: 0 14px 16px 14px; border-top: 1px solid var(--border); }
+.gr-row.open .gr-body { display: block; }
+
+.gr-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0 11px 0; }
+.gr-writeup { font-size: 13.5px; line-height: 1.62; color: var(--text2); }
+.gr-writeup p { margin: 0 0 10px 0; }
+.gr-writeup p:last-child { margin-bottom: 0; }
+.gr-writeup strong { color: var(--text); font-weight: 600; }
+
+.gr-method { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 4px; }
+.gr-method h4 { font-family: 'Saira Condensed', sans-serif; font-size: 16px; letter-spacing: .03em; margin: 18px 0 6px 0; color: var(--text); }
+.gr-method h4:first-of-type { margin-top: 8px; }
+.gr-method p, .gr-method li { font-size: 12.5px; line-height: 1.6; color: var(--text2); }
+.gr-method p { margin: 0 0 9px 0; }
+.gr-method ul { margin: 0 0 11px 0; padding-left: 19px; }
+.gr-method li { margin-bottom: 5px; }
+.gr-method code { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); }
+
+.gr-quad-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin: 4px 0 12px 0; color: var(--text2); }
+.gr-quad-tbl th, .gr-quad-tbl td { border: 1px solid var(--border); padding: 6px 9px; text-align: left; vertical-align: top; }
+/* thead only — the tbody `th` cells are row labels ("Top 4 in value") and want
+   to read as text, not as a 9px uppercase mono column header. */
+.gr-quad-tbl thead th { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 400; }
+.gr-quad-tbl tbody th { color: var(--text); font-weight: 600; white-space: nowrap; }
+
+/* Head/name/grade sizing is handled by clamp() above, which scales
+   continuously instead of stepping at one breakpoint — don't reintroduce
+   fixed px overrides for them here, they'd defeat the fluid sizing. */
+@media(max-width:680px){
+  .gr-writeup { font-size: 13px; }
+  .gr-method h4 { font-size: 15px; }
+}
 </style>
 </head>
 <body class="is-home">
@@ -2303,6 +2381,12 @@ let _tradeInit = false;
 let _ktcValues = null;       // live/cached KTC values; null = use snapshot
 let _ktcSource = 'snapshot'; // 'live' | 'cached' | 'snapshot'
 let _ktcFetchedAt = 0;
+// Rostered players the scraper CHECKED against KTC's full pool (top-500 array
+// + per-player pages via sitemap slug) and confirmed are genuinely not tracked
+// there. Written by scripts/fetch_ktc.py as `unresolved`. This is the
+// difference between "we don't have a value for him" and "KTC has no value for
+// him" — see resolveRosterPlayerValue().
+let _ktcUnresolved = new Set();
 let _ktcAllPlayers = [];     // flattened list for values table
 let _ktcSortCol = 'rank';
 let _ktcSortAsc = true;
@@ -4751,11 +4835,15 @@ const KTC_SNAPSHOT = {
 // Load KTC values from localStorage (24h TTL)
 function loadKTCCache(){
   try{
-    const raw=localStorage.getItem('tol_ktc_v3');
+    // v4 (2026-08-20): cache shape gained `unresolved`. Bumped rather than
+    // tolerated, so a v3 cache can't serve a stale empty untracked-set for
+    // three days and quietly put the flagged-player report back.
+    const raw=localStorage.getItem('tol_ktc_v4');
     if(!raw)return false;
-    const{values,ts}=JSON.parse(raw);
+    const{values,ts,unresolved}=JSON.parse(raw);
     if(!values||Date.now()-ts>72*3600*1000)return false;
     _ktcValues=values;_ktcSource='cached';_ktcFetchedAt=ts;
+    _ktcUnresolved=new Set(unresolved||[]);
     return true;
   }catch(e){return false;}
 }
@@ -4770,7 +4858,8 @@ async function fetchKTCValues(){
       const data=await r.json();
       if(data.values&&Object.keys(data.values).length>200){
         _ktcValues=data.values;_ktcSource='static';_ktcFetchedAt=data.ts||Date.now();
-        try{localStorage.setItem('tol_ktc_v3',JSON.stringify({values:data.values,ts:Date.now()}));}catch(e){}
+        _ktcUnresolved=new Set(data.unresolved||[]);
+        try{localStorage.setItem('tol_ktc_v4',JSON.stringify({values:data.values,ts:Date.now(),unresolved:data.unresolved||[]}));}catch(e){}
         return;
       }
     }
@@ -4802,7 +4891,10 @@ async function fetchKTCValues(){
       });
       if(Object.keys(map).length>100){
         _ktcValues=map;_ktcSource='live';_ktcFetchedAt=Date.now();
-        try{localStorage.setItem('tol_ktc_v3',JSON.stringify({values:map,ts:Date.now()}));}catch(e){}
+        // No `unresolved` here on purpose: the CORS-proxy fallback only sees
+        // KTC's top-500 array, so it can't tell "untracked by KTC" from
+        // "below the cut" the way fetch_ktc.py's per-player pass can.
+        try{localStorage.setItem('tol_ktc_v4',JSON.stringify({values:map,ts:Date.now(),unresolved:[]}));}catch(e){}
         return;
       }
     }catch(e){}
@@ -5305,6 +5397,16 @@ function resolveRosterPlayerValue(pid){
   const name=p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim();
   const fuzzy=getKTCEntryFuzzy(name); // exact -> normalized -> suffix-stripped (Jr/Sr/II/III/IV)
   if(fuzzy)return{value:fuzzy.value,matched:true,reason:'ktc',position:p.position,age:p.age||0,name};
+  // 2026-08-20: a name in `unresolved` was CHECKED against KTC's whole pool by
+  // the scraper (top-500 array, then a per-player page via sitemap slug) and
+  // genuinely isn't tracked. That is a real, confirmed finding — KTC's pool is
+  // pre-curated to relevant dynasty assets, so "not in it" means "no dynasty
+  // value," not "unknown." Treating these as matched-at-zero rather than
+  // flagging them is what closes the reconciliation gap: previously they were
+  // dropped from the roster entirely, which let a manager hide a washed
+  // veteran from the Bench Dead Weight count by rostering someone KTC had
+  // stopped tracking. Now they count as the zero-value roster spot they are.
+  if(_ktcUnresolved.has(name))return{value:0,matched:true,reason:'ktc-untracked',position:p.position,age:p.age||0,name};
   return{value:0,matched:false,reason:'no-ktc-match',position:p.position,age:p.age||0,name};
 }
 
@@ -5671,17 +5773,23 @@ function gradeRoster(teamData){
   // CAP, not a modifier: High Bench Dead Weight + anything short of Strong
   // readiness cannot reach A- or A (3.4 sits just below the 3.5 A- cutoff,
   // so the ceiling becomes B+), no matter how high the raw score climbed.
-  if(teamData.highDeadWeightRisk&&teamData.readiness.tier!=='Strong'){
-    score=Math.min(score,3.4);
-  }
+  // 2026-08-20: `capBound` is whether the cap actually LOWERED the score, not
+  // just whether its condition held. Same class of bug as the 2026-08-19 fix
+  // one step further in: Joshin Around met the condition (11 dead-weight
+  // spots, Average readiness) but scored 0.9 — nowhere near the 3.4 ceiling —
+  // and still read "grade capped," which credits the cap for a D it had
+  // nothing to do with. Only the rationale changes; the grade is unaffected.
+  const capApplies=teamData.highDeadWeightRisk&&teamData.readiness.tier!=='Strong';
+  const capBound=capApplies&&score>3.4;
+  if(capApplies)score=Math.min(score,3.4);
   const scale=[[4.0,'A'],[3.5,'A-'],[3.0,'B+'],[2.5,'B'],[2.0,'B-'],[1.5,'C+'],[1.0,'C'],[0.5,'D'],[-Infinity,'F']];
   const grade=scale.find(([min])=>score>=min)[1];
-  return{grade,score,rationale:buildGradeRationale(teamData)};
+  return{grade,score,capBound,rationale:buildGradeRationale(teamData,capBound)};
 }
 
 // Template sentence assembled from the actual computed values — no
 // AI/free-text generation, per the "no AI scoring" precedent.
-function buildGradeRationale(teamData){
+function buildGradeRationale(teamData,capBound){
   const parts=[`Ranked #${teamData.valueRank} of 12 in roster value (${Math.round(teamData.total).toLocaleString()} KTC, incl. ${Math.round(teamData.pickValue).toLocaleString()} in future picks)`,
     teamData.quadrant.toLowerCase(),
     `${teamData.readiness.tier.toLowerCase()} current-year readiness (#${teamData.readiness.rank} of 12 projected, ${teamData.readiness.total.toLocaleString()} pts optimal lineup)`];
@@ -5692,7 +5800,8 @@ function buildGradeRationale(teamData){
   // cap and was never actually applied. Confirmed this exact false-positive
   // happened before the fix (Titsburg Feelers: highDeadWeightRisk=true,
   // readiness=Strong, grade=A, but the text said "grade capped").
-  if(teamData.highDeadWeightRisk&&teamData.readiness.tier!=='Strong')parts.push(`${teamData.deadWeightCount} washed veteran bench spot${teamData.deadWeightCount>1?'s':''} — grade capped`);
+  if(capBound)parts.push(`${teamData.deadWeightCount} washed veteran bench spot${teamData.deadWeightCount>1?'s':''} — grade capped`);
+  else if(teamData.highDeadWeightRisk&&teamData.readiness.tier!=='Strong')parts.push(`${teamData.deadWeightCount} washed veteran bench spots (heaviest in the league; the grade was already below the cap, so the cap didn't bind)`);
   else if(teamData.highDeadWeightRisk)parts.push(`${teamData.deadWeightCount} washed veteran bench spots (heaviest in the league, but Strong readiness exempts the cap)`);
   if(teamData.depthFlags.length)parts.push(`thin at ${teamData.depthFlags.map(f=>f.position).join('/')}`);
   if(teamData.flagged.length)parts.push(`${teamData.flagged.length} player${teamData.flagged.length>1?'s':''} unverified`);
@@ -5716,17 +5825,146 @@ function getTopAssets(uid,n){
     .filter(Boolean).sort((a,b)=>b.value-a.value).slice(0,n);
 }
 
-// ── SNAPSHOT (frozen preseason grade) ──
+// ── GRADING PERIODS ──
+// A grading period is one frozen run of the whole model: grades, the inputs
+// they were computed from, and the write-ups, all pinned to a date. The
+// league is graded more than once a season (preseason / midseason / final),
+// and the point of keeping the old ones is to see how a roster's read
+// CHANGED — a Genuine Rebuild that turns into a Stacked Contender by
+// December is the interesting story, and it's only visible if December
+// didn't overwrite August.
+//
+// Adding a period is three steps, no code changes beyond this array:
+//   1. open Grades & Outlook with ?admin=1 on the URL, on the Live tab
+//   2. copy the Snapshot Export JSON into roster-grades-<id>.json
+//   3. add the {id,label,season} row here and the write-ups to GRADE_WRITEUPS
+// Newest first — the list order is the tab order, and periods[0] is the
+// default tab.
+const GRADE_PERIODS=[
+  {id:'2026-preseason',label:'2026 Preseason',season:2026},
+];
+
+// Live-recompute pseudo-period. Always available with ?admin=1, and shown to
+// everyone only when no real period has been committed yet, so the view is
+// never empty. Never carries write-ups — those are authored per frozen
+// period, against numbers that have stopped moving.
+const GRADE_LIVE_PERIOD={id:'live',label:'Live (unofficial)',season:null};
+
+// Per-period, per-team write-ups. HTML, keyed [periodId][user_id].
+//
+// Hand-written against that period's frozen numbers, deliberately — not
+// generated. The mechanical rationale string (buildGradeRationale) is still
+// there and still drives the grade; this is the human translation of it for
+// eleven people who want to know why, in a league where the answer is
+// expected to be funny. A template can say "9 washed veteran bench spots"; it
+// cannot notice that they are all the same guy's retired running backs.
+//
+// Rules for writing these: every team gets at least one real compliment and
+// one real shot, both grounded in a number that's actually on this page. No
+// inside jokes that only two people get. No punching at anything outside
+// fantasy football.
+const GRADE_WRITEUPS={
+  '2026-preseason':{
+
+  // Titsburg Feelers — Chris Bova — A
+  '728290759668797440':`
+    <p><strong>You have the best roster in the league and there are officially no more excuses.</strong> Jahmyr Gibbs is the single most valuable asset anyone here owns. Trey McBride is a cheat code in a tight-end-premium format. Jayden Daniels and CeeDee Lamb round out a top four that would start on any other team in this league.</p>
+    <p>You landed in <strong>Stacked Contender</strong>, which is the good quadrant: first in roster value AND the youngest core in the league. That combination is supposed to be a trade-off and you simply refused to make it. Your win-now outlook is <strong>Strong</strong> &mdash; second-best projected lineup of the twelve. Gibbs alone is your biggest weekly weapon.</p>
+    <p>Now the part you won't like. You are carrying <strong>nine dead-weight bench spots</strong>, third-heaviest in the league. Ty Chandler, Hassan Haskins, Tutu Atwell, Dyami Brown, Devontez Walker, Xavier Hutchinson &mdash; that is not depth, that is a wide receiver hoarding disorder. You are also still rostering Deshaun Watson, which is a decision you made on purpose, with your own hands. Strong win-now readiness exempted you from the grade cap, so the A survived. Barely. Cut four of those guys and nobody would ever have to know.</p>`,
+
+  // BoKnows723 — Jake Bogardus — A
+  '722615938792382464':`
+    <p><strong>Loaded, and the clock is extremely loud.</strong> You and Titsburg are essentially tied at the top and everyone else is in a different league. Lamar Jackson, Justin Jefferson, Drake London, Tetairoa McMillan. That is a murderers' row. You also hold <strong>more future draft capital than anyone here</strong>, which is the single smartest thing on this page.</p>
+    <p>But you're <strong>Win-Now / Aging Window</strong>, not Stacked Contender, and the reason is that you have the second-oldest core in the league once you weight it by who your good players actually are. Your value is real and your value is old. Win-now readiness is <strong>Strong</strong>, so the window is open right now &mdash; this year, not next year.</p>
+    <p>The bench is where it gets funny. <strong>Nine dead-weight veteran spots</strong>, second-most in the league: Keenan Allen, Zach Ertz, a Tyreek Hill who no longer moves the needle in dynasty, and <strong>Joe Flacco, who is forty-one years old.</strong> You are running a very expensive assisted-living facility behind two MVP candidates. Strong readiness waived the cap, so you keep the A. Consider it a loan.</p>`,
+
+  // Nacua Matata — Jake Blackwell — A
+  '470747640758267904':`
+    <p><strong>The defending champ has the cleanest roster in the league and it's genuinely irritating.</strong> Only third in raw dynasty value, but <strong>first of twelve in projected points</strong> &mdash; the best win-now lineup on this page. Brock Bowers in a TE-premium league, Puka Nacua, Amon-Ra St. Brown, Joe Burrow behind them. Nacua is the biggest weekly weapon anybody here owns.</p>
+    <p><strong>Stacked Contender</strong>, young core, Strong readiness, and only <strong>three dead-weight bench spots</strong> &mdash; tied for the tidiest roster here. Every other contender is dragging a nursing home around; you're not. You won last year and then didn't get worse, which is the hardest thing to do in dynasty.</p>
+    <p>We are legally obligated to find something. Fine: Xavier Legette, Joshua Palmer and Jahan Dotson are your three flagged bench guys, which is the fantasy football equivalent of getting dinged for a slightly untidy garage. That's it. That's the whole complaint. Go be insufferable about it.</p>`,
+
+  // i LOVE mendoza — Mitch Blackwell — A-
+  '722920890647515136':`
+    <p><strong>You named the team after a rookie quarterback and then didn't start him.</strong> Fernando Mendoza is your second-most valuable asset and he does not crack your own best-possible lineup, which instead runs Jared Goff and Cam Ward. Somewhere in there is a lesson about commitment.</p>
+    <p>The roster is legitimately good: fourth in value, <strong>Stacked Contender</strong>, third-youngest core. Jaxon Smith-Njigba is a top-five asset in this league and your biggest weekly weapon by a distance. DeVonta Smith and Sam LaPorta behind him is real.</p>
+    <p>So why only an A-? <strong>Win-now readiness is only Average &mdash; eighth of twelve.</strong> Fourth-most valuable roster, eighth-best actual lineup. Your second running back slot is Tyler Allgeier, who projects to do roughly nothing across the entire season. You also have <strong>the most lottery-ticket bench stashes in the league</strong> and <strong>six quarterbacks</strong>, one of whom is Anthony Richardson and another of whom is Tyson Bagent. You are collecting QBs like Pokemon cards while your running back room projects like a bye week. Trade two of them for someone who plays on Sundays.</p>`,
+
+  // Breeces Peanut ButterCups — Nick Merkel — B-
+  '723731618132504576':`
+    <p><strong>You own Ja'Marr Chase and Bijan Robinson.</strong> Those are two of the three most valuable assets in this entire league and they are both on your team. On any given Sunday you have the highest ceiling here and everyone knows it.</p>
+    <p>And then there is a cliff you could hang gliders off. Your third-best asset is Ladd McConkey, and the drop from your second-best to your third-best is the steepest on this page. Roughly a sixth of your entire roster's worth sits in two human beings. If either one misses six weeks your season is a rebuild. That top-heaviness is exactly why you're <strong>Building</strong> and not Stacked Contender despite ranking fifth in value.</p>
+    <p>Win-now readiness is <strong>Average</strong>, and the reason your ceiling doesn't translate is under center: your best possible lineup starts <strong>Bryce Young.</strong> You have two superstars and a quarterback situation held together with tape. Your bench is clean &mdash; only three dead-weight spots &mdash; so you're not wasting roster space, you just don't have enough of it filled with anything. Flip a pick for a real QB and this is a B+ overnight.</p>`,
+
+  // SirWinsAlot — Jared Hayes — B-
+  '722927129620197376':`
+    <p><strong>The most efficient roster in the league.</strong> You're sixth in dynasty value but <strong>third of twelve in projected points</strong> &mdash; only the two juggernauts beat you, and both of them are worth substantially more on paper than you are. You are wringing more actual football out of less dynasty value than anyone here. Caleb Williams, Ashton Jeanty and Colston Loveland is a young, cheap, genuinely fun core, and Jonathan Taylor is the biggest weekly weapon on your roster.</p>
+    <p><strong>Building</strong> with a young core and <strong>Strong</strong> win-now readiness is a rare combination &mdash; usually you pick one. You picked both.</p>
+    <p>Two problems. First, you're flagged <strong>thin at tight end</strong>, which is genuinely impressive given you roster Colston Loveland: all your tight end value is in the starter, and the bench behind him is Matt Hibner and Will Kacmarek, neither of whom the dynasty market has ever heard of. Second, <strong>seven dead-weight bench spots</strong> put you in the heaviest four in the league &mdash; Kirk Cousins, Jalen Tolbert, Tyquan Thornton, Malik Davis, Devaughn Vele. Strong readiness saved you from the grade cap, but you're one hamstring from starting a guy nobody can look up. Clean the bench and this roster is dangerous.</p>`,
+
+  // Nabers in Paris — Nick Bova — C+
+  '722827711751487488':`
+    <p><strong>Welcome to Treading Water, the worst quadrant on the board.</strong> Not good enough to contend, not young enough to rebuild &mdash; middle of the pack in value with an old core. Every other quadrant has a plan attached to it. This one is just vibes.</p>
+    <p>Which is a shame, because the skill players are excellent: Malik Nabers, De'Von Achane, James Cook, George Pickens, and a Christian McCaffrey who is still the single biggest weekly weapon on your roster. Win-now readiness is <strong>Average</strong>, so this is not a bad football team.</p>
+    <p>It's a badly balanced one. You are flagged <strong>thin at both quarterback and running back</strong> &mdash; the only team here with two depth flags &mdash; and your best possible lineup starts <strong>Daniel Jones.</strong> In 2026. Voluntarily. Your bench dead weight is only Darren Waller, Calvin Ridley and Darnell Mooney, so it's not a hoarding problem, it's a "nothing behind the starters" problem. You have a full complement of future picks. Pick a direction, spend them, and get out of this box.</p>`,
+
+  // Enter the Maye-Trix — Duane Gillenwater — C
+  '728292202471604224':`
+    <p><strong>The best-prepared team for 2028 and the worst-prepared team for September.</strong> Your best possible lineup projects <strong>dead last, twelfth of twelve</strong>, and it is not close &mdash; you are a comfortable margin behind eleventh. This is the single worst win-now outlook on the page.</p>
+    <p>The future, though, is real. You hold <strong>the second-most future draft capital in the league</strong>, you have the fourth-youngest core, and Drake Maye is a top-tier long-term quarterback anchor. Chase Brown and Quinshon Judkins give you an actual young backfield. The model calls you <strong>Building</strong>, and it means it.</p>
+    <p>The bad news is that you're stuck in the middle of the value pack, which means you're building without the benefit of a real rebuild &mdash; you aren't bad enough to be picking at the top of the draft. Only <strong>four dead-weight spots</strong> (Christian Kirk, Noah Fant, Noah Gray, KaVontae Turpin), so the roster is honest, it's just young. The C is entirely your win-now outlook dragging a decent asset base down. Enjoy 2026 the way you'd enjoy a long flight: headphones on, no expectations.</p>`,
+
+  // Joshin Around — Andrew Bova — D
+  '467166827215056896':`
+    <p><strong>You own Josh Allen and a retirement community.</strong> Allen is a top-three asset in this league and the biggest weekly weapon you have by a mile. After him, your next-best player is Nico Collins. Allen is doing more heavy lifting than any single player on any roster here.</p>
+    <p>Now. <strong>Eleven dead-weight veteran bench spots. The most in the league by two.</strong> The roll call: <strong>Aaron Rodgers, who is forty-two years old.</strong> An Austin Ekeler whose dynasty value has essentially rounded to zero. Tyler Lockett. Mack Hollins. James Conner. Gardner Minshew. Will Levis. Darius Slayton. You also roster <strong>seven quarterbacks</strong> in a league that starts two, and three of them are so far outside relevance that the dynasty market doesn't even track them.</p>
+    <p>You have <strong>the oldest core in the league</strong>, which lands you in <strong>Bad &amp; No Future Currency</strong>. Win-now readiness came back Average, which is honestly a minor miracle and the only reason this isn't an F. The fix is not subtle and it is not a trade: open your roster and start cutting. You have a full slate of future picks to work with. There is a real team in here underneath the museum exhibit.</p>`,
+
+  // Your Team is the PITTsMAN — Chris Merkel — F
+  '722612742522994688':`
+    <p><strong>The tidiest roster in the league, and also one of the least talented.</strong> Genuine credit first: <strong>two dead-weight bench spots &mdash; fewest of anyone here.</strong> Nobody is carrying less garbage than you. Every roster spot is doing something. You are the only manager on this page who cannot be accused of hoarding.</p>
+    <p>The problem is what those spots are doing. <strong>Your most valuable player is Jaxson Dart</strong> &mdash; nine other teams have someone worth more than your best guy. Zay Flowers, Breece Hall and Rome Odunze are all fine. "Fine" nine times in a row is how you finish ninth in value with an old core, which is <strong>Bad &amp; No Future Currency</strong>.</p>
+    <p>Win-now readiness is <strong>Weak</strong>. Bottom-tier value plus the wrong quadrant plus a weak lineup is the exact three-input combination the rubric punishes hardest, and there was no dead weight left to blame it on. You're the most active trader in this league &mdash; this is the year to actually use that. Consolidate. Nine good players don't beat two great ones here.</p>`,
+
+  // eejacobs — Erin Jacobs — F
+  '728292169563099136':`
+    <p><strong>The youngest backfield in the league attached to the thinnest roster in the league.</strong> Jeremiyah Love and Omarion Hampton are two genuinely exciting young running backs, and Justin Herbert plus Jalen Hurts is a real superflex quarterback pairing. There is a foundation here.</p>
+    <p>There is also almost nothing behind it. You are flagged <strong>thin at both quarterback and running back</strong>, and the quarterback flag is the scary one: you roster <strong>exactly two quarterbacks and both of them start.</strong> In a superflex league. If Hurts rolls an ankle in Week 3, your superflex slot becomes a dead square for four months. Your receiver room is Matthew Golden and Jakobi Meyers, and your flex is Jonathon Brooks.</p>
+    <p>You also have <strong>zero young lottery-ticket stashes &mdash; the only team here with none</strong> &mdash; alongside seven dead-weight veterans (Najee Harris, Kendrick Bourne, Samaje Perine, Tyler Badie). That's the worst of both worlds: no upside on the bench and no production either. Eleventh in value, <strong>Weak</strong> readiness, old core, <strong>Bad &amp; No Future Currency</strong>. The two running backs are worth building around. Almost nothing else is. Turn those seven veterans into one player who matters.</p>`,
+
+  // Show Me Your Penix — Matt Bova — F
+  '721908735856967680':`
+    <p><strong>The commissioner wrote the algorithm, ran the algorithm, and the algorithm gave him last place.</strong> That's integrity. It's also an F.</p>
+    <p><strong>Twelfth of twelve in roster value</strong>, and the gap to first is the largest on the page. Worse, you hold <strong>the least future draft capital in the league</strong> &mdash; fewest picks of anyone, while everyone else is sitting on a healthy stack. You are last in the present and last in the ammunition to fix it, which is precisely what <strong>Bad &amp; No Future Currency</strong> means. Win-now readiness is <strong>Weak</strong>.</p>
+    <p>Your best player is a tight end (Tyler Warren). Carnell Tate is a nice young piece and Tee Higgins is still Tee Higgins. But the headline is this: the team is called <strong>Show Me Your Penix</strong>, you do in fact roster Michael Penix, and your own best possible lineup starts <strong>Sam Darnold and Tua Tagovailoa instead of him.</strong> You have five quarterbacks and the two the math likes best are the two nobody named a franchise after.</p>
+    <p>Silver lining: at five dead-weight spots you're mid-pack on bench junk, so this isn't a hoarding problem &mdash; there's just not enough here. You need volume. Move Higgins or Warren for picks while they still have value, and come back for the 2027 grades.</p>`,
+
+  },
+};
+
+let _gradeState=null;    // {allTeamsData, snapshots, unmatchedRows, year}
+let _gradePeriodId=null; // currently selected tab
+
+// Admin gate for the internal working views (raw per-team metrics, the
+// unmatched-player report, the snapshot exporter). These are diagnostics,
+// not league content: publishing every team's dead-weight tally and
+// match-confidence warnings next to their grade made the page read like a
+// spreadsheet and invited arguments about the plumbing instead of the grade.
+// Opt in with ?admin=1 on the URL, e.g. .../the-other-league/?admin=1#rosters
+//
+// Query string, NOT the hash: the hash is already the tab router
+// (routeFromHash/VALID_TABS), so an "#admin" flag would either be eaten by
+// the router or clobber the current tab on every showTab() call. The query
+// string survives hash navigation untouched.
+function isGradesAdmin(){return new URLSearchParams(location.search).has('admin');}
+
 // Read a committed JSON file the same way ktc-values.json already works
 // (no CORS, no backend). This is a static GitHub Pages site with no write
-// access from the browser, so "taking" a snapshot is a manual step: visit
-// this view in the Aug1-mid Sep window, use the Export panel at the bottom
-// to copy the computed JSON, and commit it as
-// roster-grades-snapshot-<year>.json at the repo root — the same manual
-// pattern already used to hand-maintain KTC_SNAPSHOT.
-async function loadRosterGradeSnapshot(year){
+// access from the browser, so "taking" a snapshot is a manual step — see
+// the GRADE_PERIODS comment above for the three-step process.
+async function loadRosterGradeSnapshot(periodId){
   try{
-    const r=await fetch(`roster-grades-snapshot-${year}.json?_=`+Math.floor(Date.now()/3600000));
+    const r=await fetch(`roster-grades-${periodId}.json?_=`+Math.floor(Date.now()/3600000));
     if(!r.ok)return null;
     const data=await r.json();
     return data&&data.teams?data:null;
@@ -5742,7 +5980,15 @@ function buildSnapshotPayload(allTeamsData,year){
       // so they're frozen alongside the grade for audit — this is what the
       // grade was BASED ON at snapshot time, even though live Outlook
       // readiness (injuries, depth charts) will keep changing all season.
-      readinessTier:teamData.readiness.tier,deadWeightCount:teamData.deadWeightCount,highDeadWeightRisk:teamData.highDeadWeightRisk,
+      readinessTier:teamData.readiness.tier,readinessRank:teamData.readiness.rank,readinessPts:teamData.readiness.total,
+      deadWeightCount:teamData.deadWeightCount,highDeadWeightRisk:teamData.highDeadWeightRisk,
+      speculativeCount:teamData.speculativeCount,
+      depthFlags:teamData.depthFlags.map(f=>f.position),
+      // Frozen so a past period renders entirely from its own file. Without
+      // these the 2026 Preseason tab would silently redraw itself using
+      // December's roster — which is the exact drift the snapshot exists to
+      // prevent, just moved from the grade into everything around it.
+      topAssets:getTopAssets(teamData.uid,3).map(a=>({name:a.name,position:a.position,value:a.value})),
       pickValue:Math.round(teamData.pickValue),
       rationale:teamData.gradeInfo.rationale};
   });
@@ -5750,9 +5996,10 @@ function buildSnapshotPayload(allTeamsData,year){
 }
 
 function buildSnapshotExportHtml(allTeamsData,year){
+  const suggestedId=`${year}-preseason`;
   return `<div style="margin-top:24px;border-top:1px solid var(--border);padding-top:16px;">
     <div class="sec-row-label">Snapshot Export (admin)</div>
-    <div class="note">Run this in the Aug 1&ndash;mid-Sep window, before the season locks rosters in via waivers/trades. Copy the JSON below into <code>roster-grades-snapshot-${year}.json</code> at the repo root and commit it &mdash; that freezes this year's grade so it stops drifting with KTC. The Outlook section above keeps updating live regardless.</div>
+    <div class="note">Copy the JSON below into <code>roster-grades-&lt;period-id&gt;.json</code> at the repo root (e.g. <code>roster-grades-${suggestedId}.json</code>), commit it, then add a matching row to <code>GRADE_PERIODS</code> and the write-ups to <code>GRADE_WRITEUPS</code>. That freezes this grading run so it stops drifting with KTC.</div>
     <textarea readonly style="width:100%;height:120px;font-family:'DM Mono',monospace;font-size:10px;background:var(--card);color:var(--text2);border:1px solid var(--border);padding:8px;" onclick="this.select()">${JSON.stringify(buildSnapshotPayload(allTeamsData,year),null,2)}</textarea>
   </div>`;
 }
@@ -5793,24 +6040,202 @@ async function buildRosterGrades(){
   computeDepthFlags(allTeamsData);
   classifyRosters(allTeamsData);
   allTeamsData.forEach(teamData=>{teamData.gradeInfo=gradeRoster(teamData);});
-  const snapshot=await loadRosterGradeSnapshot(year);
+  const snapshots={};
+  await Promise.all(GRADE_PERIODS.map(async p=>{snapshots[p.id]=await loadRosterGradeSnapshot(p.id);}));
   const unmatchedRows=buildUnmatchedReport(allTeamsData);
   console.log(`[Phase 6] Unmatched KTC report — ${unmatchedRows.length} player(s) across all 12 rosters`);
   if(unmatchedRows.length)console.table(unmatchedRows);
-  renderRosterGrades(allTeamsData,snapshot,year,unmatchedRows);
+  _gradeState={allTeamsData,snapshots,unmatchedRows,year};
+  const tabs=gradeTabs();
+  if(!_gradePeriodId||!tabs.some(p=>p.id===_gradePeriodId))_gradePeriodId=tabs[0].id;
+  renderRosterGrades();
 }
 
-function renderRosterGrades(allTeamsData,snapshot,year,unmatchedRows){
+// Tabs the current viewer gets: every committed period, plus Live for admins
+// (or for everyone if nothing has been committed yet, so the view is never
+// blank on a fresh season before the first snapshot is taken).
+function gradeTabs(){
+  const committed=GRADE_PERIODS.filter(p=>_gradeState&&_gradeState.snapshots[p.id]);
+  if(isGradesAdmin()||!committed.length)return committed.concat([GRADE_LIVE_PERIOD]);
+  return committed;
+}
+
+function setGradePeriod(id,el){
+  _gradePeriodId=id;
+  document.querySelectorAll('#grade-period-tabs .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  renderRosterGrades();
+}
+
+// One team's grade as the UI needs it, from whichever source this period
+// uses. A frozen period reads ENTIRELY from its committed file — including
+// the top assets and readiness — so an old tab keeps showing what was true
+// on its date rather than quietly re-rendering itself with today's roster.
+function gradeView(period,teamData,snapshot){
+  const s=snapshot&&snapshot.teams&&snapshot.teams[teamData.uid];
+  if(s)return{frozen:true,grade:s.grade,valueRank:s.valueRank,total:s.total,pickValue:s.pickValue||0,
+    quadrant:s.quadrant,quadrantLabel:s.quadrantLabel||s.quadrant,
+    readinessTier:s.readinessTier,readinessRank:s.readinessRank,readinessPts:s.readinessPts,
+    deadWeightCount:s.deadWeightCount,highDeadWeightRisk:s.highDeadWeightRisk,
+    speculativeCount:s.speculativeCount,depthFlags:s.depthFlags||[],
+    topAssets:s.topAssets||[],rationale:s.rationale};
+  return{frozen:false,grade:teamData.gradeInfo.grade,valueRank:teamData.valueRank,
+    total:Math.round(teamData.total),pickValue:Math.round(teamData.pickValue),
+    quadrant:teamData.quadrant,quadrantLabel:teamData.quadrantLabel,
+    readinessTier:teamData.readiness.tier,readinessRank:teamData.readiness.rank,readinessPts:teamData.readiness.total,
+    deadWeightCount:teamData.deadWeightCount,highDeadWeightRisk:teamData.highDeadWeightRisk,
+    speculativeCount:teamData.speculativeCount,depthFlags:teamData.depthFlags.map(f=>f.position),
+    topAssets:getTopAssets(teamData.uid,3),rationale:teamData.gradeInfo.rationale};
+}
+
+// Letter -> sort weight. The list is ordered by grade, not by roster value:
+// the grade is the headline, and leading with anything else makes the order
+// look wrong to anyone reading down the column. Frozen periods only store
+// the letter, so ranking has to work off it.
+const GRADE_ORDER=['A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
+function gradeChipClass(g){
+  const head=(g||'')[0];
+  return head==='A'?'gr-a':head==='B'?'gr-b':head==='C'?'gr-c':'gr-d';
+}
+
+function renderRosterGrades(){
   const c=document.getElementById('roster-grades-container');
-  const byValue=[...allTeamsData].sort((a,b)=>a.valueRank-b.valueRank);
-  const snapNote=snapshot
-    ?`<div class="note green">Frozen ${snapshot.season} Preseason Grade loaded from <code>roster-grades-snapshot-${year}.json</code> (generated ${new Date(snapshot.generatedAt).toLocaleDateString()}). Live figures below are the Outlook &mdash; they will drift from this frozen grade as the season goes; that's expected.</div>`
-    :`<div class="note orange">No frozen snapshot found for ${year} yet. Grades below are a <strong>live DRAFT</strong> &mdash; take the real snapshot in the Aug 1&ndash;mid-Sep window (before waivers/trades start moving values) using the Export panel at the bottom, then commit it as <code>roster-grades-snapshot-${year}.json</code>.</div>`;
-  c.innerHTML=snapNote+buildUnmatchedReportHtml(unmatchedRows)+'<div class="roster-grid" id="roster-grades-grid"></div>'+buildSnapshotExportHtml(allTeamsData,year);
-  document.getElementById('roster-grades-grid').innerHTML=byValue.map(teamData=>renderGradeCard(teamData,snapshot,year)).join('');
+  if(!_gradeState){c.innerHTML='<div class="note">Grades not built yet.</div>';return;}
+  const{allTeamsData,snapshots,unmatchedRows,year}=_gradeState;
+  const tabs=gradeTabs();
+  const period=tabs.find(p=>p.id===_gradePeriodId)||tabs[0];
+  const snapshot=snapshots[period.id]||null;
+
+  const rows=allTeamsData.map(td=>({teamData:td,view:gradeView(period,td,snapshot)}))
+    .sort((a,b)=>{
+      const ga=GRADE_ORDER.indexOf(a.view.grade),gb=GRADE_ORDER.indexOf(b.view.grade);
+      return(ga<0?99:ga)-(gb<0?99:gb)||a.view.valueRank-b.view.valueRank;
+    });
+
+  const tabsHtml=tabs.length>1
+    ?`<div class="roster-view-toggle" id="grade-period-tabs" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;">${tabs.map(p=>`<button class="yr-btn${p.id===period.id?' active':''}" onclick="setGradePeriod('${p.id}',this)">${p.label}</button>`).join('')}</div>`
+    :'';
+
+  const dateStr=snapshot&&snapshot.generatedAt
+    ?new Date(snapshot.generatedAt).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})
+    :new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  const stamp=snapshot
+    ?`<div class="sec-sub" style="margin-bottom:16px;">${period.label} &middot; graded ${dateStr} &middot; these grades are frozen to that date and will not move as the season does</div>`
+    : `<div class="note orange">Unofficial live recompute against today's rosters and KTC values &mdash; not a published grade, and it will read differently tomorrow. The committed periods above are the real ones.</div>`;
+
+  c.innerHTML=tabsHtml+stamp
+    +`<div class="gr-list">${rows.map((r,i)=>buildGradeRowHtml(period,r.teamData,r.view,i+1)).join('')}</div>`
+    +buildGradeMethodologyHtml(period,dateStr)
+    +(isGradesAdmin()?buildGradeAdminHtml(allTeamsData,snapshot,unmatchedRows,year):'');
 }
 
-function renderGradeCard(teamData,snapshot,year){
+function buildGradeRowHtml(period,teamData,view,rowNum){
+  const info=t(teamData.uid);
+  const writeup=(GRADE_WRITEUPS[period.id]||{})[teamData.uid];
+  const assets=(view.topAssets||[]).map(a=>`<span class="chip pos-${(a.position||'').toLowerCase()}"><span class="cp">${a.position||''}</span>${a.name}</span>`).join('');
+  const tags=[`<span class="tag tg-s">${view.quadrant}</span>`,
+    `<span class="tag ${view.readinessTier==='Strong'?'tg-y':view.readinessTier==='Weak'?'tg-t':'tg-s'}">${view.readinessTier} win-now</span>`,
+    `<span class="tag tg-s">#${view.valueRank} in roster value</span>`].join(' ');
+  const body=writeup
+    ?writeup
+    :`<p style="color:var(--muted);">No write-up for this period. Mechanical read: ${view.rationale}</p>`;
+  return `<div class="gr-row" id="gr-row-${teamData.uid}">
+    <div class="gr-head" onclick="toggleGradeRow('${teamData.uid}')">
+      <span class="gr-rank">${rowNum}</span>
+      <div class="gr-names">
+        <div class="gr-team">${info.team}</div>
+        <div class="gr-owner">${info.name}</div>
+      </div>
+      <span class="gr-grade ${gradeChipClass(view.grade)}">${view.grade}</span>
+      <span class="gr-caret">&#9660;</span>
+    </div>
+    <div class="gr-body">
+      <div class="gr-tags">${tags}</div>
+      ${assets?`<div class="pl" style="margin-bottom:4px;">Core Assets</div><div class="pchips" style="margin-bottom:12px;">${assets}</div>`:''}
+      <div class="gr-writeup">${body}</div>
+    </div>
+  </div>`;
+}
+
+function toggleGradeRow(uid){
+  const row=document.getElementById('gr-row-'+uid);
+  if(row)row.classList.toggle('open');
+}
+
+// League-facing explainer. This is the answer to "why did I get that" for
+// eleven people who did not read the code, so it names every input, says
+// which direction it pushes, and is explicit about what the model does NOT
+// know (last year's record, playoff seeding, how good the manager is).
+function buildGradeMethodologyHtml(period,dateStr){
+  return `<div class="gr-method">
+    <div class="sec-row-label">How These Grades Are Made</div>
+    <p>Every grade on this page was computed on <strong>${dateStr}</strong> from live Sleeper rosters and KeepTradeCut dynasty values. Nothing here is a human opinion about your team &mdash; the rubric below is applied identically to all twelve rosters, and the write-ups just explain what it spat out. Rosters move, so a grade is only ever true as of its date; that is why each grading period gets its own tab instead of overwriting the last one.</p>
+
+    <h4>1. Roster Value &mdash; the starting point</h4>
+    <p>Every player you roster is looked up in KeepTradeCut's <strong>superflex, TE-premium</strong> dynasty values, which is the format this league actually plays. Those values get added up, and your <strong>2027 and 2028 draft picks</strong> are added on top at their KTC value (picks are real assets &mdash; they're worth 15&ndash;25% of a typical roster here). All twelve teams are then ranked 1&ndash;12. Your rank sets your starting score: top 2 start highest, bottom 2 start lowest.</p>
+    <p>Kickers and defenses are excluded &mdash; KTC doesn't value them and neither does dynasty.</p>
+
+    <h4>2. Timeline &mdash; how much runway your value has left</h4>
+    <p>Two rosters worth the same KTC total are not the same team if one is 23 years old and the other is 30. Each player gets a 0&ndash;1 <em>runway</em> score from an aging curve for their position (RBs fall off a cliff at 29, WRs hold to 31, TEs peak later, QBs last longest), and those scores are averaged <strong>weighted by the player's value</strong> &mdash; so the age of your best players matters far more than the age of your WR6. Teams above the league median are "young," below it are "old."</p>
+
+    <h4>3. Your Quadrant &mdash; value crossed with timeline</h4>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="gr-quad-tbl">
+      <thead><tr><th></th><th>Young</th><th>Old</th></tr></thead>
+      <tbody>
+        <tr><th>Top 4 in value</th><td><strong>Stacked Contender</strong> &mdash; best roster in the league and it isn't going anywhere. Grade bonus.</td><td><strong>Win-Now / Aging Window</strong> &mdash; you're loaded right now and the clock is loud. Go win it.</td></tr>
+        <tr><th>Middle 4</th><td><strong>Building</strong> &mdash; real young pieces, not enough of them yet.</td><td><strong>Treading Water</strong> &mdash; not good enough to contend, not young enough to rebuild. The worst place to be.</td></tr>
+        <tr><th>Bottom 4</th><td><strong>Genuine Rebuild</strong> &mdash; bad on purpose, with the youth and picks to show for it.</td><td><strong>Bad &amp; No Future Currency</strong> &mdash; bad and old. Grade penalty.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>4. Current-Year Readiness &mdash; can you actually win in ${period.season||'the current season'}?</h4>
+    <p>Dynasty value doesn't score points. For this we take every player you roster, project their <strong>full-season point total through this league's own scoring rules</strong>, then solve for your <em>best possible legal lineup</em> &mdash; the optimizer ignores whatever you've actually set, so nobody is punished for not logging in. Teams are ranked 1&ndash;12 on that total: top 4 <strong>Strong</strong>, middle 4 <strong>Average</strong>, bottom 4 <strong>Weak</strong>. Strong lifts your grade; Weak drags it down hard.</p>
+    <p>This is the input that stops a team full of 21-year-olds from claiming an A while projecting to lose eleven games.</p>
+
+    <h4>5. Position Depth</h4>
+    <p>For each position you start, your bench value at that position is compared to the league median. Come in under 40% of it and you're flagged thin &mdash; one injury from a hole. Each flag costs you.</p>
+
+    <h4>6. Bench Dead Weight &mdash; the cap</h4>
+    <p>A roster spot spent on a veteran (2+ NFL seasons) with a confirmed low dynasty value is a spot doing nothing. Everyone is ranked by how many of those they're carrying, and the worst four are flagged. That flag is a <strong>hard ceiling, not a penalty</strong>: if you're carrying heavy dead weight <em>and</em> your readiness isn't Strong, you cannot score above a <strong>B+</strong> no matter how good your top end is. If your readiness <em>is</em> Strong, the cap is waived &mdash; you're using the roster, so it's your business.</p>
+    <p>Separately, <strong>Speculative Depth</strong> counts the mirror image: young, cheap lottery tickets. That one is reported but never penalized. Stashing rookies is not a crime.</p>
+
+    <h4>What the grade does NOT look at</h4>
+    <ul>
+      <li>Your record, last year or this year. This grades the roster, not the results.</li>
+      <li>Championships, playoff seeds, or head-to-head history.</li>
+      <li>Whether you're a good manager. A great manager with a bad roster still gets a bad grade.</li>
+      <li>Trades in progress, injuries after the grading date, or anything the waiver wire does next week.</li>
+    </ul>
+
+    <h4>About the numbers behind all this</h4>
+    <p>The write-ups above deliberately talk in players and rankings rather than raw figures, because the raw figures are only meaningful once you know the scale. For the curious, here is what is actually being counted:</p>
+    <ul>
+      <li><strong>Dynasty value</strong> comes from KeepTradeCut, a public site where thousands of dynasty players vote on trades. It turns those votes into a single number per player on a roughly 0&ndash;10,000 scale &mdash; the very best assets in fantasy sit near 10,000, a useful starter is somewhere in the 5,000s, and a bench flier is under 2,000. A full roster here totals somewhere around 90,000&ndash;140,000 once future picks are included. The number means nothing on its own; it only means something next to the other eleven teams, which is why this page always shows you a rank instead.</li>
+      <li><strong>Projected points</strong> are full-season totals for your best possible lineup, scored through this league's own rules &mdash; not Sleeper's generic scoring, which weighs receptions and yardage differently than we do. As real games get played, the number shifts from pure projection to actual production plus whatever is left to play.</li>
+      <li><strong>Draft picks</strong> are valued on the same dynasty scale as players, using the mid-round slot for each future round since nobody knows where they'll land yet.</li>
+    </ul>
+    <p>Anyone who wants the actual per-team figures can ask the commissioner &mdash; they're one click away on the admin view.</p>
+
+    <h4>The scale</h4>
+    <p>Grades run <code>A</code> down to <code>F</code> on a curve against this league only &mdash; you are being measured against the other eleven teams, not against dynasty leagues at large. Somebody has to be twelfth.</p>
+  </div>`;
+}
+
+// ── ADMIN-ONLY DIAGNOSTICS (?admin=1) ──
+// The old per-team metric cards, the unmatched-player report and the
+// snapshot exporter. All three are working tools for taking and validating a
+// grading period, not league content — see isGradesAdmin().
+function buildGradeAdminHtml(allTeamsData,snapshot,unmatchedRows,year){
+  const byValue=[...allTeamsData].sort((a,b)=>a.valueRank-b.valueRank);
+  return `<div style="margin-top:36px;border-top:2px solid var(--accent3);padding-top:18px;">
+    <div class="sec-row-label" style="color:var(--accent3);">Admin Diagnostics (?admin=1)</div>
+    <div class="note">Working view: raw per-team inputs, KTC match validation, and the snapshot exporter. Hidden from the league &mdash; drop <code>?admin=1</code> from the URL to see the page as everyone else does.</div>
+    ${buildUnmatchedReportHtml(unmatchedRows)}
+    <div class="roster-grid">${byValue.map(td=>renderGradeAdminCard(td,snapshot,year)).join('')}</div>
+    ${buildSnapshotExportHtml(allTeamsData,year)}
+  </div>`;
+}
+
+function renderGradeAdminCard(teamData,snapshot,year){
   const info=t(teamData.uid);
   const snap=snapshot&&snapshot.teams[teamData.uid];
   const gradeLabel=snap?snap.grade:teamData.gradeInfo.grade;
