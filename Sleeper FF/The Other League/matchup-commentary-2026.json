@@ -1,0 +1,10 @@
+{
+  "season": 2026,
+  "note": "Hand-written per-matchup write-ups for the Scores tab, keyed \"week|matchup_id\", rendered in the click-to-open strip at the foot of each match card. 2026 is written LIVE, week by week -- see Phase 8. Facts sourced from scripts/build_matchup_facts.py; check every number before it goes in. Consolation games with nothing at stake deliberately get no entry.",
+  "shape": {
+    "headline": "one line, the game in a sentence",
+    "body": "3-4 sentences, Hall of Fame & Shame roast level. Real point figures stay in the prose -- points are a scale everyone reads natively.",
+    "tags": "optional array of short uppercase labels, e.g. UPSET / BLOWOUT / UNLUCKY LOSS"
+  },
+  "matchups": {}
+}

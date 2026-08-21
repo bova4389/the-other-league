@@ -1830,6 +1830,177 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 @media(max-width:680px){
   .h2h-grid-tbl th, .h2h-cell button { font-size: 9px; padding: 4px 5px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCORES TAB — WEEKLY LEAGUE RECAP + SURVIVOR POOL TRACKER
+   The whole-league write-up that heads a week, and the survivor tracker that
+   sits at the foot of it. Deliberately echoes the Careers .sr-card recap
+   (same kicker / italic Saira head / fact strip / DM Sans body) so the two
+   prose surfaces on the site read as one thing in two places -- but it is a
+   separate class set, because this one carries the survivor block and the
+   Careers card must never grow one.
+
+   .wr-bare is the no-write-up case: the survivor tracker on its own, with the
+   card padding collapsed so it does not look like an empty recap.
+   ══════════════════════════════════════════════════════════════════════════ */
+.wr-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 16px 18px 18px;
+  margin-bottom: 16px;
+  max-width: 900px;
+}
+.wr-bare { padding: 0; background: none; border: none; }
+.wr-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.wr-head {
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: .03em;
+  line-height: 1.12;
+  color: var(--text);
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+[data-theme="dark"] .wr-head { text-shadow: 0 0 18px rgba(33,245,228,0.18); }
+
+.wr-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: 7px 14px;
+  padding: 11px 0 13px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 13px;
+}
+.wr-fact { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.wr-fk {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--accent3);
+}
+.wr-fv {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.wr-body p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.68;
+  margin: 0 0 11px;
+}
+.wr-body p:last-child { margin-bottom: 0; }
+
+/* -- The survivor tracker ------------------------------------------------ */
+.sv-block {
+  margin-top: 15px;
+  padding: 12px 14px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent3);
+}
+.wr-bare .sv-block { margin-top: 0; }
+.sv-top {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; margin-bottom: 3px;
+}
+.sv-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--accent3);
+}
+.sv-pot {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  flex: 0 0 auto;
+}
+.sv-rule {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 9px;
+}
+.sv-line {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.55;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+.sv-line strong { color: var(--text); font-weight: 600; }
+.sv-elim strong { color: var(--loss); }
+.sv-champ { color: var(--win); }
+.sv-champ strong { color: var(--win); }
+.sv-left { color: var(--accent); }
+.sv-pending { color: var(--muted); }
+.sv-tm { color: var(--muted); font-size: 11px; }
+.sv-flag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--accent3);
+}
+
+.sv-alive { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 8px; margin-top: 9px; }
+.sv-al {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.sv-chips { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.sv-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .03em;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+.sv-out {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.75;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+[data-theme="dark"] .sv-block { background: rgba(0,0,0,0.18); }
+
+@media(max-width:680px){
+  .wr-card { padding: 13px 14px 15px; margin-bottom: 14px; }
+  .wr-bare { padding: 0; }
+  .wr-head { font-size: 21px; }
+  .wr-body p { font-size: 12px; line-height: 1.62; }
+  .wr-facts { gap: 6px 12px; }
+  .sv-block { padding: 11px 11px 12px; }
+  .sv-line { font-size: 11.5px; }
+}
 </style>
 </head>
 <body class="is-home">
@@ -2482,15 +2653,31 @@ const SEASON_HISTORY = {
 // `tone`: 'win' (champion), 'second' (runner-up), 'tbd' (not yet decided).
 // Anything else takes the default .iv teal.
 const SEASON_PAYOUTS = {
+  // 2026 structure supplied by Matt 2026-08-21, before a snap was played. The
+  // lines are FINAL; only the names attached to them are open. It reconciles
+  // to the $1,200 pot exactly - see the footnote - so if a future edit breaks
+  // that sum, the edit is wrong, not the pot.
   2026: {
-    status: 'Pending',
-    note: 'Payout structure not yet decided. Will be updated when finalized.',
+    status: 'Structure Set',
+    note: 'Every prize below is locked in; the names are not. Weekly High Points runs all 17 weeks on purpose, so a manager knocked out of the playoffs still has $10 a week to submit a lineup for.',
     rows: [
+      {k:'Buy-in', v:'$100/team'},
       {k:'Total Pot', v:'$1,200'},
-      {k:'1st Place', v:'TBD', tone:'tbd'},
-      {k:'2nd Place', v:'TBD', tone:'tbd'},
-      {k:'Rivalry Winners', v:'TBD', tone:'tbd'},
+      {k:'🏆 1st Place', v:'$465', tone:'win'},
+      {k:'🥈 2nd Place', v:'$200', tone:'second'},
+      {k:'Regular Season Winner', v:'$100'},
+      {k:'High Points/Wk ($10 × 17 wks)', v:'$170'},
+      {k:'Most Points Against (Punching Bag)', v:'$30'},
+      {k:'Best QB', v:'$25'},
+      {k:'Best RB', v:'$25'},
+      {k:'Best WR', v:'$25'},
+      {k:'Best TE', v:'$25'},
+      {k:'Worst Beat (closest margin)', v:'$25'},
+      {k:'Top Performing 2026 Drafted Player', v:'$15'},
+      {k:'Rivalry Winners ($10 ea)', v:'$60 total'},
+      {k:'Survivor Pool', v:'$35'},
     ],
+    footnote: '465 + 200 + 100 + 170 + 30 + 25 + 25 + 25 + 25 + 25 + 15 + 60 + 35 = $1,200.',
   },
   2025: {
     status: 'Final',
@@ -2976,6 +3163,169 @@ function buildMedianMap(){
   return med;
 }
 
+// ── SURVIVOR POOL ────────────────────────────────────────────────────────
+// New for 2026 and worth $35 of the pot. One elimination a week: of the teams
+// still alive, the LOWEST scorer that week is out - win or lose, the head-to-
+// head result is irrelevant. Weeks 1-11, which is exactly the 11 eliminations
+// it takes to take 12 teams down to one survivor, so the pool is settled after
+// Week 11. (Matt's note said "week 12"; 12 teams minus one a week from Week 1
+// leaves the last man standing after Week 11, and he confirmed that cadence on
+// 2026-08-21. Week 12 still renders the block, holding the settled result.)
+//
+// This is COMPUTED from the scoreboard, never hand-recorded. The rule is
+// deterministic and the scores are already on the page - a hardcoded
+// elimination list could only ever drift from the grid six inches below it.
+const SURVIVOR = {
+  2026: { pot: 35, firstWeek: 1, finalWeek: 11, showThrough: 12 },
+};
+
+function computeSurvivor(year,matchups){
+  const cfg=SURVIVOR[year];
+  if(!cfg||!matchups)return null;
+  const allRids=Object.keys(RM).map(Number).sort((a,b)=>a-b);
+  let alive=allRids.slice();
+  const cume={};                       // season points to date - the tiebreak
+  allRids.forEach(r=>{cume[r]=0;});
+  const weeks={};
+  let champion=null,stalled=false;
+
+  for(let w=cfg.firstWeek;w<=cfg.finalWeek;w++){
+    const data=matchups[w]||matchups[String(w)]||[];
+    // Once one week is unplayed, every later week is unresolved too, whatever
+    // stray data it happens to hold. Without this latch a Week 5 that somehow
+    // had scores could eliminate someone while Week 4 sat unplayed.
+    const played=!stalled&&weekWasPlayed(data);
+    if(!played)stalled=true;
+
+    const scores={};
+    data.forEach(e=>{if(e&&e.matchup_id&&e.points!=null)scores[e.roster_id]=e.points||0;});
+
+    const aliveBefore=alive.slice();
+    let out=null,outPts=null,tied=false;
+
+    if(played&&aliveBefore.length>1){
+      // An exact tie at the bottom is broken by fewest season points to date -
+      // a real tiebreak rather than a coin flip - and flagged so the UI can
+      // say out loud that it was needed.
+      const ranked=aliveBefore.filter(r=>scores[r]!=null)
+        .sort((a,b)=>(scores[a]-scores[b])||(cume[a]-cume[b])||(a-b));
+      if(ranked.length){
+        out=ranked[0];
+        outPts=scores[out];
+        tied=ranked.length>1&&scores[ranked[1]]===outPts;
+        alive=aliveBefore.filter(r=>r!==out);
+      }
+    }
+
+    allRids.forEach(r=>{if(scores[r]!=null)cume[r]+=scores[r];});
+    const crowned=(out!==null&&alive.length===1);
+    if(crowned)champion=alive[0];
+
+    weeks[w]={week:w,played,aliveBefore,aliveAfter:alive.slice(),scores,
+              eliminated:out,elimPoints:outPts,tied,crowned};
+  }
+  return {cfg,year,weeks,champion,alive:alive.slice()};
+}
+
+// The tracker that rides at the foot of a week's league recap. Rendered for
+// every week 1..showThrough, including weeks nobody has played - a manager
+// opening Week 6 in September should still be told the pool exists and who is
+// still in it.
+function survivorBlockHtml(sv,week){
+  if(!sv)return '';
+  const cfg=sv.cfg;
+  week=Number(week);
+  if(week<cfg.firstWeek||week>cfg.showThrough)return '';
+  const nameOf=rid=>esc(rToTeam(rid).name);
+  const teamOf=rid=>esc(rToTeam(rid).team);
+  const full=rid=>`<strong>${nameOf(rid)}</strong> <span class="sv-tm">${teamOf(rid)}</span>`;
+
+  // Week 12 has no game of its own in this pool - it carries the verdict.
+  const post=week>cfg.finalWeek;
+  const st=sv.weeks[week]||null;
+
+  let lines='';
+  if(post){
+    lines=sv.champion!==null
+      ?`<div class="sv-line sv-champ">&#127942; Survivor champion &mdash; ${full(sv.champion)} takes the $${cfg.pot}. Settled in Week ${cfg.finalWeek}.</div>`
+      :`<div class="sv-line sv-pending">The pool settles in Week ${cfg.finalWeek}. ${sv.alive.length} still alive.</div>`;
+  }else if(!st||!st.played){
+    const n=st?st.aliveBefore.length:Object.keys(RM).length;
+    lines=`<div class="sv-line sv-pending">Week ${week} has not been played. ${n} still alive.</div>`;
+  }else if(st.crowned){
+    lines=`<div class="sv-line sv-elim">&#9760; Eliminated &mdash; ${full(st.eliminated)}, ${st.elimPoints.toFixed(2)}. Last one out.</div>`
+      +`<div class="sv-line sv-champ">&#127942; Survivor champion &mdash; ${full(sv.champion)} takes the $${cfg.pot}.</div>`;
+  }else if(st.eliminated!==null){
+    lines=`<div class="sv-line sv-elim">&#9760; Eliminated &mdash; ${full(st.eliminated)}, ${st.elimPoints.toFixed(2)} `
+      +`&mdash; lowest of the ${st.aliveBefore.length} still alive.`
+      +(st.tied?` <span class="sv-flag">Tied at the bottom; broken on fewest season points.</span>`:'')
+      +`</div>`
+      +`<div class="sv-line sv-left">${st.aliveAfter.length} left to battle in Week ${week+1}.</div>`;
+  }else{
+    lines=`<div class="sv-line sv-pending">No elimination this week.</div>`;
+  }
+
+  // Who is still standing, and who has already gone.
+  const aliveList=post?sv.alive:(st?st.aliveAfter:Object.keys(RM).map(Number));
+  const chips=aliveList.map(r=>`<span class="sv-chip">${nameOf(r)}</span>`).join('');
+  const upto=post?cfg.finalWeek:week;
+  const gone=[];
+  for(let w=cfg.firstWeek;w<=upto;w++){
+    const s=sv.weeks[w];
+    if(s&&s.eliminated!==null)gone.push(`W${w} ${nameOf(s.eliminated)}`);
+  }
+
+  return `<div class="sv-block">`
+    +`<div class="sv-top"><span class="sv-kicker">Survivor Pool</span><span class="sv-pot">$${cfg.pot}</span></div>`
+    +`<div class="sv-rule">Lowest score of the week is out, win or lose. Weeks ${cfg.firstWeek}&ndash;${cfg.finalWeek}; last team standing takes the pot.</div>`
+    +lines
+    +(chips?`<div class="sv-alive"><span class="sv-al">Still alive</span><div class="sv-chips">${chips}</div></div>`:'')
+    +(gone.length?`<div class="sv-out"><span class="sv-al">Out</span> ${gone.join(' \u00B7 ')}</div>`:'')
+    +`</div>`;
+}
+
+// ── WEEKLY LEAGUE RECAP ──────────────────────────────────────────────────
+// The whole-league write-up that sits ABOVE the match grid, one per week, in
+// weekly-recaps-<year>.json. Distinct from matchup-commentary-<year>.json,
+// which is per-game and hangs off the foot of each card: this is the
+// week-in-review for the league as a whole. Same no-CORS + hourly cache-buster
+// pattern as loadCommentary(); a missing file or an unwritten week renders no
+// card and must never break the scoreboard.
+let _weeklyRecapsPromise={};
+async function loadWeeklyRecaps(year){
+  if(_weeklyRecapsPromise[year]!==undefined)return _weeklyRecapsPromise[year];
+  _weeklyRecapsPromise[year]=(async()=>{
+    try{
+      const r=await fetch(`weekly-recaps-${year}.json?_=`+Math.floor(Date.now()/3600000));
+      if(!r.ok)return null;
+      const d=await r.json();
+      return(d&&d.weeks)?d.weeks:null;
+    }catch(e){return null;}
+  })();
+  return _weeklyRecapsPromise[year];
+}
+
+// The top-of-page block: league recap, with the survivor tracker underneath it.
+// Either half can be missing. When there is no write-up but the pool is live,
+// the survivor block stands on its own rather than dragging an empty card
+// along with it.
+function renderWeekTopBlock(recaps,sv,week){
+  const r=recaps&&(recaps[week]||recaps[String(week)]);
+  const surv=survivorBlockHtml(sv,week);
+  if(!r&&!surv)return '';
+  if(!r)return `<div class="wr-card wr-bare">${surv}</div>`;
+  const facts=(r.facts||[]).map(f=>
+    `<div class="wr-fact"><span class="wr-fk">${esc(f.k)}</span><span class="wr-fv">${esc(f.v)}</span></div>`).join('');
+  const body=(r.paragraphs||[]).map(p=>`<p>${esc(p)}</p>`).join('');
+  return `<div class="wr-card">`
+    +`<div class="wr-kicker">Week ${esc(week)} \u00B7 League Recap</div>`
+    +(r.headline?`<div class="wr-head">${esc(r.headline)}</div>`:'')
+    +(facts?`<div class="wr-facts">${facts}</div>`:'')
+    +(body?`<div class="wr-body">${body}</div>`:'')
+    +surv
+    +`</div>`;
+}
+
 // ── SCORES TAB ──
 function updateRivalryPills(year){
   const rw=RIVALRY_WEEKS[year]||[];
@@ -3241,8 +3591,14 @@ async function buildScores(){
     const projTotals=(projYear===currentScoresYear)
       ?await computeWeekProjections(currentScoresYear,currentScoresWeek,matchups[currentScoresWeek]||[]).catch(()=>({}))
       :{};
-    const commentary=await loadCommentary(currentScoresYear).catch(()=>null);
-    renderHistoricalScores(c,matchups,currentScoresWeek,projTotals,commentary);
+    const[commentary,weeklyRecaps]=await Promise.all([
+      loadCommentary(currentScoresYear).catch(()=>null),
+      loadWeeklyRecaps(currentScoresYear).catch(()=>null)
+    ]);
+    // Survivor is derived from the very same matchup payload the grid renders
+    // from, so the tracker can never disagree with the scores beneath it.
+    const survivor=computeSurvivor(currentScoresYear,matchups);
+    renderHistoricalScores(c,matchups,currentScoresWeek,projTotals,commentary,weeklyRecaps,survivor);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load scores.<br><small>${e.message}</small></div>`;
   }
@@ -3268,9 +3624,13 @@ function renderCommentaryBlock(commentary,week,matchupId){
     </div>`;
 }
 
-function renderHistoricalScores(container,matchups,week,projTotals,commentary){
+function renderHistoricalScores(container,matchups,week,projTotals,commentary,weeklyRecaps,survivor){
   projTotals=projTotals||{};
   commentary=commentary||{};
+  // The whole-league recap, with the survivor tracker under it, heads the page
+  // above the grid. Built before the early return below on purpose: a week
+  // with no matchup data yet still needs to show that the pool is running.
+  const topBlock=renderWeekTopBlock(weeklyRecaps,survivor,week);
   const h2h=buildH2HMap();
   const is2026=currentScoresYear===2026;
   const weekData=matchups[week]||[];
@@ -3278,7 +3638,7 @@ function renderHistoricalScores(container,matchups,week,projTotals,commentary){
   weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
   const pairs=Object.values(groups).filter(p=>p.length===2);
   if(!pairs.length){
-    container.innerHTML=`<div class="note">${is2026?'No matchup data yet for 2026 Week '+week+'. Check back once the season starts.':'No matchup data for '+currentScoresYear+' Week '+week+'.'}</div>`;
+    container.innerHTML=topBlock+`<div class="note">${is2026?'No matchup data yet for 2026 Week '+week+'. Check back once the season starts.':'No matchup data for '+currentScoresYear+' Week '+week+'.'}</div>`;
     return;
   }
   const isRivalry=(RIVALRY_WEEKS[currentScoresYear]||[]).includes(week);
@@ -3310,7 +3670,7 @@ function renderHistoricalScores(container,matchups,week,projTotals,commentary){
   };
   const showProjBanner=pairs.some(p=>projFor(p[0])||projFor(p[1]));
   const anyAutoFilled=pairs.some(p=>[p[0],p[1]].some(e=>{const pr=projFor(e);return pr&&pr.autoFilled;}));
-  let html='';
+  let html=topBlock;
   if(isRivalry)html+='<div class="rivalry-banner">&#9876; Rivalry Week</div>';
   if(showProjBanner)html+='<div class="proj-banner">&#9889; Projected scores, using this league&#39;s own scoring &mdash; updates as games are played. Not yet final.'
     +(anyAutoFilled?'<br><span style="color:var(--muted)">&#9679; = lineup not fully set; empty slots projected with that team&#39;s best available player.</span>':'')

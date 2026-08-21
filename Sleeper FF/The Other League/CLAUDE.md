@@ -30,8 +30,10 @@ the-other-league/                      ← outer repo root
     ├── roster-grades-<period-id>.json  ← Phase 6 frozen grading period, e.g. roster-grades-2026-preseason.json
     │                                     (exists as of 2026-08-20). One file per grading run; hand-committed from the
     │                                     Export panel in Rosters > Grades & Outlook with ?admin=1 on the URL
-    ├── matchup-commentary-<year>.json  ← Phase 8 Scores-tab write-ups, keyed "week|matchup_id".
-    │                                     matchup-commentary-2025.json exists as of 2026-08-21.
+    ├── matchup-commentary-<year>.json  ← Phase 8 Scores-tab PER-MATCHUP write-ups, keyed "week|matchup_id".
+    │                                     2025 complete; 2026 scaffolded empty 2026-08-21, written live each week.
+    ├── weekly-recaps-<year>.json       ← Phase 10 WHOLE-LEAGUE weekly recap, keyed by week number.
+    │                                     Sits at the TOP of the Scores tab. 2026 scaffolded empty 2026-08-21.
     ├── season-recaps.json              ← Phase 9 Careers year-tab season write-ups, keyed by year.
     │                                     2023/2024/2025 written 2026-08-21.
     └── scripts/
@@ -310,6 +312,54 @@ The prose beside each Careers year tab. See DEVELOPMENT ROADMAP Phase 9 for scop
 - CSS in the appended `CAREERS TAB — SEASON YEAR TABS` layer (`.season-split` / `.ss-*` / `.sr-*` / `.pay-*`). **`.season-split` is a wrapping flexbox on purpose** — the table hugs its content, the payout card takes the rest, and when there is no longer 300px left for it it drops underneath on its own. No breakpoint decides that, so it behaves inside a narrow *container*, not just a narrow viewport.
 - **The recap is a block under the split, not a third column.** At ~350 words a third column would either squeeze the standings or run to unreadable line lengths; `.ss-recap` is capped at 900px as a measure limit, not a layout constraint.
 
+### Survivor Pool + Weekly League Recap (Phase 10 — built 2026-08-21)
+Two things that share the top of a Scores week: the whole-league write-up, and the survivor
+tracker underneath it. See DEVELOPMENT ROADMAP Phase 10 for scope and the weekly workflow.
+
+**The survivor pool is COMPUTED, never hand-recorded.** `computeSurvivor(year, matchups)` derives
+the whole elimination chain from the same matchup payload the grid below it renders from, so the
+tracker cannot drift from the scores sitting six inches under it. Do not add a hardcoded
+elimination list; that is the one thing this design exists to prevent.
+
+- `SURVIVOR` — config per year: `{pot, firstWeek, finalWeek, showThrough}`. 2026 is
+  `{35, 1, 11, 12}`. **The pool settles after Week 11, not Week 12.** Matt's original note said
+  week 12, but 12 teams minus one a week from Week 1 leaves the last man standing after Week 11 —
+  he confirmed that cadence on 2026-08-21. `showThrough: 12` is why Week 12 still renders the
+  block: it holds the settled result rather than vanishing the moment it is decided.
+- `computeSurvivor(year, matchups)` — walks `firstWeek..finalWeek`. Each played week, the alive
+  team with the LOWEST score is out (win or loss is irrelevant). Returns
+  `{cfg, year, weeks, champion, alive}`; each week is
+  `{week, played, aliveBefore, aliveAfter, scores, eliminated, elimPoints, tied, crowned}`.
+  Returns `null` for any year with no `SURVIVOR` entry, which is 2023–2025.
+  - **The `stalled` latch matters.** Once one week is unplayed, every later week is marked
+    unresolved regardless of what data it holds — otherwise a Week 5 that somehow had scores could
+    eliminate someone while Week 4 sat unplayed.
+  - **Ties are broken on fewest season points to date**, not a coin flip, and `tied` is set so the
+    UI says out loud that a tiebreak was needed. Scores carry two decimals, so this should never
+    fire; it exists so that if it does, nobody thinks the site picked at random.
+- `survivorBlockHtml(sv, week)` — the tracker. Renders for **every** week `1..showThrough`,
+  including unplayed ones: a manager opening Week 6 in September should still be told the pool
+  exists and who is in it. Five states — not played / eliminated + who's left / crowned /
+  settled (week 12) / no elimination.
+- `loadWeeklyRecaps(year)` — fetches `weekly-recaps-<year>.json`, memoised per year in
+  `_weeklyRecapsPromise`. Same no-CORS + hourly cache-buster pattern as `loadCommentary()`.
+- `renderWeekTopBlock(recaps, sv, week)` — the top block. **Either half can be missing.** With no
+  write-up but a live pool it emits `.wr-bare` — the tracker alone, card chrome collapsed, rather
+  than an empty recap card dragging it along. With neither, it returns `''`.
+- Wired in `buildScores()` (loads recaps alongside commentary in one `Promise.all`, computes
+  survivor from `matchups`) and `renderHistoricalScores()`, which gained two params. **The top
+  block is built before the no-pairs early return and prepended on that path too** — a week with
+  no matchup data yet still needs to show the pool is running.
+- CSS in the appended `SCORES TAB — WEEKLY LEAGUE RECAP + SURVIVOR POOL TRACKER` layer
+  (`.wr-*` / `.sv-*`). Deliberately echoes the Careers `.sr-card` recap — same kicker, italic
+  Saira head, fact strip, DM Sans body — so the site's two prose surfaces read as one thing in
+  two places. It is a **separate class set** because this one carries the survivor block and
+  `.sr-card` must never grow one.
+
+**Verified 2026-08-21** by replaying the engine over the completed 2025 season: 11 clean
+eliminations, one a week, ending on a single champion after W11, no ties. Reconciles by
+construction. (Jake Blackwell, who won the 2025 title, would have been the first team out.)
+
 ### The Median Game on the Scores tab (2026-08-21)
 This league plays **two games a week** — the opponent, and the league median. The Scores card now shows both.
 
@@ -528,7 +578,17 @@ Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Car
 - 2024 — sum to $1,200 exactly, **after a fix on 2026-08-21**: the card credited Duane Gillenwater $15 for Best QB (Lamar Jackson) and `SEASON_HISTORY` had no line for him at all, so his career earnings ran $15 light and the card summed to $1,185. Line added.
 - 2025 — sum to $1,200 exactly, **after a fix in a parallel session (128dd39)**: the itemised lines accounted for only $1,175, and the missing $25 turned out to be money held back from the pot for the championship trophy rather than paid out as cash. It is now folded into Jake Blackwell's 1st-place line ($455 → $480, per-owner total $490 → $515). That commit also fixed a transposed figure in the Most Improved Points label (1,196 → 1,961).
 
-**All three seasons now reconcile to the pot exactly**, and the career-earnings column sums to $3,000 across 2023–2025. There is a `reconcile_payouts.py` shape worth rebuilding if a fourth season ever fails to add up: total each card's lines per owner and diff against `SEASON_HISTORY.payouts`, then against the pot.
+- 2026 — **structure set 2026-08-21, before a snap was played** (Matt). Replaces the old
+  "Pending / TBD" placeholder. Every line is final; only the names are open, so there is no
+  `SEASON_HISTORY[2026]` to reconcile against yet — add one when the season closes out. The
+  itemised lines sum to the $1,200 pot exactly: 465 + 200 + 100 + 170 + 30 + 25 + 25 + 25 + 25 +
+  25 + 15 + 60 + 35. **If a future edit breaks that sum, the edit is wrong, not the pot.**
+  Two lines carry rules that are not obvious from the label: High Points is `$10 × 17 weeks`
+  (all 17 on purpose — a manager knocked out of the playoffs still has $10 a week to submit a
+  lineup for), and the $35 Survivor Pool is the one payout the site computes rather than records
+  (see Survivor Pool + Weekly League Recap above).
+
+**All four seasons now reconcile to their pot exactly**, and the career-earnings column sums to $3,000 across 2023–2025. There is a `reconcile_payouts.py` shape worth rebuilding if a fourth season ever fails to add up: total each card's lines per owner and diff against `SEASON_HISTORY.payouts`, then against the pot.
 ### `SDATA` / `SLABELS` — scoring values and display names
 ### `DRAFT_ORDER_2026` — 2026 round 1 order (13 picks — includes consolation bonus pick 1.13)
 ### `KTC_SNAPSHOT` — hardcoded dynasty player values (Superflex + PPR + TE Premium, June 2026). ~80 players + all 2027/2028 pick tiers (Early/Mid/Late × 4 rounds). Used as fallback when live KTC fetch fails. Pick values represent the +25% slider position (full KTC). Format: `name → value (number)` for snapshot; `name → {value, position, nflTeam, age, rank, trend}` for live cached data.
@@ -649,6 +709,15 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honour it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
   If playoff stats are ever wanted they belong in a **separate** set, and they must be filtered to the *winners* bracket via `PLAYOFF_BRACKET_INFO` — an all-weeks-15-to-17 aggregate is exactly the noise this rule exists to keep out.
 - **Careers is All Time + Hall of Fame & Shame + one tab per season, and superlatives live in exactly one place.** All Time holds the career table and the All-Time Record Book; Hall of Fame & Shame holds the award grid; each year tab holds that season's standings and recap. The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated. Season standings were stacked under All Time until 2026-08-21; four tables in one scroll was a wall, and none of them had anywhere to put a write-up. **The payout cards moved to the same year tabs on the same day** — a season's money belongs next to that season's table, not on a separate tab, and putting them together is what surfaced the missing $15 (see `SEASON_PAYOUTS`).
+- **The survivor pool is computed from the scoreboard, never hand-recorded.** The rule is
+  deterministic and the scores are already on the page, so a hardcoded elimination list could only
+  ever drift from the grid rendered directly beneath it. Same reasoning as the median game having
+  one implementation shared by the Scores tab and the all-time engine. If a week's elimination
+  ever looks wrong, the fix is in the *scores*, not in a manual override. See Phase 10.
+- **A week's Scores page has two recap scopes and they stay separate** — one whole-league
+  week-in-review at the top (`weekly-recaps-<year>.json`), and one write-up per game at the foot
+  of its card (`matchup-commentary-<year>.json`). Different files, different lengths, different
+  jobs. Don't collapse them into one.
 - **Year standings default to Place ascending; the All Time career table defaults to Career Earnings descending.** Confirmed by Matt 2026-08-21. Both are sticky per table once a header is clicked — that is deliberate, don't reset them on tab switch.
 - **Matchup commentary: 2025 is hybrid, 2026 forward is hand-written only** (Matt, 2026-08-21). Placement games (3rd, 5th) and the Consolation Final are in scope because they carry a reward; the rest of the consolation bracket gets nothing and renders no toggle. See Phase 8.
 - **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
@@ -844,6 +913,55 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 **Merge note (2026-08-21).** This branch deleted the League-panel payout markup at the same time as 128dd39 was editing two lines inside it, so `index.html` conflicted in two places: the deleted payout block (took the deletion, carried both of their corrections into `SEASON_PAYOUTS` by hand) and the end of `<style>`, where both sides had appended a new banner-commented CSS layer (kept both). **That second conflict is structural, not bad luck** — the redesign convention says new CSS goes at the very bottom of `<style>`, so any two branches that add a layer will collide there. Expect it, and resolve by keeping both blocks rather than picking a side.
 
 **Not built:** 2026 has no recap (it hasn't happened); write one after the season. Per-season *record books* are still all-time only — see the Phase 1 follow-ups.
+
+---
+
+### Phase 10 — Weekly League Recap + Survivor Pool — **machinery shipped 2026-08-21; content written weekly**
+Asked for by Matt on 2026-08-21, ahead of the 2026 season. Three things landed together: the 2026
+payout structure, a whole-league weekly recap above the match grid, and a survivor-pool tracker.
+Implementation detail is in **Survivor Pool + Weekly League Recap** under JAVASCRIPT FUNCTIONS.
+
+**What the Scores tab now stacks, top to bottom:** whole-league recap → survivor tracker →
+rivalry / projection banners → the match grid, each card with its own per-matchup recap at the
+foot. The league recap and the matchup recaps are **different files and different scopes** — one
+week-in-review for the league, twelve write-ups for the individual games. Don't merge them.
+
+**THE WEEKLY WORKFLOW (2026, weeks 1–17).** Every week is a two-file edit, both hand-written:
+1. `scripts/build_matchup_facts.py` for that week — **every number in both files comes from here.**
+   Never write a figure from memory or from the API by eye.
+2. `weekly-recaps-<year>.json` — one entry keyed by week number:
+   `{headline, facts: [{k,v}], paragraphs: []}`. 2–3 paragraphs / ~200–250 words: longer than a
+   matchup write-up, shorter than a season recap. 3–5 `facts` reads best; past 6 the strip wraps
+   badly on mobile.
+3. `matchup-commentary-<year>.json` — one entry per game keyed `"week|matchup_id"`, unchanged
+   Phase 8 shape and voice.
+4. **Do NOT write survivor eliminations into either file.** The tracker computes them. The only
+   thing to check is that the week's scores are final on Sleeper before pointing anyone at it.
+
+**Voice:** matches Phase 8/9 — Hall of Fame & Shame roast level, punch at the decision not the
+person. Real point figures stay in the prose.
+
+**Survivor decisions, both confirmed by Matt 2026-08-21:**
+- **The pool settles after Week 11, not Week 12.** His note said "lowest scoring team eliminated
+  each week until highest scorer of last 2 teams is determined week 12", but 12 teams minus one a
+  week from Week 1 leaves one team standing after Week 11 — the arithmetic doesn't reach 12. He
+  chose to keep straight one-per-week elimination and crown at W11. Week 12 still renders the
+  block holding the settled result, so the "weeks 1–12" framing in his note still reads true.
+- **Lowest score of the week goes, win or lose.** The head-to-head result is irrelevant to it.
+
+**Built:** ✅ `SEASON_PAYOUTS[2026]` (15 lines, reconciles to $1,200) · ✅ `computeSurvivor()` +
+`survivorBlockHtml()` · ✅ `loadWeeklyRecaps()` + `renderWeekTopBlock()` · ✅ `.wr-*` / `.sv-*` CSS
+layer · ✅ `weekly-recaps-2026.json` and `matchup-commentary-2026.json` scaffolded empty (the
+second also clears a 404 the Scores tab had been throwing on every 2026 load).
+
+**Verified before commit:** engine replayed over the finished 2025 season — 11 eliminations, one a
+week, single champion after W11, no ties. All five render states checked (unplayed / eliminated /
+crowned / settled / week 13+ renders nothing), payout card reconciled in the DOM, and zero
+horizontal overflow at 375px in both themes.
+
+**Not built:** no per-week *automation*. `scripts/tuesday_update.py` still only maintains
+`h2h-records.md`; it does not draft recaps or touch either JSON. Worth considering: extend
+`build_matchup_facts.py` to emit a week's fact sheet for both files in one run.
 
 ---
 

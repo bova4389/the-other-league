@@ -1,0 +1,11 @@
+{
+  "season": 2026,
+  "note": "Hand-written whole-league recap, one per week, rendered at the TOP of the Scores tab above the match grid. Distinct from matchup-commentary-2026.json, which is the per-game write-up hanging off the foot of each card. Voice matches Phase 8/9: Hall of Fame & Shame roast level, punch at the decision not the person. Facts must come from scripts/build_matchup_facts.py -- check every number before it goes in.",
+  "shape": {
+    "headline": "one line, the week in a sentence",
+    "facts": "optional array of {k, v} -- the at-a-glance strip. 3-5 entries reads best; more than 6 wraps badly on mobile.",
+    "paragraphs": "array of strings, one per paragraph. 2-3 paragraphs / ~200-250 words is the target: longer than a matchup write-up, shorter than a season recap."
+  },
+  "survivor_note": "Do NOT write the survivor eliminations in here. The tracker under each recap is computed live from the scoreboard by computeSurvivor() in index.html -- a hand-typed elimination list would only drift from the scores rendered directly beneath it.",
+  "weeks": {}
+}
