@@ -32,11 +32,14 @@ the-other-league/                      ← outer repo root
     │                                     Export panel in Rosters > Grades & Outlook with ?admin=1 on the URL
     ├── matchup-commentary-<year>.json  ← Phase 8 Scores-tab write-ups, keyed "week|matchup_id".
     │                                     matchup-commentary-2025.json exists as of 2026-08-21.
+    ├── season-recaps.json              ← Phase 9 Careers year-tab season write-ups, keyed by year.
+    │                                     2023/2024/2025 written 2026-08-21.
     └── scripts/
         ├── tuesday_update.py          ← weekly H2H records updater
         ├── fetch_ktc.py               ← KTC values scraper (top-500 + per-player deep lookup)
         ├── fetch_projections.py       ← daily Sleeper projections pull → projections-<year>.json
         ├── build_matchup_facts.py     ← Phase 8 offline fact sheet; writes to a temp dir, never committed
+        ├── build_season_facts.py      ← Phase 9 season-level fact sheet; same deal, never committed
         └── bot_state.json             ← tracks which weeks have been applied
 ```
 
@@ -111,8 +114,10 @@ Tab order (desktop L→R; mobile row 1 then row 2):
 | 6 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraftHistory()` on demand (all years, 2026 included) |
 | 7 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
 | 8 | 📋 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
-| 9 | ℹ️ | League | `league` | `panel-league` | No — static HTML |
+| 9 | ℹ️ | **Rules** | `league` | `panel-league` | No — static HTML |
 | 10 | ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
+
+**Tab 9 was labelled "League" until 2026-08-21.** Only the visible label changed — the `showTab` id, the `#league` hash, `VALID_TABS` and `panel-league` are all unchanged, so existing links keep working. The payouts that used to open that panel now live on the Careers year tabs; what is left is rules, format and scoring, which is what "Rules" names.
 
 **Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI; the underlying JS and CSS were deleted 2026-08-20 (see Anthropic API section).
 
@@ -126,11 +131,14 @@ Contains:
 **Removed from home panel:** Consolation winner card (Nick Merkel), Quick-nav grid (replaced by icon nav)
 
 ### Careers Panel (`panel-careers`)
-Restructured 2026-08-20 (Phase 1) into **two sub-tabs**, using the same self-contained-divs pattern as `setRosterView`:
+Restructured 2026-08-20 (Phase 1) into sub-tabs and widened to **six** on 2026-08-21 (Phase 9), using the same self-contained-divs pattern as `setRosterView`:
 1. Section title "LEAGUE HISTORY" + subtitle
-2. `.careers-view-toggle` — two `.yr-btn` buttons, switched by `setCareersView('records'|'hof', el)`
-3. `#careers-view-records` → `#careers-container`: career table, then the **All-Time Record Book** (`#record-book`), then per-season standings. Built by `buildCareers()`.
+2. `.careers-view-toggle` — six `.yr-btn` buttons, switched by `setCareersView('records'|'hof'|'2026'|'2025'|'2024'|'2023', el)`
+3. `#careers-view-records` (**"All Time"**) → `#careers-container`: career table, then the **All-Time Record Book** (`#record-book`). Built by `buildCareers()`. **Per-season standings no longer live here** — they moved to the year tabs on 2026-08-21.
 4. `#careers-view-hof` → `#hof-container`: the **Hall of Fame & Shame** award grid. Lazy-built by `buildHallOfFame()` on first switch.
+5. `#careers-view-<year>` — one per season in `CAREER_YEARS`: that year's standings table, that year's **payout card** beside it (below it on a narrow screen), and the **season recap** under both. Lazy-built by `buildSeasonYear(year)`.
+
+**Adding a season** = one button + one empty `#careers-view-<year>` div in the markup, a new entry at the front of `CAREER_YEARS`, plus the `SEASON_HISTORY` / `PLAYOFF_BRACKET_INFO` entries that a finished season needs anyway. A year with no `SEASON_HISTORY` entry renders as the live season automatically — that is the test for "is this year in the books", since final placements exist nowhere else.
 
 **The 7-pill `.career-status-bar` is gone.** Those stats were not deleted — they are now the first cards of the Hall of Fame grid, so a superlative lives in exactly one place. The `.s-pill` class is still used by other panels; only this bar's markup and its `stat-*` IDs were removed.
 
@@ -188,11 +196,14 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `txn-team-chips` — multi-select team filter chip bar (replaced the old `txn-team-filter` dropdown)
 
 ### Careers Panel
-- `careers-view-records` / `careers-view-hof` — the two sub-tab views, toggled by `setCareersView('records'|'hof', el)`
-- `cview-records-btn` / `cview-hof-btn` — the sub-tab buttons
-- `careers-container` — career table + record book + season standings (Records view)
+- `careers-view-records` / `careers-view-hof` / `careers-view-<year>` — the six sub-tab views, toggled by `setCareersView(view, el)`
+- `cview-records-btn` / `cview-hof-btn` / `cview-<year>-btn` — the sub-tab buttons
+- `careers-container` — career table + record book (**All Time** view)
 - `record-book` — All-Time Record Book card grid, rendered by `buildRecordBook()`
 - `hof-container` — Hall of Fame & Shame card grid, rendered by `buildHallOfFame()`
+- `standings-tbody-<year>` / `standings-thead-<year>` — that season's standings table, now inside its year view
+- `season-recap-<year>` — the recap block under the split; filled asynchronously by `renderSeasonRecap(year)`
+- `.ss-standings` / `.ss-payouts` / `.ss-recap` — the three blocks of a year view (no ids; there is one of each per view)
 
 ### Trade Evaluator Panel (`panel-trade`)
 - `ktc-badge` — green = live/cached KTC values; yellow = snapshot fallback
@@ -253,9 +264,17 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `hofCard(cfg)` — renders one `.hof-card`. `tone:'bad'` adds `.shame` (magenta); `wide:true` spans two grid columns.
 
 ### Careers
-- `setCareersView(view, el)` — sub-tab switcher; lazy-calls `buildHallOfFame()` on first switch to the awards view
-- `buildCareers()` — Records view: career earnings/placement table, then `buildRecordBook()`, then `buildSeasonStandings()`
+- `CAREER_YEARS` — `[2026, 2025, 2024, 2023]`, newest first. Must match the buttons and `#careers-view-<year>` divs in the markup.
+- `setCareersView(view, el)` — sub-tab switcher; lazy-calls `buildHallOfFame()` on first switch to the awards view, or `buildSeasonYear(year)` for a year view
+- `buildCareers()` — All Time view: career earnings/placement table, then `buildRecordBook()`, then `rebuildSeasonYears()`
+- `buildSeasonStandings(container)` — **gone (2026-08-21).** It stacked 2026 + 2025 + 2024 + 2023 under the Records view; the per-year pieces are now `seasonStandingsRows()` / `seasonStandingsTable()` / `buildSeasonYear()`.
 - `buildRecordBook()` — 12 record cards: highest/lowest single week, biggest blowout, closest finish, highest/lowest-scoring matchup, longest win/losing streak, most/fewest points in a season, most championships, most playoff berths. **Streaks deliberately run across season boundaries.** Single-season point records only count *complete* 14-week seasons, so a live or half-cached year can't walk away with "fewest points ever".
+- `seasonStandingsRows(year)` — one season's rows. **A season is "complete" iff `SEASON_HISTORY[year]` exists** — that is the only place final placements live, so it is the honest test, and it means a new live season needs no code edit. Completed years order by playoff result, a live one by total wins with PF as tiebreaker. Returns `null` only when a *completed* year has no cached matchup data, which is the "visit the Scores tab" case. The `REG_WEEKS` cap on the live-season week scan is carried over verbatim from the old `buildSeasonStandings` — see the two week-bound bugs above; don't drop it.
+- `seasonStandingsTable(year)` — `{caption, html}` for that table, and registers the rows with `standingsRowData` so `sortStandingsByCol` keeps working.
+- `buildSeasonYear(year)` — one year sub-tab: title, caption, then `.season-split` holding the standings and that season's payout card, with `.ss-recap` under both. Idempotent, so `rebuildSeasonYears()` can re-run it.
+- `payoutCardHtml(year)` — one season's payout card from `SEASON_PAYOUTS`. Reuses the `.ic` / `.ir-row` / `.ik` / `.iv` classes the League panel already had rather than inventing a surface, so it inherits both themes for free. Returns `''` for a year with no entry, and `buildSeasonYear` then omits the column entirely.
+- `rebuildSeasonYears()` — re-renders every year view already built (`dataset.loaded`). Called from `buildCareers()`, which itself re-runs when the boot matchup prefetch lands — exactly when a year tab opened early is still showing an empty table.
+- **`renderStandingsTbody` gained a `pending` row flag** — a live season with no games played carries a place only for stable ordering, so it renders `—` instead of handing the alphabetically-first owner a 🏆 in August.
 - `buildHallOfFame()` — 19 award cards: the 7 former pills (Past Champions, Career Earnings, Career Wins, Consistent Finisher, Draft Picks, Trades, Worst Finish) plus Best All-Time Win %, Best/Worst Scoring Average, Most Weekly Crowns/Duds, Luckiest/Unluckiest Manager (measured against the weekly median), Mr. Reliable / Boom or Bust (score std dev), Punching Bag, Most Lopsided Wins, and Waiver Wire Warrior.
 
 ### Scores Tab
@@ -278,6 +297,15 @@ Hand-written write-ups under each matchup on the Scores tab, collapsed behind a 
 - **The collapsed strip reads "Matchup Recap"** (Matt, 2026-08-21), not the headline. It used to preview the headline, which gave the punchline away before the click.
 - `esc(s)` — HTML-escape helper. **There was no escape helper in this file before Phase 8**; commentary is our own prose but it goes through `innerHTML` and is full of apostrophes and ampersands, so it is escaped rather than trusted. Reuse it for any new string-into-`innerHTML` work.
 - CSS lives in the appended `SCORES TAB — MATCHUP COMMENTARY` layer (`.mc-*`), per the redesign convention.
+
+### Season Recaps (Phase 9 — built 2026-08-21)
+The prose beside each Careers year tab. See DEVELOPMENT ROADMAP Phase 9 for scope and the writing rules.
+
+- `loadSeasonRecaps()` — fetches `season-recaps.json` (same no-CORS + hourly cache-buster pattern as `loadCommentary`), memoised in `_recapsPromise`. **One file for every season**, unlike matchup commentary's per-year files — there are only ~350 words a year, so a fetch per tab click would be silly.
+- `renderSeasonRecap(year)` — fills `#season-recap-<year>`. **Re-queries the element after the await** — `buildSeasonYear` can re-render the view out from under an in-flight fetch. A missing file, or a year with no entry, renders a one-line note and never breaks the standings table beside it.
+- Shape per year: `{headline, facts: [{k, v}], paragraphs: []}`. `facts` are the season-at-a-glance chips (champion, runner-up, reg-season #1, top score, the 1.13); `paragraphs` is the write-up.
+- CSS in the appended `CAREERS TAB — SEASON YEAR TABS` layer (`.season-split` / `.ss-*` / `.sr-*` / `.pay-*`). **`.season-split` is a wrapping flexbox on purpose** — the table hugs its content, the payout card takes the rest, and when there is no longer 300px left for it it drops underneath on its own. No breakpoint decides that, so it behaves inside a narrow *container*, not just a narrow viewport.
+- **The recap is a block under the split, not a third column.** At ~350 words a third column would either squeeze the standings or run to unreadable line lengths; `.ss-recap` is capped at 900px as a measure limit, not a layout constraint.
 
 ### The Median Game on the Scores tab (2026-08-21)
 This league plays **two games a week** — the opponent, and the league median. The Scores card now shows both.
@@ -478,6 +506,14 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 
 ### `RIVALS` — 6 rivalry pairs (started 2025)
 ### `SEASON_HISTORY` — past season results (2023–2025)
+Final placements plus **per-owner payout totals**. The totals are what the career-earnings column and the Highest Career Earnings award sum, so they must always agree with the itemised lines in `SEASON_PAYOUTS`.
+### `SEASON_PAYOUTS` — itemised payout card per season (2023–2026)
+Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Careers year tabs by `payoutCardHtml(year)`. Shape: `{status, note?, rows: [{k, v, tone?}], footnote?}`; `tone` is `'win'` / `'second'` / `'tbd'`, anything else takes the default teal. **Ported verbatim** — these lines are the commissioner's own record, not derived.
+
+**The two objects must reconcile, and now they are shown on the same screen, so a disagreement is visible.** Adding a season means adding it to both. Current state:
+- 2023 — itemised lines sum to the $600 pot exactly. ✅
+- 2024 — sum to $1,200 exactly, **after a fix on 2026-08-21**: the card credited Duane Gillenwater $15 for Best QB (Lamar Jackson) and `SEASON_HISTORY` had no line for him at all, so his career earnings ran $15 light and the card summed to $1,185. Line added.
+- 2025 — the two objects agree per owner, but the itemised lines only account for **$1,175 of the $1,200 pot**. That is a gap in the source record, not a code bug; $25 is unattributed. Left as found — flagged for Matt.
 ### `SDATA` / `SLABELS` — scoring values and display names
 ### `DRAFT_ORDER_2026` — 2026 round 1 order (13 picks — includes consolation bonus pick 1.13)
 ### `KTC_SNAPSHOT` — hardcoded dynasty player values (Superflex + PPR + TE Premium, June 2026). ~80 players + all 2027/2028 pick tiers (Early/Mid/Late × 4 rounds). Used as fallback when live KTC fetch fails. Pick values represent the +25% slider position (full KTC). Format: `name → value (number)` for snapshot; `name → {value, position, nflTeam, age, rank, trend}` for live cached data.
@@ -597,7 +633,8 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
 - **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honour it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
   If playoff stats are ever wanted they belong in a **separate** set, and they must be filtered to the *winners* bracket via `PLAYOFF_BRACKET_INFO` — an all-weeks-15-to-17 aggregate is exactly the noise this rule exists to keep out.
-- **Careers is two sub-tabs, and superlatives live in exactly one of them** — Records (career table + All-Time Record Book + season standings) and Hall of Fame & Shame (the award grid). The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated.
+- **Careers is All Time + Hall of Fame & Shame + one tab per season, and superlatives live in exactly one place.** All Time holds the career table and the All-Time Record Book; Hall of Fame & Shame holds the award grid; each year tab holds that season's standings and recap. The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated. Season standings were stacked under All Time until 2026-08-21; four tables in one scroll was a wall, and none of them had anywhere to put a write-up. **The payout cards moved to the same year tabs on the same day** — a season's money belongs next to that season's table, not on a separate tab, and putting them together is what surfaced the missing $15 (see `SEASON_PAYOUTS`).
+- **Year standings default to Place ascending; the All Time career table defaults to Career Earnings descending.** Confirmed by Matt 2026-08-21. Both are sticky per table once a header is clicked — that is deliberate, don't reset them on tab switch.
 - **Matchup commentary: 2025 is hybrid, 2026 forward is hand-written only** (Matt, 2026-08-21). Placement games (3rd, 5th) and the Consolation Final are in scope because they carry a reward; the rest of the consolation bracket gets nothing and renders no toggle. See Phase 8.
 - **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
 - **"Ask Claude" is fully gone** — panel, icon tab, JS and CSS all removed (the last of it 2026-08-20). The old note here claimed the JS "must remain because `getTradeAI()` calls them"; `getTradeAI()` had itself been removed in the June 2026 overhaul, so that was stale and kept ~20 KB of dead code alive for two months.
@@ -756,6 +793,37 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - "Tidiest lineup of the year" was claimed twice off `left_on_table`. The real minimum is **0.43 (Andrew Bova, W14)**; Chris Bova's W8 3.30 is the lowest *bench total*, which is a different statistic.
 
 **Rule for the 2026 pass: rank the metric across the whole season before writing any superlative, not from the week in front of you.** Every "best/worst/lowest/highest ever" needs a sort, and the sort must cover all 17 weeks.
+
+---
+
+### Phase 9 — Careers Year Tabs + Season Recaps — **shipped 2026-08-21**
+**Goal:** give every season its own home. The Records sub-tab became **All Time** (career table + record book), the four stacked standings tables moved into **one sub-tab per season**, and each year got a written season recap beside its standings. See "Season Recaps" and "Careers" under JAVASCRIPT FUNCTIONS for the functions, and "Careers Panel" for the markup contract.
+
+**Layout.** `.season-split` is a wrapping flexbox — standings left, recap right on a wide screen, recap underneath on a narrow one, decided by available width rather than a viewport breakpoint. Verified at 1280px (side by side, table 683px / recap 508px, zero page overflow) and 375px (stacked, table scrolling inside its own container, zero page overflow), both themes.
+
+**The recaps.** Hand-written, one per completed season, in `season-recaps.json`. Voice matches Phase 8 — Hall of Fame & Shame roast level, punch at the decision not the person. Length ~350 words each, roughly 4× a weekly matchup write-up, which is what fills the column beside a 12-row table without running past it.
+
+**`scripts/build_season_facts.py`** — the season-level companion to `build_matchup_facts.py`, written for this phase. Per season it produces: full standings (H2H / median / total / PF / PA / ppg / high / low / stdev / weekly crowns and duds / lucky wins / unlucky losses / longest streaks / full game log), week-by-week high-low-median, ranked season extremes (highest and lowest weeks, biggest blowouts, closest games, highest and lowest-scoring matchups), bracket results, per-roster and league-wide top starters, best single-player weeks, every trade with players and picks, per-manager transaction counts, and the rookie draft. Output is a writing source, never committed.
+
+- **It resolves `roster_id → owner` from that year's own API payload**, not from `RM`. The mapping happened to be identical in all three seasons, but assuming that would have silently mis-attributed an entire recap if it ever changed.
+- Ports `weekWasPlayed` and the weeks-1–14 rule, so nothing here can disagree with the site.
+
+**Every figure was checked mechanically, not by eye.** A sweep over all 46 quoted decimals across the three recaps matched them against the fact sheets at ±0.06; the only two that didn't were "1.13" (a draft pick, not a score) and James Cook's 8.20 in the 2025 final, which is a *bracket* week and therefore outside the facts file — confirmed separately against the live W17 payload. Every `W-L` string in the prose was matched against a real record in that season's standings (23/23). A further 47 non-numeric claims — crown and dud counts, PF ranks, draft slots, opening streaks, trade counts, "league's number one scorer" — were asserted in a script and passed.
+
+**Two traps worth remembering, both the Phase 8 pattern repeating:**
+1. **Rank the metric across the whole season before writing a superlative.** "Erin finished with the fifth-fewest points in 2024" was wrong — she was eleventh of twelve. Caught by sorting, not by memory.
+2. **A season's team names are not today's team names.** Sleeper stores per-league user metadata, so 2023 comes back as ChubbLess / Blackwell #2 / Brady's Kids, none of which exist now. The recaps use owner names for that reason, with the period team name only where it is the joke (Chris Merkel's "Do the TANKy Leg" in 2024).
+
+**One pre-existing bug fixed on the way in.** The live-season standings handed the alphabetically-first owner "🏆 1st" before a single game had been played. It was there before this phase, but a 2026 tab makes it a headline rather than a footnote; `renderStandingsTbody` now renders `—` for `pending` rows.
+
+**Second pass, same day (Matt's follow-ups):**
+- ✅ **Payouts moved from the League panel to the Careers year tabs**, beside the standings, with the recap dropped underneath. The hardcoded four-card `info-grid` became the `SEASON_PAYOUTS` data object rendered by `payoutCardHtml()`; 2026 carries the existing "Pending" placeholder (pot $1,200, everything else TBD) unchanged.
+- ✅ **Tab 9 relabelled "League" → "Rules".** Label only — ids, hash and `VALID_TABS` untouched. What's left on that panel is rule updates, format and scoring, which is what the name now says.
+- ✅ **Sort defaults confirmed, not changed:** year tables lead with Place ascending, the All Time career table with Career Earnings descending. Both were already correct.
+- 🐛 **Found by putting the two payout records side by side: `SEASON_HISTORY[2024]` was missing Duane Gillenwater's $15** (Best QB, Lamar Jackson). The itemised card had it, this object didn't, so his career earnings read $200 instead of $215 and the 2024 card summed to $1,185 against a $1,200 pot. Fixed. This is exactly the class of error the move was always going to surface — the two numbers now render six inches apart.
+- ⚠️ **2025's itemised payouts account for $1,175 of the $1,200 pot.** Both records agree with each other, so nothing is inconsistent; $25 is simply unattributed in the source. Left as found, for Matt to say where it went.
+
+**Not built:** 2026 has no recap (it hasn't happened); write one after the season. Per-season *record books* are still all-time only — see the Phase 1 follow-ups.
 
 ---
 

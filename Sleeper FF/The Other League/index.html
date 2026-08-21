@@ -1682,6 +1682,114 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .wk-rec { font-size: 8.5px; padding: 2px 4px; margin-right: 5px; }
   .match-med { padding: 5px 11px; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   CAREERS TAB — SEASON YEAR TABS (standings beside the recap)
+   Each year sub-tab pairs that season's standings table with its write-up.
+   .season-split is a wrapping flexbox on purpose: the table hugs its content
+   and the recap claims the rest, and when there is no longer 290px left for
+   the recap it drops underneath on its own. No breakpoint decides that, so it
+   also behaves inside a narrow container, not just a narrow viewport.
+   ══════════════════════════════════════════════════════════════════════════ */
+.season-split {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 26px;
+  margin-bottom: 8px;
+}
+.ss-standings { flex: 0 1 auto; min-width: 0; max-width: 100%; overflow-x: auto; }
+.ss-standings .career-tbl { margin-bottom: 0; }
+.ss-payouts { flex: 1 1 300px; min-width: 0; max-width: 460px; }
+/* The recap is a block UNDER the split, not a third column - at 350 words it
+   would either squeeze the standings or run to unreadable line lengths. The
+   max-width is a measure cap, not a layout constraint. */
+.ss-recap { margin-top: 26px; max-width: 900px; }
+.ss-recap .ld { padding: 30px 16px; }
+.pay-card { align-self: flex-start; }
+.pay-foot {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  padding: 6px 0 0;
+  line-height: 1.8;
+}
+
+.sr-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 16px 18px 18px;
+}
+.sr-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.sr-head {
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: .03em;
+  line-height: 1.12;
+  color: var(--text);
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+[data-theme="dark"] .sr-head { text-shadow: 0 0 18px rgba(33,245,228,0.18); }
+
+/* Season at a glance — champion, runner-up, the 1.13, the year's high score */
+.sr-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: 7px 14px;
+  padding: 11px 0 13px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 13px;
+}
+.sr-fact { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sr-fk {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--accent3);
+}
+.sr-fv {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sr-body p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.68;
+  margin: 0 0 11px;
+}
+.sr-body p:last-child { margin-bottom: 0; }
+.sr-none {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+@media(max-width:680px){
+  .season-split { gap: 20px; }
+  .sr-card { padding: 13px 14px 15px; }
+  .sr-head { font-size: 21px; }
+  .sr-body p { font-size: 12px; line-height: 1.62; }
+  .sr-facts { gap: 6px 12px; }
+}
+
 </style>
 </head>
 <body class="is-home">
@@ -1741,7 +1849,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   </div>
   <div class="icon-tab" onclick="showTab('league',this)" data-tab="league">
     <span class="itab-icon">ℹ️</span>
-    <span class="itab-label">League</span>
+    <span class="itab-label">Rules</span>
   </div>
   <div class="icon-tab nav-refresh-btn" onclick="refreshData()" id="nav-refresh-btn" title="Refresh Data">
     <span class="itab-icon">↺</span>
@@ -1929,94 +2037,35 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       <div id="stats-container"><div class="ld"><div class="spin"></div><div class="lt">Loading stats...</div></div></div>
     </div>
 
-    <!-- LEAGUE INFO -->
+    <!-- RULES (tab label: Rules; ids stay `league`/`panel-league`) -->
     <!-- ============================================================
-         LEAGUE INFO PAGE — ANNUAL UPDATE CHECKLIST
+         RULES PAGE — ANNUAL UPDATE CHECKLIST
          Update these items at the end of each season:
 
-         1. PAYOUTS — Add a new "20XX Payouts — Final" card to the
-            info-grid under "Payouts". Copy the structure from the
-            prior year card. Update the current year card from
-            "Pending" to "Final" once the payout is settled.
+         1. PAYOUTS — NOT HERE ANY MORE. Payout cards moved to the
+            Careers year tabs on 2026-08-21 and now live in the
+            SEASON_PAYOUTS object in JS. Add a new year there, and
+            flip the prior year from "Pending" to "Final" once the
+            payout is settled. The itemised lines must still
+            reconcile to SEASON_HISTORY.payouts, which is what the
+            career-earnings column sums.
 
-         2. CURRENT YEAR PAYOUT CARD — Update the "20XX Payouts —
-            Pending" card at the top of the Payouts grid. Change
-            Total Pot, 1st/2nd/Rivalry amounts once finalized.
-
-         3. RULE UPDATES — Add a new card to the "Rule Updates"
+         2. RULE UPDATES — Add a new card to the "Rule Updates"
             info-grid if the league votes in any changes for the
             upcoming season.
 
-         4. FORMAT & SETTINGS — Update if roster slots, lineup
+         3. FORMAT & SETTINGS — Update if roster slots, lineup
             spots, waiver rules, or trade deadline change.
 
-         5. SCORING SETTINGS — Scoring values are dynamic via SDATA
+         4. SCORING SETTINGS — Scoring values are dynamic via SDATA
             in JS. Only update SDATA if scoring rules change.
 
          NOTE: #score-grid is populated by buildScoring() from
          SDATA — do NOT hardcode scoring values here.
     ============================================================ -->
     <div class="panel" id="panel-league">
-      <div class="sec-title">LEAGUE STRUCTURE</div>
+      <div class="sec-title">LEAGUE RULES</div>
       <div class="sec-sub">The Other League · Dynasty · ~Year 4</div>
-
-      <!-- ROW 1: Payouts (most important) -->
-      <div class="sec-row-label">Payouts</div>
-      <div class="info-grid" style="margin-bottom:24px;">
-        <div class="ic">
-          <div class="ict">2026 Payouts — Pending</div>
-          <div class="note orange" style="margin:0 0 12px 0;font-size:11px;">Payout structure not yet decided. Will be updated when finalized.</div>
-          <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$1,200</span></div>
-          <div class="ir-row"><span class="ik">1st Place</span><span class="iv" style="color:var(--muted)">TBD</span></div>
-          <div class="ir-row"><span class="ik">2nd Place</span><span class="iv" style="color:var(--muted)">TBD</span></div>
-          <div class="ir-row"><span class="ik">Rivalry Winners</span><span class="iv" style="color:var(--muted)">TBD</span></div>
-        </div>
-        <div class="ic">
-          <div class="ict">2025 Payouts — Final</div>
-          <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$100/team</span></div>
-          <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$1,200</span></div>
-          <div class="ir-row"><span class="ik">🏆 1st — Jake Blackwell</span><span class="iv" style="color:var(--win)">$455</span></div>
-          <div class="ir-row"><span class="ik">🥈 2nd — Nick Bova</span><span class="iv" style="color:var(--accent2)">$205</span></div>
-          <div class="ir-row"><span class="ik">Reg Season Pts Leader — Nick Bova</span><span class="iv">$115</span></div>
-          <div class="ir-row"><span class="ik">Best Reg Season Record — Jake Bogardus</span><span class="iv">$55</span></div>
-          <div class="ir-row"><span class="ik">Manager of Year — Chris Bova</span><span class="iv">$55</span></div>
-          <div class="ir-row"><span class="ik">Most Improved Record — J. Hayes (6-22 → 16-12)</span><span class="iv">$35</span></div>
-          <div class="ir-row"><span class="ik">Most Improved Points — N. Bova (1,196 → 2,291)</span><span class="iv">$35</span></div>
-          <div class="ir-row"><span class="ik">Most Improved Standings — J. Hayes (12th → 5th)</span><span class="iv">$35</span></div>
-          <div class="ir-row"><span class="ik">Top Scoring Rookie — C. Merkel (Jaxson Dart)</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Top Scoring RB — N. Bova (C. McCaffrey)</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Top Scoring WR — J. Blackwell (JXN)</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Top Scoring QB — C. Jacobs (Josh Allen)</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Worst Beat — C. Jacobs (W11, lost 183 to N. Bova 194)</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Rivalry Winners ($10 ea)</span><span class="iv">$60 total</span></div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0;line-height:1.8;">M. Bova · Bogardus · J. Blackwell · C. Jacobs · N. Bova · N. Merkel</div>
-        </div>
-        <div class="ic">
-          <div class="ict">2024 Payouts — Final</div>
-          <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$100/team</span></div>
-          <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$1,200</span></div>
-          <div class="ir-row"><span class="ik">🏆 1st — Chris Bova</span><span class="iv" style="color:var(--win)">$400</span></div>
-          <div class="ir-row"><span class="ik">🥈 2nd — Nick Merkel</span><span class="iv" style="color:var(--accent2)">$200</span></div>
-          <div class="ir-row"><span class="ik">🥉 3rd — Jake Bogardus</span><span class="iv">$100</span></div>
-          <div class="ir-row"><span class="ik">Reg Season Winner — Nick Merkel</span><span class="iv">$100</span></div>
-          <div class="ir-row"><span class="ik">Best Week (232.4 pts) — Jake Blackwell</span><span class="iv">$25</span></div>
-          <div class="ir-row"><span class="ik">Most PF — Nick Merkel</span><span class="iv">$20</span></div>
-          <div class="ir-row"><span class="ik">Most PA — Jared Hayes</span><span class="iv">$15</span></div>
-          <div class="ir-row"><span class="ik">Best QB (Lamar Jackson) — Duane Gillenwater</span><span class="iv">$15</span></div>
-          <div class="ir-row"><span class="ik">Best RB (Saquon Barkley) — Nick Merkel</span><span class="iv">$15</span></div>
-          <div class="ir-row"><span class="ik">Best WR (Ja'Marr Chase) — Nick Merkel</span><span class="iv">$15</span></div>
-          <div class="ir-row"><span class="ik">Best TE (Brock Bowers) — Jake Blackwell</span><span class="iv">$15</span></div>
-          <div class="ir-row"><span class="ik">Weekly High Score (14 wks × $20)</span><span class="iv">$280</span></div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0;line-height:1.8;">Nick Merkel $80 · Andrew Bova $60 · Jake Bogardus $60 · Chris Bova $40 · Nick Bova $20 · Jake Blackwell $20</div>
-        </div>
-        <div class="ic">
-          <div class="ict">2023 Payouts — Final</div>
-          <div class="ir-row"><span class="ik">Buy-in</span><span class="iv">$50/team</span></div>
-          <div class="ir-row"><span class="ik">Total Pot</span><span class="iv">$600</span></div>
-          <div class="ir-row"><span class="ik">🏆 1st — Mitch Blackwell</span><span class="iv" style="color:var(--win)">$400</span></div>
-          <div class="ir-row"><span class="ik">🥈 2nd — Duane Gillenwater</span><span class="iv" style="color:var(--accent2)">$200</span></div>
-        </div>
-      </div>
 
       <!-- ROW 2: Rule Updates -->
       <div class="sec-row-label">Rule Updates</div>
@@ -2144,9 +2193,17 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
     <div class="panel" id="panel-careers">
       <div class="sec-title">LEAGUE HISTORY</div>
       <div class="sec-sub">2023–2026 · Career Records · All-Time Bests</div>
+      <!-- Sub-tabs. "All Time" holds the career table + record book; each year
+           gets its own view with that season's standings beside its recap.
+           Adding a season = one button + one empty div here, plus the usual
+           SEASON_HISTORY / PLAYOFF_BRACKET_INFO entries and CAREER_YEARS. -->
       <div class="careers-view-toggle" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;">
-        <button class="yr-btn active" id="cview-records-btn" onclick="setCareersView('records',this)">Records</button>
+        <button class="yr-btn active" id="cview-records-btn" onclick="setCareersView('records',this)">All Time</button>
         <button class="yr-btn" id="cview-hof-btn" onclick="setCareersView('hof',this)">Hall of Fame &amp; Shame</button>
+        <button class="yr-btn" id="cview-2026-btn" onclick="setCareersView('2026',this)">2026</button>
+        <button class="yr-btn" id="cview-2025-btn" onclick="setCareersView('2025',this)">2025</button>
+        <button class="yr-btn" id="cview-2024-btn" onclick="setCareersView('2024',this)">2024</button>
+        <button class="yr-btn" id="cview-2023-btn" onclick="setCareersView('2023',this)">2023</button>
       </div>
       <div id="careers-view-records">
         <div id="careers-container"></div>
@@ -2155,6 +2212,10 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
         <div class="sec-sub" style="margin-top:0">One winner per award · all-time, regular season only (wks 1–14)</div>
         <div id="hof-container"><div class="ld"><div class="spin"></div><div class="lt">Tallying the receipts...</div></div></div>
       </div>
+      <div id="careers-view-2026" style="display:none"></div>
+      <div id="careers-view-2025" style="display:none"></div>
+      <div id="careers-view-2024" style="display:none"></div>
+      <div id="careers-view-2023" style="display:none"></div>
     </div>
 
     <!-- TRADE EVALUATOR -->
@@ -2304,6 +2365,11 @@ const SEASON_HISTORY = {
       '470747640758267904': 60,   // Jake Blackwell — $20 weekly + $25 top wk + $15 best TE
       '722827711751487488': 20,   // Nick Bova — weekly HS
       '722927129620197376': 15,   // Jared Hayes — most PA
+      // Added 2026-08-21. The itemised 2024 card in SEASON_PAYOUTS credits
+      // Duane $15 for Best QB (Lamar Jackson) and this object did not, so his
+      // career earnings ran $15 light. With this line the card's per-owner
+      // totals sum to exactly the $1,200 pot; without it, $1,185.
+      '728292202471604224': 15,   // Duane Gillenwater — best QB (Lamar Jackson)
     },
     placements: [
       '728290759668797440', // 1 - Chris Bova
@@ -2349,6 +2415,80 @@ const SEASON_HISTORY = {
       '728292169563099136', // 12 - Erin Jacobs
     ]
   }
+};
+
+// ── PAYOUTS BY SEASON ──
+// Moved out of the League/Rules panel and into the Careers year tabs on
+// 2026-08-21, so a season's money sits next to that season's standings instead
+// of in a separate four-card wall on another tab. Ported VERBATIM from the old
+// markup — the itemised lines are the commissioner's own record, and they
+// reconcile exactly to the per-owner totals in SEASON_HISTORY.payouts, which is
+// what the career-earnings column sums. Don't edit one without the other.
+//
+// `tone`: 'win' (champion), 'second' (runner-up), 'tbd' (not yet decided).
+// Anything else takes the default .iv teal.
+const SEASON_PAYOUTS = {
+  2026: {
+    status: 'Pending',
+    note: 'Payout structure not yet decided. Will be updated when finalized.',
+    rows: [
+      {k:'Total Pot', v:'$1,200'},
+      {k:'1st Place', v:'TBD', tone:'tbd'},
+      {k:'2nd Place', v:'TBD', tone:'tbd'},
+      {k:'Rivalry Winners', v:'TBD', tone:'tbd'},
+    ],
+  },
+  2025: {
+    status: 'Final',
+    rows: [
+      {k:'Buy-in', v:'$100/team'},
+      {k:'Total Pot', v:'$1,200'},
+      {k:'🏆 1st — Jake Blackwell', v:'$455', tone:'win'},
+      {k:'🥈 2nd — Nick Bova', v:'$205', tone:'second'},
+      {k:'Reg Season Pts Leader — Nick Bova', v:'$115'},
+      {k:'Best Reg Season Record — Jake Bogardus', v:'$55'},
+      {k:'Manager of Year — Chris Bova', v:'$55'},
+      {k:'Most Improved Record — J. Hayes (6-22 → 16-12)', v:'$35'},
+      {k:'Most Improved Points — N. Bova (1,196 → 2,291)', v:'$35'},
+      {k:'Most Improved Standings — J. Hayes (12th → 5th)', v:'$35'},
+      {k:'Top Scoring Rookie — C. Merkel (Jaxson Dart)', v:'$25'},
+      {k:'Top Scoring RB — N. Bova (C. McCaffrey)', v:'$25'},
+      {k:'Top Scoring WR — J. Blackwell (JXN)', v:'$25'},
+      {k:'Top Scoring QB — C. Jacobs (Josh Allen)', v:'$25'},
+      {k:'Worst Beat — C. Jacobs (W11, lost 183 to N. Bova 194)', v:'$25'},
+      {k:'Rivalry Winners ($10 ea)', v:'$60 total'},
+    ],
+    footnote: 'M. Bova · Bogardus · J. Blackwell · C. Jacobs · N. Bova · N. Merkel',
+  },
+  2024: {
+    status: 'Final',
+    rows: [
+      {k:'Buy-in', v:'$100/team'},
+      {k:'Total Pot', v:'$1,200'},
+      {k:'🏆 1st — Chris Bova', v:'$400', tone:'win'},
+      {k:'🥈 2nd — Nick Merkel', v:'$200', tone:'second'},
+      {k:'🥉 3rd — Jake Bogardus', v:'$100'},
+      {k:'Reg Season Winner — Nick Merkel', v:'$100'},
+      {k:'Best Week (232.4 pts) — Jake Blackwell', v:'$25'},
+      {k:'Most PF — Nick Merkel', v:'$20'},
+      {k:'Most PA — Jared Hayes', v:'$15'},
+      {k:'Best QB (Lamar Jackson) — Duane Gillenwater', v:'$15'},
+      {k:'Best RB (Saquon Barkley) — Nick Merkel', v:'$15'},
+      {k:"Best WR (Ja'Marr Chase) — Nick Merkel", v:'$15'},
+      {k:'Best TE (Brock Bowers) — Jake Blackwell', v:'$15'},
+      {k:'Weekly High Score (14 wks × $20)', v:'$280'},
+    ],
+    footnote: 'Nick Merkel $80 · Andrew Bova $60 · Jake Bogardus $60 · Chris Bova $40 · Nick Bova $20 · Jake Blackwell $20',
+  },
+  2023: {
+    status: 'Final',
+    rows: [
+      {k:'Buy-in', v:'$50/team'},
+      {k:'Total Pot', v:'$600'},
+      {k:'🏆 1st — Mitch Blackwell', v:'$400', tone:'win'},
+      {k:'🥈 2nd — Duane Gillenwater', v:'$200', tone:'second'},
+    ],
+  },
 };
 
 const SLABELS = {
@@ -4389,13 +4529,24 @@ function buildHallOfFame(){
   el.innerHTML=`<div class="hof-grid">${cards.map(hofCard).join('')}</div>`;
 }
 
-// Sub-tab switcher for the Careers panel. Two self-contained divs, same shape
-// as setRosterView, so either half can be lifted into its own panel later.
+// Seasons that get their own Careers sub-tab, newest first. Must match the
+// buttons and the #careers-view-<year> divs in the panel markup.
+const CAREER_YEARS=[2026,2025,2024,2023];
+
+// Sub-tab switcher for the Careers panel. Self-contained divs, same shape as
+// setRosterView, so any one view could be lifted into its own panel later.
+// Views: 'records' (career table + all-time record book), 'hof', and one per
+// season in CAREER_YEARS. Year views are lazy-built on first switch.
 function setCareersView(view,el){
   document.querySelectorAll('.careers-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
   document.getElementById('careers-view-records').style.display=view==='records'?'':'none';
   document.getElementById('careers-view-hof').style.display=view==='hof'?'':'none';
+  CAREER_YEARS.forEach(y=>{
+    const d=document.getElementById('careers-view-'+y);
+    if(d)d.style.display=view===String(y)?'':'none';
+  });
   if(view==='hof')buildHallOfFame();
+  else if(view!=='records')buildSeasonYear(Number(view));
 }
 
 // ── CAREERS TAB ──
@@ -4430,9 +4581,12 @@ function renderStandingsTbody(year,rowData){
   });
   const placeLabel=p=>p===1?'🏆 1st':p===2?'🥈 2nd':p===3?'🥉 3rd':p+'th';
   return sorted.map(r=>{
-    const plCls=r.place===1?'p1':r.place===2?'p2':r.place===3?'p3':r.place>=10?'p-low':'p-mid';
+    // `pending` rows are a live season with no games played yet — they carry a
+    // place only so the table has a stable order. Handing the alphabetically
+    // first owner a 🏆 in August is a lie the trophy shouldn't tell.
+    const plCls=r.pending?'p-mid':r.place===1?'p1':r.place===2?'p2':r.place===3?'p3':r.place>=10?'p-low':'p-mid';
     return`<tr>
-      <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${placeLabel(r.place)}</td>
+      <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${r.pending?'—':placeLabel(r.place)}</td>
       <td style="font-weight:500;color:var(--text)">${r.name}</td>
       <td style="color:var(--muted);font-size:10px">${r.team}</td>
       <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${r.totalW}-${r.totalL}</td>
@@ -4501,107 +4655,171 @@ function buildSeasonStandingsData(year,maxWeek=14){
   return stats;
 }
 
-function buildSeasonStandings(container){
-  const wrap=document.createElement('div');
-  wrap.style.cssText='margin-top:32px;';
+// One season's standings rows, ready for renderStandingsTbody().
+//
+// A season is "complete" iff it has a SEASON_HISTORY entry — that is the only
+// place final placements live, so it is also the honest test for whether the
+// year is in the books. Completed seasons are ordered by playoff result;
+// a live one is ordered by total wins with PF as the tiebreaker.
+//
+// Returns null only when a completed season has no cached matchup data, which
+// is the case the caller must render a "visit the Scores tab" note for.
+function seasonStandingsRows(year){
+  const owners=Object.keys(TEAMS);
+  const row=(uid,place,s)=>{
+    const td=t(uid);
+    return{place,uid,name:td.name,team:td.team,
+      totalW:s.h2hW+s.medW,totalL:s.h2hL+s.medL,
+      h2hW:s.h2hW,h2hL:s.h2hL,medW:s.medW,medL:s.medL,pf:s.pf,pa:s.pa};
+  };
+  const zero={h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
 
-  // ── 2026 CURRENT SEASON ──
-  const cur26=document.createElement('div');
-  cur26.style.cssText='margin-bottom:36px;';
-  const raw2026=loadPerm('tol_matchups_2026');
-  // Capped at REG_WEEKS on purpose. This scan used to run over all 17 weeks and
-  // hand the result straight to buildSeasonStandingsData as maxWeek, so from
-  // Week 15 onward the standings would have quietly absorbed playoff AND
-  // consolation results into the regular-season W/L, PF and PA — and captioned
-  // itself "Through Week 17". Standings are a regular-season object.
-  let latestWeek2026=0;
-  if(raw2026){
-    Object.entries(raw2026).forEach(([wk,data])=>{
+  if(SEASON_HISTORY[year]){
+    const stats=buildSeasonStandingsData(year,REG_WEEKS);
+    if(!stats)return null;
+    const rows=computeFullPlacements(year).map((uid,i)=>row(uid,i+1,stats[RMR[uid]]||zero));
+    return{rows,live:false,
+      caption:`Regular-season records (wks 1–${REG_WEEKS}) · Places 1–6 by playoff result · 7–12 by reg-season record · Click any column to sort`};
+  }
+
+  // Live season. Capped at REG_WEEKS on purpose: this scan used to run over all
+  // 17 weeks and hand the result straight to buildSeasonStandingsData as
+  // maxWeek, so from Week 15 onward the standings would have quietly absorbed
+  // playoff AND consolation results into the regular-season W/L, PF and PA —
+  // and captioned itself "Through Week 17". Standings are a regular-season
+  // object.
+  const raw=loadPerm(`tol_matchups_${year}`);
+  let latest=0;
+  if(raw){
+    Object.entries(raw).forEach(([wk,data])=>{
       if(Number(wk)>REG_WEEKS)return;
-      if(weekWasPlayed(data))latestWeek2026=Math.max(latestWeek2026,Number(wk));
+      if(weekWasPlayed(data))latest=Math.max(latest,Number(wk));
     });
   }
-  const stats2026=latestWeek2026>0?buildSeasonStandingsData(2026,latestWeek2026):null;
-  const owners2026=Object.keys(TEAMS);
-  let rowData2026;
-  if(!stats2026){
-    rowData2026=[...owners2026].sort((a,b)=>t(a).name.localeCompare(t(b).name))
-      .map((uid,i)=>{const td=t(uid);return{place:i+1,uid,name:td.name,team:td.team,totalW:0,totalL:0,h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};});
-  }else{
-    rowData2026=owners2026.map(uid=>{
-      const td=t(uid);const rid=RMR[uid];
-      const s=stats2026[rid]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
-      return{place:null,uid,name:td.name,team:td.team,
-        totalW:s.h2hW+s.medW,totalL:s.h2hL+s.medL,
-        h2hW:s.h2hW,h2hL:s.h2hL,medW:s.medW,medL:s.medL,pf:s.pf,pa:s.pa};
-    }).sort((a,b)=>b.totalW!==a.totalW?b.totalW-a.totalW:b.pf-a.pf)
-      .map((r,i)=>({...r,place:i+1}));
+  const stats=latest>0?buildSeasonStandingsData(year,latest):null;
+  if(!stats){
+    return{live:true,
+      caption:'Season hasn\'t started yet · Records will populate as weeks complete · Visit the <strong>Scores</strong> tab to load matchup data',
+      rows:[...owners].sort((a,b)=>t(a).name.localeCompare(t(b).name))
+        .map((uid,i)=>({...row(uid,i+1,zero),pending:true}))};
   }
-  standingsRowData[2026]=rowData2026;
-  if(!standingsSort[2026])standingsSort[2026]={col:'place',dir:1};
-  cur26.innerHTML=`<div class="sec-title" style="color:var(--accent)">2026 CURRENT SEASON</div>`+
-    `<div class="sec-sub">${latestWeek2026>0?`Through Week ${latestWeek2026} · Sorted by total wins · Click any column to sort`:'Season hasn\'t started yet · Records will populate as weeks complete · Visit the <strong>Scores</strong> tab to load matchup data'}</div>`;
-  const cols2026=[
-    {col:'place',label:'#'},{col:'name',label:'Owner'},{col:'team',label:'Team'},
+  return{live:true,
+    caption:`Through Week ${latest} · Sorted by total wins · Click any column to sort`,
+    rows:owners.map(uid=>row(uid,null,stats[RMR[uid]]||zero))
+      .sort((a,b)=>b.totalW!==a.totalW?b.totalW-a.totalW:b.pf-a.pf)
+      .map((r,i)=>({...r,place:i+1}))};
+}
+
+// Standings table markup for one season, plus the caption that belongs above
+// it. Registers the rows with standingsRowData so sortStandingsByCol keeps
+// working against the rendered tbody.
+function seasonStandingsTable(year){
+  const d=seasonStandingsRows(year);
+  if(!d)return{caption:`Regular-season records (wks 1–${REG_WEEKS})`,
+    html:'<div class="note" style="max-width:520px">Matchup data not yet cached — visit the <strong>Scores</strong> tab once to load it.</div>'};
+  standingsRowData[year]=d.rows;
+  if(!standingsSort[year])standingsSort[year]={col:'place',dir:1};
+  const cols=[
+    {col:'place',label:'Place'},{col:'name',label:'Owner'},{col:'team',label:'Team'},
     {col:'totalW',label:'Total'},{col:'h2hW',label:'H2H'},{col:'medW',label:'Median'},
     {col:'pf',label:'PF'},{col:'pa',label:'PA'}
   ];
-  const thead2026=`<thead id="standings-thead-2026"><tr>${cols2026.map(c=>
-    `<th data-col="${c.col}" onclick="sortStandingsByCol(2026,'${c.col}')">${c.label}<span class="sort-arrow">${c.col==='place'?' ↑':' ↕'}</span></th>`
+  const thead=`<thead id="standings-thead-${year}"><tr>${cols.map(c=>
+    `<th data-col="${c.col}" onclick="sortStandingsByCol(${year},'${c.col}')">${c.label}<span class="sort-arrow">${c.col==='place'?' ↑':' ↕'}</span></th>`
   ).join('')}</tr></thead>`;
-  const tbl2026=document.createElement('div');
-  tbl2026.innerHTML=`<table class="career-tbl">${thead2026}<tbody id="standings-tbody-2026">${renderStandingsTbody(2026,rowData2026)}</tbody></table>`;
-  cur26.appendChild(tbl2026);
-  wrap.appendChild(cur26);
-
-  const histHdr=document.createElement('div');
-  histHdr.innerHTML='<div class="sec-title">SEASON STANDINGS</div><div class="sec-sub">Regular-season records (wks 1–14) · Places 1–6 by playoff result · 7–12 by reg-season record · Click any column to sort</div>';
-  wrap.appendChild(histHdr);
-  for(const year of[2025,2024,2023]){
-    const stats=buildSeasonStandingsData(year,14);
-    const placements=computeFullPlacements(year);
-    const secDiv=document.createElement('div');
-    secDiv.style.cssText='margin-bottom:28px;';
-    const lbl=document.createElement('div');
-    lbl.className='sec-row-label';
-    lbl.textContent=`${year} Final Standings`;
-    secDiv.appendChild(lbl);
-    if(!stats){
-      const note=document.createElement('div');
-      note.className='note';
-      note.style.cssText='max-width:520px';
-      note.innerHTML='Matchup data not yet cached — visit the <strong>Scores</strong> tab once to load it.';
-      secDiv.appendChild(note);
-      wrap.appendChild(secDiv);
-      continue;
-    }
-    const rowData=placements.map((uid,i)=>{
-      const place=i+1;
-      const td=t(uid);
-      const rid=RMR[uid];
-      const s=stats[rid]||{h2hW:0,h2hL:0,medW:0,medL:0,pf:0,pa:0};
-      return{place,uid,name:td.name,team:td.team,
-        totalW:s.h2hW+s.medW,totalL:s.h2hL+s.medL,
-        h2hW:s.h2hW,h2hL:s.h2hL,medW:s.medW,medL:s.medL,pf:s.pf,pa:s.pa};
-    });
-    standingsRowData[year]=rowData;
-    if(!standingsSort[year])standingsSort[year]={col:'place',dir:1};
-    const cols=[
-      {col:'place',label:'Place'},{col:'name',label:'Owner'},{col:'team',label:'Team'},
-      {col:'totalW',label:'Total'},{col:'h2hW',label:'H2H'},{col:'medW',label:'Median'},
-      {col:'pf',label:'PF'},{col:'pa',label:'PA'}
-    ];
-    const theadHtml=`<thead id="standings-thead-${year}"><tr>${cols.map(c=>
-      `<th data-col="${c.col}" onclick="sortStandingsByCol(${year},'${c.col}')">${c.label}<span class="sort-arrow">${c.col==='place'?' ↑':' ↕'}</span></th>`
-    ).join('')}</tr></thead>`;
-    const tblWrap=document.createElement('div');
-    tblWrap.innerHTML=`<table class="career-tbl">${theadHtml}<tbody id="standings-tbody-${year}">${renderStandingsTbody(year,rowData)}</tbody></table>`;
-    secDiv.appendChild(tblWrap);
-    wrap.appendChild(secDiv);
-  }
-  container.appendChild(wrap);
+  return{caption:d.caption,
+    html:`<table class="career-tbl">${thead}<tbody id="standings-tbody-${year}">${renderStandingsTbody(year,d.rows)}</tbody></table>`};
 }
 
+// ── SEASON RECAPS (the prose beside each year's standings) ──
+// Same no-CORS + hourly cache-buster pattern as loadCommentary(); one file for
+// every season. A missing file, or a season with no entry in it, must never
+// break the standings table — the recap column just says so instead.
+let _recapsPromise=null;
+async function loadSeasonRecaps(){
+  if(_recapsPromise!==null)return _recapsPromise;
+  _recapsPromise=(async()=>{
+    try{
+      const r=await fetch('season-recaps.json?_='+Math.floor(Date.now()/3600000));
+      if(!r.ok)return null;
+      const d=await r.json();
+      return(d&&d.seasons)?d.seasons:null;
+    }catch(e){return null;}
+  })();
+  return _recapsPromise;
+}
+
+async function renderSeasonRecap(year){
+  const all=await loadSeasonRecaps().catch(()=>null);
+  // Re-query after the await: buildSeasonYear may have re-rendered the view
+  // out from under us while the fetch was in flight.
+  const el=document.getElementById('season-recap-'+year);
+  if(!el)return;
+  const r=all&&all[year];
+  if(!r){
+    el.innerHTML=`<div class="sr-card"><div class="sr-kicker">Season Recap</div>`+
+      `<div class="sr-none">${SEASON_HISTORY[year]?'No write-up for this season yet.':'Nothing to recap yet — this one has not been played.'}</div></div>`;
+    return;
+  }
+  const facts=(r.facts||[]).map(f=>
+    `<div class="sr-fact"><span class="sr-fk">${esc(f.k)}</span><span class="sr-fv">${esc(f.v)}</span></div>`).join('');
+  const body=(r.paragraphs||[]).map(p=>`<p>${esc(p)}</p>`).join('');
+  el.innerHTML=`<div class="sr-card">`+
+    `<div class="sr-kicker">Season Recap</div>`+
+    `<div class="sr-head">${esc(r.headline||'')}</div>`+
+    (facts?`<div class="sr-facts">${facts}</div>`:'')+
+    `<div class="sr-body">${body}</div>`+
+  `</div>`;
+}
+
+// One season's payout card, for the year sub-tab. Reuses the .ic / .ir-row /
+// .ik / .iv classes the League panel already had, so it inherits the existing
+// look and both themes with no new surface invented for it.
+function payoutCardHtml(year){
+  const p=SEASON_PAYOUTS[year];
+  if(!p)return'';
+  const tone=x=>x==='win'?'color:var(--win)':x==='second'?'color:var(--accent2)':x==='tbd'?'color:var(--muted)':'';
+  return`<div class="ic pay-card">`+
+    `<div class="ict">${year} Payouts \u2014 ${esc(p.status)}</div>`+
+    (p.note?`<div class="note orange" style="margin:0 0 12px 0;font-size:11px;">${esc(p.note)}</div>`:'')+
+    p.rows.map(r=>`<div class="ir-row"><span class="ik">${esc(r.k)}</span><span class="iv" style="${tone(r.tone)}">${esc(r.v)}</span></div>`).join('')+
+    (p.footnote?`<div class="pay-foot">${esc(p.footnote)}</div>`:'')+
+  `</div>`;
+}
+
+// One year sub-tab: that season's standings with its payouts beside them on a
+// wide screen (beneath on a narrow one - .season-split wraps on its own, no
+// breakpoint required), and the season recap under both. Idempotent — buildCareers() re-runs it for every
+// year already built once the matchup prefetch lands.
+function buildSeasonYear(year){
+  const c=document.getElementById('careers-view-'+year);
+  if(!c)return;
+  c.dataset.loaded='1';
+  const st=seasonStandingsTable(year);
+  const live=!SEASON_HISTORY[year];
+  const pay=payoutCardHtml(year);
+  c.innerHTML=
+    `<div class="sec-title"${live?' style="color:var(--accent)"':''}>${year} ${live?'CURRENT SEASON':'SEASON'}</div>`+
+    `<div class="sec-sub">${st.caption}</div>`+
+    `<div class="season-split">`+
+      `<div class="ss-standings">${st.html}</div>`+
+      (pay?`<div class="ss-payouts">${pay}</div>`:'')+
+    `</div>`+
+    `<div class="ss-recap" id="season-recap-${year}">`+
+      `<div class="ld"><div class="spin"></div><div class="lt">Pulling the tape...</div></div>`+
+    `</div>`;
+  renderSeasonRecap(year);
+}
+
+// Refresh every year view that has already been built. Called from
+// buildCareers() so a season tab opened before the matchup prefetch finished
+// does not sit on an empty table forever.
+function rebuildSeasonYears(){
+  CAREER_YEARS.forEach(y=>{
+    const d=document.getElementById('careers-view-'+y);
+    if(d&&d.dataset.loaded)buildSeasonYear(y);
+  });
+}
 let careerRowArr=null;
 let careerSort={col:'earn',dir:-1};
 
@@ -4707,7 +4925,11 @@ function buildCareers(){
     `<div class="sec-sub">Single-game and single-season extremes · regular season only (wks 1–14) · 2023–present</div>`+
     `<div id="record-book"></div>`;
   buildRecordBook();
-  buildSeasonStandings(c);
+  // Per-season standings live in their own year sub-tabs now, not stacked
+  // under this one. Refresh any that are already on screen — buildCareers()
+  // re-runs when the boot matchup prefetch lands, and that is exactly when a
+  // year tab opened early is still showing an empty table.
+  rebuildSeasonYears();
 }
 
 // ── PLAYER STATS ──

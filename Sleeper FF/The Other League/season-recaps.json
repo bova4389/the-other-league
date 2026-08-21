@@ -1,0 +1,98 @@
+{
+ "note": "Hand-written season recaps for the Careers year tabs. Facts sourced from scripts/build_season_facts.py; every figure here was checked against it. Regular-season claims cover weeks 1-14 only, matching the rest of the site. A year with no entry renders no recap, which is the correct behaviour for a season that has not been played.",
+ "seasons": {
+  "2023": {
+   "headline": "Year one decides, immediately and permanently, that the best team does not win",
+   "facts": [
+    {
+     "k": "Champion",
+     "v": "Mitch Blackwell — Blackwell #2 ($400)"
+    },
+    {
+     "k": "Runner-up",
+     "v": "Duane Gillenwater — ChubbLess ($200)"
+    },
+    {
+     "k": "Reg. Season #1",
+     "v": "Duane Gillenwater, 24-4"
+    },
+    {
+     "k": "Top Score",
+     "v": "Duane Gillenwater, 246.52 (Wk 3)"
+    },
+    {
+     "k": "1.13 Pick",
+     "v": "Chris Bova"
+    }
+   ],
+   "paragraphs": [
+    "Duane Gillenwater spent fourteen weeks proving he had understood the assignment better than anyone else. ChubbLess went 24-4 — 11-3 against opponents, 13-1 against the median — scored 2362.8 points, 256.8 more than the next team, and owned the high score of the week six times out of fourteen. He had taken Tyreek Hill eighth in the startup draft and Lamar Jackson twelfth, and they came back as the league's number one and number eight scorers. In Week 3 he hung 246.52 on Nick Bova, still the highest score anyone has posted in a regular-season week of The Other League.",
+    "Mitch Blackwell won the trophy. Fifth seed, 17-11, fifth in points, and a roster whose leading scorer was Travis Etienne on 216 — not a single player inside the league's top eighteen. He beat Nick Bova by 22.5, won a semifinal with 124.23 because Chris Merkel could only find 102.16, and then took the final off Duane 184.69 to 168.95. Four hundred dollars, and the first entry in a pattern this league has never broken: the best regular-season team has now failed to win the title three years running.",
+    "At the other end, Jared Hayes went 1-27. One head-to-head win in fourteen weeks and 0-14 against the median — the only winless median season on record. His 1359.8 points came out at 97.1 a week, 320 clear of the next-worst team in the wrong direction, and he took the low score of the week seven times, including a 59.88 in Week 5. It was not for lack of effort: five trades and thirty waiver claims, more moves than anyone else in the league. Trevor Lawrence went eleventh in the startup.",
+    "Elsewhere: the first seven picks of the startup draft were all quarterbacks, including Anthony Richardson third overall to Mitch, who then won the championship starting Jared Goff. Matt Bova beat Chris Merkel by 0.65 in Week 8, the closest game of the year. And Chris Bova opened 0-7, scored 62.15 in Week 7, finished tenth, and salvaged the season by winning the consolation final over Nick Merkel to claim the 1.13. Twelve months later he was the champion."
+   ]
+  },
+  "2024": {
+   "headline": "Nick Merkel never loses to the median all year and loses the only game that counts",
+   "facts": [
+    {
+     "k": "Champion",
+     "v": "Chris Bova — Titsburg Feelers ($440)"
+    },
+    {
+     "k": "Runner-up",
+     "v": "Nick Merkel — The Red Riflers ($430)"
+    },
+    {
+     "k": "Reg. Season #1",
+     "v": "Nick Merkel, 24-4"
+    },
+    {
+     "k": "Top Score",
+     "v": "Jake Blackwell, 232.40 (Wk 11)"
+    },
+    {
+     "k": "1.13 Pick",
+     "v": "Chris Merkel"
+    }
+   ],
+   "paragraphs": [
+    "Nick Merkel went 24-4 and 14-0 against the weekly median, which nobody had done before and nobody has done since. He also built the thing over the phone. Before Week 1 he prised Ja'Marr Chase and Alvin Kamara out of Chris Merkel for Michael Pittman, Bijan Robinson and a 2025 second; in Week 3 he took Saquon Barkley off Jared Hayes. Chase (310.9), Barkley (251.7) and Kamara (228.6) finished as his top three scorers and all three arrived by trade. He won his first ten head-to-head games, banked $100 for the regular-season title, then lost his last four and the championship, 177.84 to 123.07.",
+    "Chris Bova took it instead. Titsburg finished 22-6 on 2263.8 points behind Jayden Daniels — the third pick of the rookie draft — Jahmyr Gibbs and Kyler Murray, put up 227.37 in Week 8, sat out the first round, put 191.45 on Andrew Bova in the semifinal, and then held the 24-4 juggernaut to 123.07. It was worth $440, and it came from a manager who had finished tenth the year before and who made exactly two trades all season. Matt Bova made twelve and finished ninth.",
+    "Chris Merkel called his team Do the TANKy Leg, sold Chase and Kamara in September, and won the consolation final by 3.09 to collect the 1.13, which is the tank working exactly as designed. He and Nick Merkel also traded Ja'Marr Chase to each other and then straight back sixteen minutes later, both times for a 2025 third — a round trip that moved nothing except the transaction log.",
+    "The bottom half was a study in wasted resources. Erin Jacobs went 6-22 while starting Jalen Hurts (290.5), Derrick Henry (254.0), Justin Herbert (201) and Travis Kelce (178), and still finished eleventh in points: four excellent players and seven nothings. Jared Hayes matched the 6-22 holding Caleb Williams, the first pick of the rookie draft, opened 0-10, and posted the season's lowest week at 67.45. Jake Blackwell's 232.40 in Week 11 was the year's high; the closest game was Nick Bova over Jared Hayes by 1.34 in Week 4. Twenty-six trades got made in 2024. The champion was in two of them."
+   ]
+  },
+  "2025": {
+   "headline": "The fifth seed wins it again, and the two best teams go out in the same round",
+   "facts": [
+    {
+     "k": "Champion",
+     "v": "Jake Blackwell — Nacua Matata ($490)"
+    },
+    {
+     "k": "Runner-up",
+     "v": "Nick Bova — Nabers in Paris ($390)"
+    },
+    {
+     "k": "Reg. Season #1",
+     "v": "Jake Bogardus, 22-6"
+    },
+    {
+     "k": "Top Score",
+     "v": "Jake Bogardus, 202.83 (Wk 4)"
+    },
+    {
+     "k": "1.13 Pick",
+     "v": "Nick Merkel"
+    }
+   ],
+   "paragraphs": [
+    "Jake Blackwell finished 14-14. Fifth seed, fifth in points, dead average in a twelve-team league, and the least likely roster still breathing in December. He then scored 213.85, 191.12 and 165.72 in three consecutive weeks — a better three-week run than he had managed at any point in the regular season — and walked off with $490. Nick Bova was the better team by every number available: 20-8, a league-high 2290.6 points, four weekly crowns. In the final he got 8.20 out of James Cook and went home second.",
+    "The two 22-6 teams never got that far. Jake Bogardus and Chris Bova finished the regular season tied at the top, twenty points of PF apart, and both lost in the semifinals in the same week by a combined 138. They then met in the third-place game, where Bogardus started Lamar Jackson, who did not take a snap, and finished on 62.60 — the lowest total anyone posted in a 2025 game they were trying to win. Chris Bova needed 133.03 to take third and Manager of the Year, and could comfortably have done it with less.",
+    "The middle was settled by the median game, as it usually is. Chris Merkel went 5-9 against opponents and 8-6 against the field, finished sixth, and conceded 2134.3 points, more than anyone else in the league. Jared Hayes put up 197.95 in Week 10 and 70.39 in Week 11, the fifth-highest and the single lowest week of the season, back to back. Nick Merkel finished ninth, won the consolation final 170.11 to 104.11, and took the 1.13 for his trouble.",
+    "Erin Jacobs opened the year with the highest score in the league and closed it 7-21 and last, on a five-week losing run: an entire season summarised by one good Sunday in September. The league made nine trades all year, down from twenty-six in 2024, and Chris Bova, the defending champion, made none of them. Three seasons in, the regular-season number one has never won the title, and two of the three trophies have gone to the fifth seed."
+   ]
+  }
+ }
+}

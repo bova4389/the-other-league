@@ -8,3 +8,8 @@ __pycache__/
 # session that starts a dev server appends an entry, so it accreted six stale
 # duplicate-port configs in a few days. Machine-local like settings.local.json.
 .claude/launch.json
+
+# Offline working cache for the fact-sheet scripts (build_matchup_facts.py /
+# build_season_facts.py) — a trimmed copy of Sleeper's ~5 MB player dump.
+# Regenerated on demand; never a site asset.
+Sleeper FF/The Other League/scripts/.cache/
