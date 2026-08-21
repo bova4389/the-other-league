@@ -177,7 +177,10 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `grade-card-{uid}` — per-team raw-metric card, **admin only** (`?admin=1`), rendered by `renderGradeAdminCard`. Still reuses `.r-card`/`.rch`/`.rcb`/`.pg`.
 
 ### Rivalries Panel
-- `rivalry-grid` — rivalry matchup cards
+- `rivalry-grid` — the 6 official rivalry cards
+- `h2h-picker-grid` — Phase 2 clickable 12x12 all-time matchup grid (`buildH2HPicker`)
+- `h2h-detail` — Phase 2 selected-pair detail card + game log (`renderH2HDetail`)
+- `nemesis-board` — Phase 2 per-manager worst-opponent table (`buildNemesisBoard`)
 
 ### Draft Panel
 - `draft-view-past` — visible by default; all years including 2026 render here via `buildDraftHistory()`
@@ -356,9 +359,19 @@ State variables: `currentTxnTeams`, `currentRosterTeams`, `currentDraftTeams` �
 - `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips; calls `buildTeamFilterChips` and `applyRosterFilter` after rendering
 
 ### Rivalries
-- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit; always shows a "2026: TBD · W4 W13" placeholder row for each rivalry until live matchup data is available
+- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit; always shows a "2026: TBD · W4 W13" placeholder row for each rivalry until live matchup data is available. Also calls the three Phase 2 builders below, every visit.
 - `buildH2HForYear(year, maxWeek)` — builds H2H map from cached matchup data for a single year (up to `maxWeek`; default 17)
 - `findRivalWeeks(year, ridA, ridB, maxWeek)` — returns sorted list of week numbers where two roster IDs faced each other (default `maxWeek=14`)
+
+### Head-to-Head Explorer + Nemesis Board (Phase 2 — built 2026-08-21)
+Deliberately a **different question** from the 6 `RIVALS` cards above: "any two managers, ever," not just the 6 pairs the league formally calls rivals. So it does **not** inherit the "2025+ only" scoping those cards use (see KEY DESIGN DECISIONS) — it walks every cached season back to 2023, same guards as `buildH2HMap` (`weekWasPlayed`, `REG_WEEKS`-capped), so it can never disagree with the all-time totals shown elsewhere on the site. Verified against synthetic matchup data covering a win, a loss, a tie, an unplayed week (all-zero points) and a week 15 game — the unplayed week and the post-`REG_WEEKS` week are both correctly excluded, and win/loss/tie/margin/chronological-sort all came back exact.
+
+- `buildAllTimePairs()` — one walk over `tol_matchups_{year}` for 2023–2026, grouping every regular-season matchup by roster-id pair (keyed `lo|hi`, lower roster_id first) into a `games[]` array. Not memoised — recomputed on every `buildRivalries()` call, same as `buildH2HMap`; cheap at this data volume (4 seasons × 14 weeks × 6 games).
+- `pairView(pairs, ridX, ridY)` — orients one pair's games to `ridX`'s point of view: `{w, l, tie, gp, pf, pa, avgMargin, games[]}`, sorted chronologically. Returns `null` when the two have never played a regular-season game against each other — a normal state (most of the 66 possible pairs have only 1–2 meetings across 4 seasons, some none at all), not an error condition; callers render a plain sentence for it rather than an empty table.
+- `computeNemesisMap(minGames)` — thin wrapper over `buildH2HMap()`: per manager, the opponent with the worst win% among opponents played at least `minGames` times (Nemesis Board uses 2), tie-broken toward more losses. Gating on a minimum sample means one loss to someone played only once can't crown a "nemesis."
+- `buildH2HPicker()` — renders the 12×12 clickable grid into `#h2h-picker-grid`. Cell color: `.lead`/`.trail`/(default) via `--accent`/`--accent3`, matching the fav/dog-style axis used elsewhere on the site. Clicking a cell calls `selectH2HPair`.
+- `selectH2HPair(ridX, ridY)` / `renderH2HDetail()` — `_h2hSelected` is a module-level var that persists across re-renders (a Rivalries tab revisit doesn't lose the pair you had open). Detail card reuses `.riv-card`/`.riv-at-row`/`.riv-history` wholesale from the existing rivalry cards, plus a `.dtbl` game log table with a `goToScoresWeek` link per game, same pattern as the official rivalry cards' week links.
+- `buildNemesisBoard()` — renders `#nemesis-board` as a 12-row `.dtbl`, one row per manager sorted by name, reusing `.hof-sub` for the record text. "Not enough data yet" for anyone with no opponent meeting the 2-game minimum.
 
 ### Player Stats
 State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `'all'`), `currentStatsWeek` (default `'season'`), `statsShowPass`, `statsShowRush`, `statsShowRec` (all default `true` — control column group visibility), `currentStatsTeams` (Set — roster_ids; `0` = free agents; empty = all teams).
@@ -513,7 +526,9 @@ Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Car
 **The two objects must reconcile, and now they are shown on the same screen, so a disagreement is visible.** Adding a season means adding it to both. Current state:
 - 2023 — itemised lines sum to the $600 pot exactly. ✅
 - 2024 — sum to $1,200 exactly, **after a fix on 2026-08-21**: the card credited Duane Gillenwater $15 for Best QB (Lamar Jackson) and `SEASON_HISTORY` had no line for him at all, so his career earnings ran $15 light and the card summed to $1,185. Line added.
-- 2025 — the two objects agree per owner, but the itemised lines only account for **$1,175 of the $1,200 pot**. That is a gap in the source record, not a code bug; $25 is unattributed. Left as found — flagged for Matt.
+- 2025 — sum to $1,200 exactly, **after a fix in a parallel session (128dd39)**: the itemised lines accounted for only $1,175, and the missing $25 turned out to be money held back from the pot for the championship trophy rather than paid out as cash. It is now folded into Jake Blackwell's 1st-place line ($455 → $480, per-owner total $490 → $515). That commit also fixed a transposed figure in the Most Improved Points label (1,196 → 1,961).
+
+**All three seasons now reconcile to the pot exactly**, and the career-earnings column sums to $3,000 across 2023–2025. There is a `reconcile_payouts.py` shape worth rebuilding if a fourth season ever fails to add up: total each card's lines per owner and diff against `SEASON_HISTORY.payouts`, then against the pot.
 ### `SDATA` / `SLABELS` — scoring values and display names
 ### `DRAFT_ORDER_2026` — 2026 round 1 order (13 picks — includes consolation bonus pick 1.13)
 ### `KTC_SNAPSHOT` — hardcoded dynasty player values (Superflex + PPR + TE Premium, June 2026). ~80 players + all 2027/2028 pick tiers (Early/Mid/Late × 4 rounds). Used as fallback when live KTC fetch fails. Pick values represent the +25% slider position (full KTC). Format: `name → value (number)` for snapshot; `name → {value, position, nflTeam, age, rank, trend}` for live cached data.
@@ -680,14 +695,17 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 
 ---
 
-### Phase 2 — Head-to-Head Rivalry History
-**Goal:** Expand the existing Rivalries tab with full all-time H2H detail.
-- All-time H2H record between any two managers (clickable matchup grid)
-- Full game log per rivalry (date, scores, winner)
-- Average margin of victory per matchup
-- "Nemesis" stat — who has the worst record against a specific opponent
+### Phase 2 — Head-to-Head Rivalry History — **shipped 2026-08-21**
+**Goal:** Expand the existing Rivalries tab with full all-time H2H detail. See "Head-to-Head Explorer + Nemesis Board" under JAVASCRIPT FUNCTIONS for the full mechanics.
 
-**Data source:** Sleeper matchup API by week — same data used by `buildH2HMap()`. **Complexity: Low-medium.**
+- ✅ All-time H2H record between any two managers (clickable matchup grid) — `buildH2HPicker()`, a 12×12 grid covering all 66 possible pairs, not just the 6 official rivalries
+- ✅ Full game log per rivalry (date, scores, winner) — `renderH2HDetail()`, with a `goToScoresWeek` link per game
+- ✅ Average margin of victory per matchup — `pairView().avgMargin`, shown on the detail card
+- ✅ "Nemesis" stat — `computeNemesisMap()` + `buildNemesisBoard()`, gated on a 2-game minimum sample
+
+**Scoping decision:** unlike the 6 `RIVALS` cards (2025+ only — see KEY DESIGN DECISIONS), this covers every meeting back to 2023. "Any two managers" is a genuinely different, broader question than "the 6 pairs the league calls rivals," so it gets the real history rather than inheriting the rivalry-era cutoff.
+
+**Data source:** the same cached `tol_matchups_{year}` and guards (`weekWasPlayed`, `REG_WEEKS`) as `buildH2HMap()` — no new fetch, so it costs nothing extra to load. **Complexity was Low-medium as scoped**, and stayed there: the whole feature is 214 lines, purely additive, no existing function's behavior changed.
 
 ---
 
@@ -821,7 +839,9 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - ✅ **Tab 9 relabelled "League" → "Rules".** Label only — ids, hash and `VALID_TABS` untouched. What's left on that panel is rule updates, format and scoring, which is what the name now says.
 - ✅ **Sort defaults confirmed, not changed:** year tables lead with Place ascending, the All Time career table with Career Earnings descending. Both were already correct.
 - 🐛 **Found by putting the two payout records side by side: `SEASON_HISTORY[2024]` was missing Duane Gillenwater's $15** (Best QB, Lamar Jackson). The itemised card had it, this object didn't, so his career earnings read $200 instead of $215 and the 2024 card summed to $1,185 against a $1,200 pot. Fixed. This is exactly the class of error the move was always going to surface — the two numbers now render six inches apart.
-- ⚠️ **2025's itemised payouts account for $1,175 of the $1,200 pot.** Both records agree with each other, so nothing is inconsistent; $25 is simply unattributed in the source. Left as found, for Matt to say where it went.
+- ✅ **2025's $25 gap was closed in a parallel session** (commit 128dd39) while this work was in flight: the money was held back for the championship trophy, so it belongs in Jake Blackwell's 1st-place total. Merged in here — see `SEASON_PAYOUTS` for the reconciled state of all three seasons.
+
+**Merge note (2026-08-21).** This branch deleted the League-panel payout markup at the same time as 128dd39 was editing two lines inside it, so `index.html` conflicted in two places: the deleted payout block (took the deletion, carried both of their corrections into `SEASON_PAYOUTS` by hand) and the end of `<style>`, where both sides had appended a new banner-commented CSS layer (kept both). **That second conflict is structural, not bad luck** — the redesign convention says new CSS goes at the very bottom of `<style>`, so any two branches that add a layer will collide there. Expect it, and resolve by keeping both blocks rather than picking a side.
 
 **Not built:** 2026 has no recap (it hasn't happened); write one after the season. Per-season *record books* are still all-time only — see the Phase 1 follow-ups.
 
