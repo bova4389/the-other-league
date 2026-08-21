@@ -1,0 +1,677 @@
+{
+ "season": 2025,
+ "note": "Hand-edited. Keys are week|matchup_id. Facts sourced from scripts/build_matchup_facts.py; every number here was checked against it. Consolation games with nothing at stake deliberately have no entry.",
+ "matchups": {
+  "1|1": {
+   "headline": "eejacobs peaks in Week 1 and spends the next thirteen regretting it",
+   "body": "Erin dropped 157.29, the high score of the week and a full 47.7 points clear of what the field managed against projection. Derrick Henry went for 31.2 and Justin Herbert added 27.9, which is the sort of opening weekend that convinces a manager he has figured something out. He finished the season 7-21, dead last. Chris Merkel scored 150.63 — comfortably above the median, a winning number in most weeks — and got nothing out of it but a 1-1 split and a Mark Andrews line (1.75) he will be answering for at every draft from now until he dies.",
+   "tags": [
+    "UPSET",
+    "UNLUCKY LOSS"
+   ]
+  },
+  "1|2": {
+   "headline": "Nabers in Paris wins by 46 with 29 points sitting on the bench",
+   "body": "Nick started C.J. Stroud (8.72) over Daniel Jones (29.48), which would be the story in almost any other matchup and here barely registers — Justin Fields put up 29.5 and the rest of the roster handled it. Jake Blackwell came in 30.4 points under par: Joe Burrow 8.82, Amon-Ra St. Brown 7.75, Kenneth Walker 3.65. File this one away. Seventeen weeks later that exact roster is holding the trophy.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "1|3": {
+   "headline": "Two managers, two quarterbacks on the bench, one accidental win",
+   "body": "Josh Allen went for 38.76 and dragged Joshin Around over the line, and that is the entire list of nice things available here. Andrew left Aaron Rodgers (25.66) on his bench to start Dak Prescott (7.82), and Xavier Worthy contributed a clean 0.00. Mitch responded by benching Quentin Johnston (24.15) to start Cam Ward (2.48). Andrew's 123.93 did not clear the league median, so he 'won' the week 1-1. Nobody involved should feel anything.",
+   "tags": [
+    "LUCKY WIN",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "1|4": {
+   "headline": "Titsburg Feelers set a lineup with 1.25 points of regret in it",
+   "body": "180.74, the week's high score, and Chris's optimal lineup would have been worth exactly 1.25 more — the tightest lineup anyone set in Week 1. Emeka Egbuka (22.85) and Garrett Wilson (21.50) did the heavy lifting. Nick Merkel had the specific misfortune of scoring 134.64, clearing the median and going 1-1 on the week, while Ja'Marr Chase and A.J. Brown combined for 5.90 points. Two first-round receivers. One field goal.",
+   "tags": [
+    "BLOWOUT",
+    "UNLUCKY LOSS"
+   ]
+  },
+  "1|5": {
+   "headline": "Show Me Your Penix leaves Penix on the bench, wins anyway",
+   "body": "There is no writing around this one. Matt benched Michael Penix (26.02) — the man the team is named after — to start Sam Darnold (5.40), piled 103.33 points onto his bench, left 41.21 on the table, and won by 2.41. He was saved entirely by Jared Hayes starting Tyler Higbee, who scored 0.00, while Juwan Johnson put up 18.35 from a SirWinsAlot bench seat. Neither team beat the league median. Matt went 1-1, Jared went 0-2, and the sport was invented for exactly this.",
+   "tags": [
+    "NAILBITER",
+    "LUCKY WIN",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "1|6": {
+   "headline": "Duane gets both highlights and loses by 19",
+   "body": "Patrick Mahomes (26.02) and Tyler Warren (17.15) were enough for BoKnows723, which is all Jake needed them to be. Duane actually produced the two biggest individual scores in the matchup — Lamar Jackson 29.36 and Deebo Samuel 23.10 — and still lost comfortably, because the back half of Enter the Maye-Trix was Jerome Ford (0.50), Tank Bigsby (2.00) and T.J. Hockenson (4.75) while Keenan Allen sat on the bench for 18.55. Duane went 0-2 on the week. Owning the highlight reel and losing the game is a whole personality.",
+   "tags": []
+  },
+  "2|1": {
+   "headline": "Erin's title defence lasts exactly one week",
+   "body": "Seven days after the highest score in the league, eejacobs posted 83.14 — a 74-point faceplant and 43.8 below par, the worst showing of the week by a distance. Derrick Henry went from 31.2 to 2.3. Mitch Blackwell needed none of his own good fortune to win by 47, though he did lose Jayden Reed to a 0.00 and still had 67.9 sitting on his bench. Mitch's 130.71 didn't beat the median either, so the blowout bought him a 1-1 week. Nobody wins in i LOVE mendoza.",
+   "tags": [
+    "BLOWOUT",
+    "LUCKY WIN"
+   ]
+  },
+  "2|2": {
+   "headline": "Duane starts two quarterbacks who score identically and calls it strategy",
+   "body": "Lamar Jackson 26.30, Drake Maye 26.30 — Enter the Maye-Trix got the exact same number out of both of them, which is either superb roster construction or a rounding coincidence, and Duane will be telling you it's the former. 167.75 and a 2-0 week, 22.2 above par, after opening the season 0-2. Nick Merkel got 34.5 from Ja'Marr Chase and 3.20 from Geno Smith and went home 0-2 for the second week running.",
+   "tags": [
+    "UPSET"
+   ]
+  },
+  "2|3": {
+   "headline": "BoKnows723 wins with 116 points on the bench",
+   "body": "Jake put up 174.16 and left more points unused than eight teams scored all week — 116.5 on the bench, headlined by Wan'Dale Robinson, who would have added 22.1 over the 5.90 Drake London managed. Tucker Kraft's 27.9 covered it. Jake Blackwell's 152.47 was the second-highest score of the week and bought him a 1-1, because Amon-Ra St. Brown's 36.95 had to carry Joe Burrow's 7.04 on its back.",
+   "tags": [
+    "UNLUCKY LOSS"
+   ]
+  },
+  "2|4": {
+   "headline": "Show Me Your Penix leaves 108 on the bench, and this time it costs him",
+   "body": "Week 1 Matt benched a 26-point quarterback and won anyway. Week 2 he benched 108.4 points, started J.J. McCarthy for 2.82, and lost by 48 with the lowest score of his season to that point. Tua Tagovailoa was available and worth 15.8 more. Chris Bova didn't need to be good — 144.85 was 23.6 below par and missed the median, so Titsburg took the win and still went 1-1. Matt went 0-2 and has now left 208 points on his bench in two weeks.",
+   "tags": [
+    "BLOWOUT",
+    "LUCKY WIN"
+   ]
+  },
+  "2|5": {
+   "headline": "Nick Bova drops 178 with Russell Wilson watching from the bench",
+   "body": "Malik Nabers 37.95, James Cook 27.0, De'Von Achane 24.7 — Nabers in Paris scored the most points anyone managed in Week 2 and it still wasn't the optimal lineup, because Justin Fields put up 3.98 in the QB slot while Russell Wilson sat there worth 30.3 more. Chris Merkel's 145.02 cleared the median and lost anyway. Mark Andrews: 1.40. That is two weeks and 3.15 total points from a starting tight end.",
+   "tags": [
+    "UNLUCKY LOSS"
+   ]
+  },
+  "2|6": {
+   "headline": "SirWinsAlot finally wins something",
+   "body": "Jared came in 0-2 and 23.8 above par is how you fix that: Jonathan Taylor 31.25, Javonte Williams 22.75, and — remarkably for this league — only 7.8 points left on the table, the cleanest lineup anyone set all week. Andrew Bova got 12.82 from Josh Allen, which is the single most disappointing sentence in this recap, and went 0-2 for it.",
+   "tags": [
+    "UPSET"
+   ]
+  },
+  "3|1": {
+   "headline": "Two 1-3 teams meet and somebody has to win",
+   "body": "Breeces Peanut ButterCups took it 132.35 to 120.96, a number that didn't come close to the median, so Nick banked a 1-1 and stayed exactly as buried as he started. Zay Flowers managed 2.80 while Luther Burden sat on the bench worth 18.4 more — the swap alone would have covered the margin twice. Andrew Bova started Cade Otton, who scored 0.00, and went 0-2. Genuinely one of the games of all time.",
+   "tags": [
+    "LUCKY WIN",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "3|2": {
+   "headline": "Matt starts Penix again. Penix scores 2.78.",
+   "body": "Two weeks after benching Michael Penix for a 26-point afternoon, Matt put him back in the lineup and got 2.78, with Sam Darnold on the bench worth 13.9 more. There is no lineup decision available to this man that works. Hunter Henry's 32.0 out of a tight end slot kept it respectable at 127.47, but Jake Blackwell's 165.53 was 20.1 above par and never in doubt. Matt: 0-2. Show Me Your Penix is 1-5 on the season.",
+   "tags": []
+  },
+  "3|3": {
+   "headline": "CeeDee Lamb scores nothing and Titsburg wins anyway",
+   "body": "A 0.00 from the best receiver on the roster is normally the end of a fantasy week. Chris Bova posted 155.13 regardless — Jahmyr Gibbs 25.4, Garrett Wilson 22.15, Kyren Williams 18.95 — and went 2-0 to move to 5-1. Jared Hayes got 32.8 from Jonathan Taylor and 31.12 from Caleb Williams, cleared the median, and lost. Some rosters are just deeper than yours.",
+   "tags": [
+    "UNLUCKY LOSS"
+   ]
+  },
+  "3|4": {
+   "headline": "The best team in the league scores 105 and loses to the worst",
+   "body": "BoKnows723 came in 4-0 and posted 105.58, a full 56.5 points below par — the worst performance against expectation anybody managed in 2025. Patrick Mahomes led the team with 13.16. Meanwhile 131.4 points sat on Jake's bench, including a David Montgomery worth 26.8 more than the Wan'Dale Robinson he started. Erin Jacobs won it with 116.36, which didn't beat the median either, so the upset of the season so far was a 1-1 week for the winner. Tre Tucker, incidentally, was worth 41.3 more than the man Erin started ahead of him.",
+   "tags": [
+    "LUCKY WIN",
+    "UPSET",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "3|5": {
+   "headline": "Mark Andrews remembers he plays football",
+   "body": "After 1.75 in Week 1 and 1.40 in Week 2, Mark Andrews went for 29.35 and won Chris Merkel the game by 4.97. Three weeks, 32.5 points, and 90% of it in one afternoon — as a tight end strategy it is at least distinctive. Mitch Blackwell set the tidiest lineup of the week, leaving 0.8 on the table, scored 142.24, and lost anyway. He went 0-2 for the trouble. Setting a perfect lineup in this league is worth nothing at all.",
+   "tags": [
+    "NAILBITER"
+   ]
+  },
+  "3|6": {
+   "headline": "Four points decide it and Nick Bova's best receiver scores 2.55",
+   "body": "Enter the Maye-Trix took it 163.66 to 159.58 on the back of Jake Ferguson's 24.2 and another Lamar Jackson day. Nabers in Paris lost by 4.08 while Malik Nabers — the man on the letterhead — put up 2.55 against an 18.92 projection, and Rico Dowdle sat on the bench worth 8.8 more. The margin was 4.08. Nick still cleared the median for a 1-1, which is the only mercy on offer here.",
+   "tags": [
+    "NAILBITER",
+    "UNLUCKY LOSS",
+    "UPSET",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "4|1": {
+   "headline": "Rivalry week, and Matt picks it to have his first good afternoon",
+   "body": "1-5 coming in, 173.87 going out, 38.2 above par and the best week anyone had against expectation. Kenny Gainwell led it with 31.61 and Romeo Doubs added 28.75 from nowhere. Duane set a near-perfect lineup — 5.7 left on the table, tidiest of the week — got 10.68 from Lamar Jackson, and lost by 27 while going 0-2. Show Me Your Penix still had 125.0 on the bench in his best week of the season, because some things are simply constitutional.",
+   "tags": [
+    "RIVALRY",
+    "UPSET"
+   ]
+  },
+  "4|2": {
+   "headline": "BoKnows723 puts 202 on the board and it is still not his best lineup",
+   "body": "The third-highest score of the 2025 season, and Jake left 60.9 on the table getting there — Justice Hill alone was worth 33.1 more than the David Montgomery who managed 1.20. Josh Jacobs 31.2, Mahomes 27.3, Jordan Love 26.28. Jared Hayes got a 34.0 out of Ashton Jeanty in rivalry week and lost by 71, which is the kind of result that makes a man question the format. Jared went 0-2.",
+   "tags": [
+    "RIVALRY",
+    "BLOWOUT"
+   ]
+  },
+  "4|3": {
+   "headline": "Two 5-1 teams, 361 points, and the guy on the letterhead scores 3.75",
+   "body": "The best game of the week by some distance: Nabers in Paris 199.82, Titsburg Feelers 161.63, both above par, neither doing anything wrong. George Pickens went for 32.9 and Justin Fields 28.14. The comedy is that Malik Nabers — the team's actual namesake — put up 3.75, and Nick won by 38 anyway. Chris cleared the median for a 1-1 and lost his three-game streak.",
+   "tags": [
+    "RIVALRY",
+    "UNLUCKY LOSS"
+   ]
+  },
+  "4|4": {
+   "headline": "Nacua Matata's receivers score 99 points between them",
+   "body": "Puka Nacua 34.5, Amon-Ra St. Brown 24.5, DK Metcalf 24.1 — Jake's wideouts alone outscored eight full teams this week, and the 168.31 total put him back to .500. Mitch got 22.05 from Quentin Johnston, whom he had famously benched in Week 1, and 4.52 from Cam Ward, whom he had started ahead of him. Nothing is learned in i LOVE mendoza. Mitch is 1-7.",
+   "tags": [
+    "RIVALRY",
+    "BLOWOUT"
+   ]
+  },
+  "4|5": {
+   "headline": "Joshin Around wins the quarterback war and nothing else",
+   "body": "Dak Prescott 30.96 and Josh Allen 26.86 gave Andrew 57.82 from two quarterback slots and 11.2 from his entire running back corps, which is a distribution of resources you would struggle to design deliberately. It was enough: 138.82 beat eejacobs' 110.29 in rivalry week. It did not beat the median, so Andrew went 1-1. Erin got a 0.00 from DeMario Douglas and went 0-2 for the third time in five weeks.",
+   "tags": [
+    "RIVALRY",
+    "LUCKY WIN",
+    "UPSET"
+   ]
+  },
+  "4|6": {
+   "headline": "Merkel derby, and the wrong Merkel brings a quarterback",
+   "body": "Chris got 29.4 from Matthew Stafford and 22.86 from Baker Mayfield — 52.26 from the position — and won the family game by 36. Nick's two quarterback slots produced 20.08 combined. A.J. Brown contributed 1.45, which is now a recurring feature of Breeces Peanut ButterCups rather than a bad afternoon. Nick went 0-2 and dropped to 2-6; Chris went 2-0 and sits at 6-2.",
+   "tags": [
+    "RIVALRY",
+    "UPSET"
+   ]
+  },
+  "5|1": {
+   "headline": "SirWinsAlot gets 72 from his running backs and 3.7 from his tight end",
+   "body": "Jonathan Taylor 30.85 and Javonte Williams 27.4 did essentially all of it, and Jared needed them to, because Juwan Johnson managed 3.70 and Jalen Tolbert posted a clean 0.00. 171.78 was still comfortably the better number. Nick Merkel got 29.0 from Ja'Marr Chase, 5.92 from Geno Smith, and went 0-2 again — his fourth two-loss week in five, and the season is not yet half over.",
+   "tags": []
+  },
+  "5|2": {
+   "headline": "i LOVE mendoza wins a game with two tight ends",
+   "body": "Sam LaPorta 22.45 and David Njoku 21.2 combined for 43.65 from the tight end slots, which is not how anyone draws it up and worked completely — 174.17 and 22.2 above par, Mitch's best week of the season. Jake Bogardus started Zach Ertz, who scored 0.00, with Mason Taylor on the bench worth 20.4 more, and lost by 47. BoKnows723 went 0-2 in a week where he was still the second-best team in the league.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "5|3": {
+   "headline": "Rico Dowdle scores 35.9 and Nick Bova barely notices",
+   "body": "191.85 for Nabers in Paris, second-highest of the week, and the remarkable part is that James Cook contributed 4.90 to it. Nick left 46.4 on the table and won by 54 regardless. Erin Jacobs got 23.45 from Kendrick Bourne — a sentence that should never have needed writing — and lost by more than fifty for the third time this season. Nick moves to 9-1.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "5|4": {
+   "headline": "Chris Merkel starts a man named Jacory Croskey-Merritt and gets 27 points",
+   "body": "That is the whole recap, really. Croskey-Merritt went 18.2 above his projection, Baker Mayfield added 26.66, and Your Team is the PITTsMAN posted 166.69 to go 2-0 and reach 8-2. Duane's problem was the SUPER_FLEX: Cooper Rush, 1.16, with Nick Chubb sitting there worth 10.9 more. Jake Ferguson's 24.65 deserved better company. Duane went 0-2.",
+   "tags": []
+  },
+  "5|5": {
+   "headline": "Sam Darnold repays Matt for Week 1",
+   "body": "The quarterback Matt started over Michael Penix in Week 1 for 5.40 came back with 27.64, and Tua Tagovailoa added 24.74, and Show Me Your Penix won a game 155.81 to 132.80. Two 2-0 weeks in a row is not something this roster is supposed to be capable of. Andrew Bova got 30.28 from Dak Prescott, 14.6 from his entire backfield, and went 0-2. Joshin Around: 2-6.",
+   "tags": [
+    "UPSET"
+   ]
+  },
+  "5|6": {
+   "headline": "Nacua Matata scores zero points at quarterback",
+   "body": "Marcus Mariota, 0.00. Not a bad afternoon — nothing at all, from the position that decides most weeks in a superflex league. Jake still managed 108.82 because Puka Nacua and Amon-Ra St. Brown are very good, and he left only 0.5 on the table, which is the cruellest detail available: this was very nearly the best lineup his roster could produce. Chris Bova's 164.89 ended it by 56. Emeka Egbuka 31.8, Kyren Williams 29.35, and Titsburg goes to 8-2.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "6|1": {
+   "headline": "Nacua Matata scores zero at quarterback for the second week running",
+   "body": "Brock Purdy: 0.00. Last week it was Marcus Mariota, also 0.00. Jake has now gone two consecutive weeks without a single point from the position, which in a superflex league is roughly equivalent to playing with ten men, and he is somehow still 5-5. Cam Skattebo's 30.25 kept it to a nine-point loss. Andrew Bova won with 117.67 that didn't clear the median, so Joshin Around took a 1-1 out of the lowest-scoring week of the season so far — the league median was 119.45, and eight teams failed to reach 120.",
+   "tags": [
+    "LUCKY WIN"
+   ]
+  },
+  "6|2": {
+   "headline": "eejacobs wins a week and immediately hides the evidence",
+   "body": "Erin's 135.33 was 19.1 above par and comfortably the better team here, which after 3-7 counts as an event. He also left 44.9 on the table — Kayshon Boutte alone was worth 23.7 more than the man he started — so the celebration should be measured. Matt Bova's 119.77 squeaked over the median for a 1-1, meaning Show Me Your Penix lost the game and still banked a win. Both teams sit at 5-5 and 3-7 respectively and neither is going anywhere.",
+   "tags": [
+    "UNLUCKY LOSS",
+    "UPSET"
+   ]
+  },
+  "6|3": {
+   "headline": "Titsburg wins with 13 points from four receivers and 54 from two tight ends",
+   "body": "Trey McBride 23.2, Harold Fannin 17.35 — Chris got more out of the tight end position than his entire receiving corps managed between them, which is a sentence that should end a season rather than win a game. It won the game. 119.14 was 19.2 below par and missed the median, so the 8-2 team took a 1-1. Duane started Cooper Rush, who scored minus 1.12 — the only negative number any starter posted all season — and went 0-2.",
+   "tags": [
+    "LUCKY WIN"
+   ]
+  },
+  "6|4": {
+   "headline": "SirWinsAlot gets 3.0 from the tight end slot and wins anyway",
+   "body": "Jared's tight ends managed 3.00 combined, with Tyler Higbee sitting on the bench worth 14.0 more, and it never mattered — Caleb Williams, Jonathan Taylor and Trevor Lawrence carried 141.92 past a Mitch Blackwell side that got 29.95 from Jaxon Smith-Njigba and 0.10 from Emari Demercado. Mitch went 0-2 again. That is seven two-loss weeks in ten for i LOVE mendoza.",
+   "tags": []
+  },
+  "6|5": {
+   "headline": "The 8-2 team scores 103 and loses by 93",
+   "body": "Chris Merkel came in on a three-week winning streak and posted 38.1 below par with 105.8 points on his bench — Jaxson Dart alone was worth 14.3 more than the Matthew Stafford he started. Jake Bogardus, meanwhile, had the fifth-best week anyone managed against expectation all season: 196.24, a full 56.7 above par, with Mahomes 31.48, Josh Jacobs 31.0 and Drake London 30.55 all clearing thirty. The 92.91 margin is the fifth-largest of 2025. Chris went 0-2 and never really recovered the top seed.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "6|6": {
+   "headline": "Nabers in Paris gets 94 points from two running backs",
+   "body": "Rico Dowdle 32.9, De'Von Achane 30.5, Christian McCaffrey rounding out a backfield that produced 94.2 on its own. 199.98 — Nick misses 200 by two hundredths of a point, which will bother him more than any loss this season. Nick Merkel actually had a fine afternoon, 168.72 and 20.4 above par with Bijan Robinson going for 35.55, cleared the median, and lost by 31. He went 1-1 and stayed at 2-8. Some seasons are just like that.",
+   "tags": [
+    "UNLUCKY LOSS"
+   ]
+  },
+  "7|1": {
+   "headline": "Duane snaps a three-week losing run with the best week of his season",
+   "body": "39.5 above par, which after an 0-6 stretch across three weeks is quite the reversal — Quinshon Judkins 27.4, Keenan Allen 26.65, Drake Maye 23.08. Enter the Maye-Trix goes 2-0 and climbs off the floor. Jared Hayes got 33.95 from Jonathan Taylor and 4.40 from Ashton Jeanty, missed the median by three, and went 0-2 despite scoring 132.27. The margin was 13.87.",
+   "tags": [
+    "UPSET"
+   ]
+  },
+  "7|2": {
+   "headline": "Ja'Marr Chase and A.J. Brown finally show up on the same afternoon",
+   "body": "64.7 points from the two of them, 81.1 from the receiving corps, and Breeces Peanut ButterCups snapped a three-week losing streak. Which makes it all the funnier that Geno Smith contributed 2.78 and Nick still won by 19. Erin Jacobs got 55.94 from two quarterback slots and 13.95 from his entire backfield, which is not a football team so much as a fantasy experiment, and went 0-2.",
+   "tags": []
+  },
+  "7|3": {
+   "headline": "BoKnows723 leaves 142 points on the bench and wins by 54",
+   "body": "That is not a typo. Jake's bench outscored nine starting lineups in the league this week — 142.7 unused, the second-highest bench total of the season — and BoKnows723 still put 163.85 on the board and won comfortably. Matt Bova started Darren Waller, who scored 0.00, with Theo Johnson available and worth 17.9 more, and got precisely zero points from the tight end position. Show Me Your Penix went 0-2 and fell to 6-6.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "7|4": {
+   "headline": "Three weeks, three zeroes at quarterback, and Jake Blackwell is still in this",
+   "body": "Brock Purdy 0.00 for the second time in three weeks, Puka Nacua 0.00 alongside him, and Nacua Matata posted 81.65 — its lowest score of the season and 63.3 points short of what its own roster could have managed. Pat Freiermuth was worth 25.1 more than the man in the SUPER_FLEX. Nick Bova won by 52 with a 133.98 that did not clear the median, so the 11-1 juggernaut took a 1-1 out of a blowout. Remember which of these two teams wins the championship.",
+   "tags": [
+    "BLOWOUT",
+    "LUCKY WIN"
+   ]
+  },
+  "7|5": {
+   "headline": "Bo Nix 39.96, Oronde Gadsden 33.65, nine points in it",
+   "body": "The best game of the week and one of the best of the season: Titsburg 170.67, PITTsMAN 161.60, both well above par, both getting a monster from somewhere unlikely. Chris Merkel's tight end outscored most people's entire flex, and he still lost — 100.5 on his bench, Jaxson Dart worth 21.3 more than the Baker Mayfield he started, and a 9.07 margin that any one of those decisions covers. He cleared the median for a 1-1. Chris Bova went 2-0 and moved to 11-3.",
+   "tags": [
+    "UNLUCKY LOSS",
+    "UPSET",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "7|6": {
+   "headline": "Joshin Around starts three players who score nothing at all",
+   "body": "George Kittle 0.00, Mike Evans 0.00, Jameson Williams 0.00 — three starters, no points, and a tight end position that finished the afternoon on zero with Dalton Schultz worth 22.3 more sitting behind it. Andrew got 49.82 from his quarterbacks and it bought him nothing. Mitch Blackwell's receivers went for 105.95 led by DeVonta Smith's 33.05, and i LOVE mendoza won by 48 in its best week since September. Both teams are 3-9 and this was, technically, the highlight of both their seasons.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "8|1": {
+   "headline": "Tucker Kraft scores 36 and BoKnows723 hits 200 for the second time",
+   "body": "200.21, with 132.3 still sitting on the bench — Jake is now averaging a full extra team's worth of unused points every week and winning anyway. Tucker Kraft's 36.55 from the tight end slot was 22.2 clear of projection. Nick Merkel got 32.36 out of Breece Hall and 4.80 out of Bijan Robinson, which between them average out to a perfectly good afternoon and in practice meant an 84-point defeat. Nick went 0-2.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "8|2": {
+   "headline": "eejacobs has the single best week anyone had all season",
+   "body": "65.8 points above par — the third-best showing against expectation anyone managed in 2025, and by some distance the best by a team that finished last. Erin did it with 11.7 points on his bench, having emptied the roster into the lineup. Jalen Hurts 27.36, Troy Franklin 26.4 from nowhere, Justin Herbert 25.28. Matt Bova started Marquise Brown for 0.00 with RJ Harvey worth 25.9 more, lost by 68, and went 0-2. This is the week eejacobs proved it could be done, and then finished 7-21 anyway.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "8|3": {
+   "headline": "Chris Bova has 3.3 points on his bench and it is the whole story",
+   "body": "Titsburg started essentially its entire useful roster — 3.3 points left on the bench, the emptiest bench anyone had all season. It produced 151.83 and 54.4 above par. Andrew Bova answered with 93.54, got 25.22 from Josh Allen and 6.62 from Dak Prescott, and fell to 3-11. Joshin Around has now lost eleven of fourteen and it is Week 8.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "8|4": {
+   "headline": "James Cook 36.6, Christian McCaffrey 9.3, nobody in Paris cares",
+   "body": "Nick's backfield produced 70.31 between two men pulling in opposite directions, and 163.05 was more than enough against a Mitch Blackwell side that managed 91.10 with two starters on zero. Quentin Johnston, benched in Week 1 and started ever since, contributed 0.00. Nabers in Paris is 12-2 and has won four straight; i LOVE mendoza went 0-2 for the eighth time.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "8|5": {
+   "headline": "Two bad teams, 2.91 points, and a tight end who never showed up",
+   "body": "Duane won 108.08 to 105.17 in a game neither side deserved — the second-closest finish of the season and comfortably the worst football involved in one. Jake Ferguson scored 0.00 for Enter the Maye-Trix, which should have ended it, except Jake Blackwell's entire quarterback contribution was Marcus Mariota's 11.32. Duane left 43.5 on the table and won by less than three. Neither team beat the median. Duane took a 1-1 out of it, Jake took an 0-2 and a fourth straight loss.",
+   "tags": [
+    "NAILBITER",
+    "LUCKY WIN",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "8|6": {
+   "headline": "Jared Hayes goes 32 above par and loses by six",
+   "body": "Jonathan Taylor 37.9, a 72.95 backfield, 32.4 above par — this was a genuinely excellent week from SirWinsAlot, and Jerry Jeudy's 0.00 with Jalen Tolbert worth 12.7 more on the bench is the entire difference in a 5.74 game. Chris Merkel got 33.15 from Saquon Barkley and 4.08 from Baker Mayfield and squeaked home. Jared cleared the median for a 1-1, which is the fantasy football equivalent of a participation certificate.",
+   "tags": [
+    "UNLUCKY LOSS",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "9|1": {
+   "headline": "The closest game of the 2025 season, decided by 2.23 points",
+   "body": "Joshin Around 147.87, Your Team is the PITTsMAN 145.64, and Andrew left 1.1 points on the table getting there — a near-perfect lineup in the one week he needed it. Chris Merkel started Rome Odunze for a 0.00 with Jalin Hyatt worth 4.4 more, which is twice the margin, and he will know that. The cruelty is the median: 150.39 was the second-highest of the season, so neither team cleared it. Andrew won the closest game of the year and went 1-1. Chris scored 145.64 and went 0-2.",
+   "tags": [
+    "NAILBITER",
+    "LUCKY WIN",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "9|2": {
+   "headline": "Matt Bova has his best week of the season and it is still a Penix story",
+   "body": "171.89 and 54.8 above par, one of the six best showings against expectation all season — Tee Higgins 33.35, Sam Darnold 29.2, Marvin Harrison 21.85. And Michael Penix sat on the bench worth 14.2 more than the Tua Tagovailoa in the QB slot. Five different weeks, five different wrong answers at the same position. Mitch Blackwell scored 152.91, 22.9 above par, cleared the median and lost by 19.",
+   "tags": [
+    "UNLUCKY LOSS",
+    "UPSET"
+   ]
+  },
+  "9|3": {
+   "headline": "Caleb Williams 40.2, Colston Loveland 33.05, and the 14-2 team goes down",
+   "body": "Jared Hayes put 181.32 on Nabers in Paris with a tight end nobody had heard of in August going 24.9 above projection. SirWinsAlot got 61.4 from the quarterback slots and 46.4 from tight end, which is a lineup built entirely out of the wrong positions and it worked. Nick Bova's 168.44 was 15.5 above par, his backfield went for 88.75, and he lost — though he cleared the median for a 1-1, so the five-game winning streak dies quietly rather than expensively.",
+   "tags": [
+    "UNLUCKY LOSS",
+    "UPSET"
+   ]
+  },
+  "9|4": {
+   "headline": "Duane wins the game and loses the week",
+   "body": "134.61 beat 103.87 with room to spare, and the median was 150.39, so Enter the Maye-Trix banked exactly one win for a comfortable victory. Lamar Jackson's 25.56 led it. Erin Jacobs started Kayshon Boutte for 0.00 with Andrei Iosivas worth 17.0 more, got 21.0 from DeMario Douglas, and went 0-2. Both teams are 7-9 and this did nothing for either of them.",
+   "tags": [
+    "LUCKY WIN"
+   ]
+  },
+  "9|5": {
+   "headline": "Drake London scores 38 and Joe Flacco watches from the bench",
+   "body": "Jake Bogardus won by 36 with 119.2 points unused, including a Joe Flacco worth 25.7 more than the Jordan Love he started in the SUPER_FLEX. Drake London's 38.3 covered every sin. Chris Bova had his worst week of the season — 126.54, 36.2 below par, with Jahmyr Gibbs managing 3.55 — and went 0-2 to end a four-game run. The two best teams in the league both had the same idea about how to spend Week 9 and only one of them got away with it.",
+   "tags": []
+  },
+  "9|6": {
+   "headline": "Brock Bowers scores 47.05 and ends a four-week losing streak on his own",
+   "body": "The biggest single overperformance of the entire 2025 season: 47.05 against a 16.62 projection, 30.4 points clear, from a tight end. Nacua Matata scored 164.19 and 63.8 of the rest came from the receivers, which is to say Jake won this game with two positions and a prayer. Nick Merkel had 5.0 points on his bench — nothing left to give — started Evan Engram for a 0.00, and went 0-2. Both teams entered at 5-11. Only one of them is winning the championship in eight weeks' time.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "10|1": {
+   "headline": "Jonathan Taylor scores 52.1 on his own and Matt scores 96 with a team",
+   "body": "Taylor's 52.1 is the second-biggest individual afternoon anyone had in 2025, 29 points clear of projection, and it alone outscored Show Me Your Penix's entire receiving corps five times over — Matt's wideouts managed 16.18 between them. SirWinsAlot won by 101.44, the second-largest margin of the season, and finished 63.1 above par. Matt went 0-2. There is no joke here, just a scoreboard.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "10|2": {
+   "headline": "De'Von Achane scores 40 and Nabers in Paris loses anyway",
+   "body": "Nick's backfield went for 78.6 and his receivers for 11.95, which is a fantasy roster wearing a disguise. 131.26 was 25.3 below par and missed the median, so the 15-3 league leader went 0-2. Jake Bogardus was perfectly ordinary — 158.05, Mac Jones at quarterback — and it was plenty. BoKnows723 makes it four straight.",
+   "tags": [
+    "UPSET"
+   ]
+  },
+  "10|3": {
+   "headline": "Joshin Around remembers it has players",
+   "body": "4-14 coming in, 187.28 going out, 52.6 above par: George Kittle 25.9, Jameson Williams 24.9, Nico Collins 23.1, and 94.95 from the receiving corps. Andrew's season had been a procession of zeroes and benched quarterbacks and for one afternoon all of it clicked. Jake Blackwell got 4.20 from Brock Bowers a week after Bowers scored 47.05, which is dynasty fantasy football in two sentences, and left 31.4 on the table.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "10|4": {
+   "headline": "Titsburg gets 5.8 from quarterback, loses its best receiver to a zero, and wins",
+   "body": "Garrett Wilson 0.00, Dyami Brown 0.00, 5.80 from the quarterback slot — and Chris Bova won by 5.25 because Jahmyr Gibbs went for 38.7 and Trey McBride 31.45. He had 11.2 points on his bench; there was nothing else to reach for. Mitch Blackwell scored 148.00, cleared the median, went 1-1 and lost. i LOVE mendoza has now lost three in a row while playing perfectly reasonable football.",
+   "tags": [
+    "UNLUCKY LOSS",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "10|5": {
+   "headline": "Breeces Peanut ButterCups scores 72 and Duane still needs the median to save him",
+   "body": "Nick Merkel's 72.48 was 54 points below par with Bryce Young managing 1.56 and DJ Moore posting a 0.00 — the third-lowest score of the season. Duane won by 32 with 105.00, which did not clear the median, so Enter the Maye-Trix took a 1-1 out of beating the worst performance of the week by a third of a hundred points. That is the median rule doing exactly what it was designed to do.",
+   "tags": [
+    "LUCKY WIN"
+   ]
+  },
+  "10|6": {
+   "headline": "The biggest beating of the 2025 season",
+   "body": "104.31 points. Chris Merkel put up 180.38 with 53.18 from two quarterbacks and 85.4 from the receivers; Erin Jacobs answered with 76.07, his second sub-80 week, with Jalen Hurts at 12.02 and Matthew Golden on 0.00. Nine weeks earlier eejacobs had the best single week anyone managed all season. Chris left 103.7 on his bench and it made no difference to anything.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "11|1": {
+   "headline": "Khalil Shakir scores minus 0.3 and Titsburg wins comfortably",
+   "body": "A negative number from a starting receiver, 12.6 from the quarterback slot, and Chris Bova still took it 139.95 to 116.06 because Trey McBride went for 31.0 and the backfield produced 62.55. Erin Jacobs got 27.1 from Travis Kelce and 3.34 from Justin Herbert, which is a 17-point miss at the position that matters most, and went 0-2. Erin is 7-13 and has now lost two straight.",
+   "tags": []
+  },
+  "11|2": {
+   "headline": "SirWinsAlot posts the lowest regular-season score of 2025",
+   "body": "70.39. Jared's highest scorer was Trevor Lawrence with 15.02; nobody else cleared eleven. Ashton Jeanty managed 7.15, Nick Westbrook-Ikhine 0.00, and 46.1 points sat unused on a bench that could have nearly doubled the total. Jake Blackwell needed none of it — 163.55 and a 93.16 win, the fourth-biggest margin of the year. Two weeks ago Jared put 197.95 on the board. This league has no interest in consistency.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "11|3": {
+   "headline": "Two teams have bad weeks and BoKnows723 has the marginally less bad one",
+   "body": "131.15 against 112.22, both more than 22 points below par, in the lowest-scoring week of the season since Week 6. Tetairoa McMillan's 32.25 was the only genuinely good thing that happened to either side. Duane started Lamar Jackson for 3.72 and had his four-game winning run ended. Jake's fifth straight win moves BoKnows723 to 16-4 and effectively locks up a bye.",
+   "tags": []
+  },
+  "11|4": {
+   "headline": "Bryce Young scores 33.82 and Nick Merkel wins his first game in a month",
+   "body": "The quarterback who put up 1.56 last week went for 33.82 this week, Bijan Robinson added 30.05, and Breeces Peanut ButterCups snapped a three-game slide with a lineup that left only 3.2 on the table. Ja'Marr Chase contributed 5.50, because of course he did. Mitch Blackwell's 97.71 continued a run of three straight 0-2 weeks. Both teams are long gone.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "11|5": {
+   "headline": "Josh Allen scores 46.68, Andrew goes 49 above par, and it is not enough",
+   "body": "Two of the four best weeks anyone had against expectation all season, in the same matchup. Andrew Bova's 182.85 was 49.1 above par with Allen putting up 46.68 — the highest quarterback score of 2025. Nick Bova's 194.25 was 44.4 above par with an 88.25 backfield. Somebody had to lose it, and Joshin Around cleared the median for a 1-1, which is the most this roster has been offered all year. Eleven points in it.",
+   "tags": [
+    "UNLUCKY LOSS"
+   ]
+  },
+  "11|6": {
+   "headline": "Kenny Gainwell 29.21, Sam Darnold 4.26, and Matt gets away with it",
+   "body": "Show Me Your Penix won 119.61 to 100.62 with 10.26 from the quarterback position and 87.4 points on the bench, including a Sean Tucker worth 30.5 more than the man in the flex. It missed the median, so Matt banked a 1-1 — which by this point in his season counts as a triumph. Chris Merkel's 100.62 was 26.1 below par and his third double-loss in four weeks. Mark Andrews led PITTsMAN in scoring with 17.2, and honestly, good for him.",
+   "tags": [
+    "LUCKY WIN",
+    "UPSET"
+   ]
+  },
+  "12|1": {
+   "headline": "Joshin Around goes 50 below par one week after going 53 above it",
+   "body": "Andrew's 102.43 was 49.7 points short of the field, seven days after the best week of his season. Josh Allen managed 8.12; Jameson Williams, who scored 24.9 last week, posted 0.00. Jake Bogardus was not good either — 18.6 below par — and won by 34 anyway, because that is what a sixth straight win looks like when you are 18-4 and the schedule has stopped mattering.",
+   "tags": []
+  },
+  "12|2": {
+   "headline": "Nacua Matata's receivers post 92 and Erin has nothing left to try",
+   "body": "Amon-Ra St. Brown 29.15, Michael Wilson 20.8, a 92.15 receiving corps, and Jake Blackwell left just 4.1 on the table — the tidiest lineup he set all season. Erin Jacobs got 30.86 from Jalen Hurts and had 6.1 points on his entire bench, which is the fantasy equivalent of turning out your pockets. He lost by 55 and went 0-2 for the third week running.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "12|3": {
+   "headline": "Two zeroes, a 37-point receiver, and a win that isn't one",
+   "body": "Jaxon Smith-Njigba went for 37.85 and dragged i LOVE mendoza to 135.30 past Duane's 99.09, and the median was 136.02, so Mitch missed a second win by seven tenths of a point. Seven tenths. He also started David Njoku and Jordan Addison, who scored 0.00 between them. Duane's Lamar Jackson managed 7.22 and Enter the Maye-Trix went 0-2. Mitch's four-game losing streak ends in the least satisfying way available.",
+   "tags": [
+    "LUCKY WIN"
+   ]
+  },
+  "12|4": {
+   "headline": "J.J. McCarthy scores 0.48 and Matt's tight ends outscore everything else",
+   "body": "Hunter Henry's 28.0 gave Show Me Your Penix 40.2 from tight end and 15.64 from four receivers, and the SUPER_FLEX produced 0.48 — not zero, which would at least have been clean, but 0.48. Nick Merkel won it 140.29 to 105.35 behind A.J. Brown and DJ Moore, the two men who have spent the season alternating between 1.45 and 24.75 with nothing in between.",
+   "tags": []
+  },
+  "12|5": {
+   "headline": "Jahmyr Gibbs scores 55.4, Titsburg gets nothing at quarterback, and loses by 3.82",
+   "body": "The biggest individual performance of the 2025 season — 55.4 from Gibbs, 32.7 points clear of projection — and Chris Bova lost. His quarterback slot produced 0.00. Not a bad game; nothing. He left 3.8 on the table, cleared the median for a 1-1, and went home. Jared Hayes won it with Emanuel Wilson going 26.25 and a backfield worth 67.75. In a superflex league you can have the best player in the sport and still lose because you forgot the position the format is named after.",
+   "tags": [
+    "NAILBITER",
+    "UNLUCKY LOSS"
+   ]
+  },
+  "12|6": {
+   "headline": "Chris Merkel benches a 29-point quarterback and starts one who scores 2.54",
+   "body": "Jameis Winston sat on the PITTsMAN bench worth 29.7 more than the Baker Mayfield who managed 2.54, and Chris left 49.9 on the table in total. He lost by 55. Nick Bova's 169.99 was 21.9 above par with George Pickens going 29.35, and Nabers in Paris left 4.5 on the table — the difference between the two lineups was almost exactly the difference on the scoreboard.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "13|1": {
+   "headline": "Rivalry week, and Matt's running backs score 80 while his quarterbacks score 7.8",
+   "body": "Devin Singletary 21.11, D'Andre Swift 20.8, RJ Harvey 20.7 — an 80-point backfield, 27 points above par overall, and Show Me Your Penix still lost by ten because Sam Darnold contributed 3.12 and the whole quarterback room managed 7.80 between them. Duane took the rivalry game 140.60 to 130.48 and went 2-0. Matt went 0-2 having played genuinely well, which is the most Matt Bova outcome available.",
+   "tags": [
+    "RIVALRY"
+   ]
+  },
+  "13|2": {
+   "headline": "Titsburg gets 55 points from tight ends and beats the best team in the league",
+   "body": "Trey McBride 24.7 and Kyle Pitts 18.2 gave Chris Bova 54.95 from the position, which covered a Jahmyr Gibbs afternoon of 10.85 and a quarterback slot on 16.44. Nick Bova had 62.9 on his bench and an Adonai Mitchell worth 19.7 more than the man he started — nearly three times the 6.79 margin. Nick cleared the median for a 1-1. Chris took the rivalry game and went 2-0.",
+   "tags": [
+    "RIVALRY",
+    "UNLUCKY LOSS",
+    "UPSET",
+    "BENCH DECIDED IT"
+   ]
+  },
+  "13|3": {
+   "headline": "BoKnows723 leaves 89.7 points on the table and wins his seventh in a row",
+   "body": "148.7 on the bench and 89.7 left on the table are both the worst figures anyone posted in 2025, and Jake Bogardus won by 21 anyway. Dontayvion Wicks alone was worth 26.1 more than the Justin Jefferson he started. Lamar Jackson gave him 6.54. None of it mattered, because Jared Hayes had 101.2 on his own bench and lost the rivalry game 0-2. Two managers, 250 unused points, one result that was never in doubt.",
+   "tags": [
+    "RIVALRY",
+    "UPSET"
+   ]
+  },
+  "13|4": {
+   "headline": "Zay Flowers scores minus 0.15 and Nick Merkel wins the Merkel derby by 61",
+   "body": "A negative receiver, a 33.7 from A.J. Brown, and Breeces Peanut ButterCups takes the family rivalry game going away. Chris got 2.30 from Michael Pittman, 103.44 in total, 29.2 below par, and a second straight 0-2 week that finished off any lingering top-two ambition. Nick has now won three of four after losing basically everything before it.",
+   "tags": [
+    "RIVALRY",
+    "BLOWOUT"
+   ]
+  },
+  "13|5": {
+   "headline": "Amon-Ra St. Brown scores nothing and the Blackwell brothers play out a rivalry game nobody watched",
+   "body": "A 0.00 from the best receiver on Nacua Matata, 19.1 below par, and Jake still won by 25 — because Mitch's 99.73 included a 4.05 from Jaxon Smith-Njigba, who had gone for 37.85 seven days earlier. Neither team cleared the median. Jake took a 1-1 out of a rivalry win; Mitch went 0-2 for the ninth time this season. The Blackwell rivalry, ladies and gentlemen.",
+   "tags": [
+    "RIVALRY",
+    "LUCKY WIN"
+   ]
+  },
+  "13|6": {
+   "headline": "Two 7-17 teams meet in rivalry week and one of them has to feel good",
+   "body": "Andrew Bova got 76.5 from his receivers — Jameson Williams 27.4, Nico Collins 21.5 — and took it 145.87 to 127.94, 23.2 above par and a 2-0 week. Erin Jacobs was actually fine, 9.9 above par, and went 0-2 for the fourth consecutive week, because the median was 135.09 and he has spent the entire second half of this season landing just underneath it. eejacobs finishes the regular season next week at 7-21.",
+   "tags": [
+    "RIVALRY"
+   ]
+  },
+  "14|1": {
+   "headline": "Jalen Hurts scores 0.40 and eejacobs closes the season the way it deserved",
+   "body": "Erin's quarterback managed four tenths of a point, his team managed 84.47, and a season that opened with the highest score in the league ends 7-21 and dead last. Ryan Flournoy was worth 23.1 more than the man in the flex. Jared Hayes won it while going 12 below par with 100 points on his own bench, which tells you exactly how little was required. Erin finishes on a five-week losing run.",
+   "tags": []
+  },
+  "14|2": {
+   "headline": "Matt Bova ends his season by beating the best team in the league",
+   "body": "147.67, 44.2 above par, his best week of the year and the second-best of his season by a distance — Tee Higgins 26.95, Sam Darnold 22.26, J.J. McCarthy 20.42, and for once every quarterback decision landed. Nick Bova's 105.27 was 24.6 below par with Daniel Jones on 0.80, and the 20-6 side went 0-2 heading into a bye. Show Me Your Penix finishes 11-17. It was, in its way, a triumph.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "14|3": {
+   "headline": "BoKnows723 ends the regular season 22-4 and 31 below par",
+   "body": "Jake's eight-game winning streak dies with 102.8 points on the bench and Patrick Mahomes contributing 5.30 — a 15.35 receiving corps in a week his roster could have produced 56 more points than it did. Chris Bova took it 166.13 to 111.41 behind Jahmyr Gibbs' 35.5 and 57.2 from the tight ends, and the two of them finish tied at 22-6 and 22-4 respectively, the two best records in the league. Neither reaches the final.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "14|4": {
+   "headline": "Puka Nacua and Michael Wilson both score exactly 35.7",
+   "body": "Nacua Matata's receivers put up 116.55 between them, the highest positional total anyone recorded all season, and Jake left 1.7 on the table — his best week of the year at 67 above par, and the second-best anyone managed in 2025. He wins by 99.42, the third-largest margin of the season. Chris Merkel's 97.42 completes a third straight 0-2 week and a collapse from 8-2 to 13-13. The team that finished .500 is about to win the whole thing.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "14|5": {
+   "headline": "The best week anyone had all season, from a team that finished 11-17",
+   "body": "Andrew Bova's 190.04 was 67.6 points above par — nothing in the entire 2025 season, regular or postseason, beats it — and he left 0.43 on the table doing it, the tidiest lineup anyone set all year. Josh Allen 38.84, Tony Pollard 29.1, Blake Corum 26.6. Duane was 38.3 above par himself with Shedeur Sanders going for 35.46, cleared the median, and lost by 41. Joshin Around peaked in the last week of the regular season, one week too late to matter, which is the most Joshin Around thing imaginable.",
+   "tags": [
+    "BLOWOUT",
+    "UNLUCKY LOSS"
+   ]
+  },
+  "14|6": {
+   "headline": "Tyrod Taylor scores minus 1.76 and Breeces Peanut ButterCups limps into the consolation bracket",
+   "body": "Nick Merkel's quarterback room produced 7.28 points, one of them by going negative, and 96.68 was 44 below par. Mitch Blackwell won it 122.69 to 96.68 without clearing the median, so i LOVE mendoza took a 1-1 out of the last week of a 9-19 season. Both of these teams meet again in Week 17 with the 1.13 pick on the line, and it goes rather differently.",
+   "tags": [
+    "LUCKY WIN",
+    "UPSET"
+   ]
+  },
+  "15|1": {
+   "headline": "Nacua Matata opens the playoffs with the highest score of the season",
+   "body": "213.85 — nobody else reached 212 all year. Amon-Ra St. Brown 40.15, TreVeyon Henderson 31.6, Puka Nacua 27.4, and a receiving corps worth 115.9 for the second week running. Jake also started Joe Burrow for 4.50 with Jacoby Brissett worth 16.1 more, which at this point is simply part of the package. Jared Hayes got 46.3 from Trevor Lawrence — the third-biggest individual game of 2025 — scored 159.88, and was still beaten by 54. The 14-14 team is through.",
+   "tags": [
+    "BLOWOUT",
+    "UNLUCKY LOSS"
+   ]
+  },
+  "15|2": {
+   "headline": "Chris Merkel's season ends the way the last six weeks promised it would",
+   "body": "101.31, two starters on zero, a fifth straight defeat, and a run from 8-2 to out of the playoffs that is the sharpest collapse anyone managed in 2025. Nick Bova was ruthless — 184.92, a 75.82 backfield, James Cook 29.85 — and moves through to the semifinal 83.61 points clear. PITTsMAN finishes 13-15, which flatters what the second half of this season actually looked like.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "16|1": {
+   "headline": "Puka Nacua scores 49 and the 22-6 team is eliminated by 86 points",
+   "body": "BoKnows723 finished the regular season with the best record in the league and left the playoffs with 105.27 — 45 below par, 8.52 from the quarterback slot, Lamar Jackson on 4.74. Jake Blackwell needed none of it: Puka Nacua's 49.0 was the third-biggest individual afternoon of the season, Brock Purdy added 30.9, and Nacua Matata's receivers went for 96.15. That is two rounds, 405 points, and a .500 team walking into the final.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "16|2": {
+   "headline": "Titsburg gets 49 points from tight ends, 15 from quarterback, and goes home",
+   "body": "Chris Bova's tight ends outscored his quarterback by better than three to one, which had worked all season and stopped working in the semifinal. 124.20, 37.1 below par, a Trey McBride afternoon of 7.70 and a Dalton Kincaid zero on the other side that never mattered. Nick Bova's backfield went for 81.8 — McCaffrey 30.1, Cook 27.4 — and Nabers in Paris reaches the championship. The two 22-6 teams both lost this week, in the same round, by a combined 138 points.",
+   "tags": [
+    "BLOWOUT",
+    "UPSET"
+   ]
+  },
+  "16|3": {
+   "headline": "Jaxson Dart scores 0.02 in the fifth-place game",
+   "body": "Two hundredths of a point, with Matthew Stafford sitting on the bench worth 34.9 more — the largest single lineup error anyone made all season, in a game that decides fifth. Chris Merkel loses by 89.7 and finishes his season on six straight defeats. Jared Hayes posted 211.03, the second-highest score of 2025, with Chris Olave 35.55, Ashton Jeanty 33.8 and Trevor Lawrence 31.16, and 52.9 above par. Fifth place has rarely been contested with such wildly different levels of enthusiasm.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "17|1": {
+   "headline": "Nacua Matata wins the title at .500 and nobody can say a word about it",
+   "body": "Jake Blackwell walked into the championship 14-14 — dead average, fifth seed, the least likely roster still breathing — and hung 165.72 on the 20-8 Nabers in Paris. Brock Purdy delivered 35.92, sixteen and a half clear of projection, and Chig Okonkwo added 16.25 out of a slot nobody had thought about since October. Nick Bova was the better team for fourteen weeks and got 8.20 from James Cook on the one afternoon it counted. This is the same Nacua Matata roster that lost by 46 in Week 1. The regular season is a suggestion.",
+   "tags": [
+    "TITLE GAME",
+    "UPSET"
+   ]
+  },
+  "17|2": {
+   "headline": "The league's two best teams meet for third, and one of them starts a quarterback who isn't playing",
+   "body": "22-6 against 22-6 — the two best regular-season records in The Other League, both already eliminated, both clearly delighted to be here. Jake Bogardus started Lamar Jackson, who did not take a snap all day. Zero at quarterback. BoKnows723 finished on 62.60, the lowest total anyone posted in a 2025 game they were actually trying to win, with Josh Jacobs (0.80), Drake London (0.90) and Tetairoa McMillan (1.25) filling out the tribute act. Chris Bova needed 133.03 and could have done it with considerably less.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  },
+  "17|4": {
+   "headline": "Breeces Peanut ButterCups wins the 1.13 with Malik Willis at quarterback",
+   "body": "The 13th-pick game is the one consolation matchup with something real attached to it, and Nick Merkel treated it accordingly: 170.11, the highest score of championship week, with Malik Willis (31.52) and Bijan Robinson (39.40) both finishing 17-plus points clear of projection. Mitch Blackwell's bench outscored his starting lineup, 119.01 to 104.11, which takes a kind of commitment. He started Philip Rivers (7.78) and Jared Goff (2.08) at quarterback and left 64.50 points on the table. Nick got the rookie pick. Mitch got this paragraph.",
+   "tags": [
+    "BLOWOUT"
+   ]
+  }
+ }
+}

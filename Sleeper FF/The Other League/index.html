@@ -282,7 +282,7 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 .wk-btn:hover{border-color:var(--accent);color:var(--accent);}
 .wk-btn:disabled{opacity:.3;cursor:default;pointer-events:none;}
 .wk-label{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);letter-spacing:.04em;}
-.match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
+.match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(290px,100%),1fr));gap:10px;}
 .match-card{background:var(--card);border:1px solid var(--border);overflow:hidden;transition:border-color .2s;}
 .match-card:hover{border-color:var(--muted);}
 .match-side{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .15s;}
@@ -1540,6 +1540,148 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .hof-name { font-size: 12px; }
   .hof-label { font-size: 8.5px; letter-spacing: .07em; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCORES TAB — MATCHUP COMMENTARY
+   Click-to-expand write-up at the foot of a .match-card. Only rendered for
+   matchups that have an entry in matchup-commentary-<year>.json, so no empty
+   toggles appear on consolation games or unwritten seasons.
+   ══════════════════════════════════════════════════════════════════════════ */
+.mc-toggle {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  user-select: none;
+}
+.mc-toggle:hover { background: var(--card); }
+.mc-chev {
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+  flex: 0 0 auto;
+  transition: transform .18s ease;
+}
+.mc-toggle.open .mc-chev { transform: rotate(90deg); }
+.mc-teaser {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+.mc-toggle.open .mc-teaser { color: var(--accent); }
+
+.mc-body {
+  display: none;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.mc-head {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 7px;
+}
+.mc-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.mc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.mc-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+[data-theme="dark"] .mc-toggle:hover { background: rgba(22,224,214,0.05); }
+[data-theme="dark"] .mc-body { background: rgba(0,0,0,0.18); }
+
+@media(max-width:680px){
+  .mc-toggle { padding: 7px 11px; }
+  .mc-body { padding: 11px 11px 12px; }
+  .mc-head { font-size: 12px; }
+  .mc-text { font-size: 11px; line-height: 1.58; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCORES TAB — MEDIAN GAME (week record chip + week median line)
+   This league plays two games a week: the opponent, and the league median.
+   The chip reads the team's full week (2-0 / 1-1 / 0-2); the strip carries
+   the median score it was measured against. Regular season only — weeks
+   15-17 have no median game, so neither element renders there.
+   ══════════════════════════════════════════════════════════════════════════ */
+.wk-rec {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .04em;
+  border-radius: 2px;
+  padding: 2px 5px;
+  margin-right: 7px;
+  vertical-align: middle;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: help;
+}
+.wk-rec.good  { color: var(--accent);  border-color: var(--accent); }
+.wk-rec.split { color: var(--muted);   border-color: var(--border); }
+.wk-rec.bad   { color: var(--accent3); border-color: var(--accent3); }
+[data-theme="dark"] .wk-rec.good { box-shadow: 0 0 9px rgba(33,245,228,0.16); }
+[data-theme="dark"] .wk-rec.bad  { box-shadow: 0 0 9px rgba(255,61,190,0.14); }
+
+.match-med {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 5px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  cursor: help;
+}
+.mm-lbl {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mm-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text2);
+}
+
+/* The recap strip is a fixed label now, not a preview of the headline —
+   the punchline stays hidden until it is opened. */
+.mc-teaser {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  -webkit-line-clamp: none;
+  display: inline;
+}
+
+@media(max-width:680px){
+  .wk-rec { font-size: 8.5px; padding: 2px 4px; margin-right: 5px; }
+  .match-med { padding: 5px 11px; }
+}
 </style>
 </head>
 <body class="is-home">
@@ -2597,19 +2739,38 @@ function buildH2HMap(){
 }
 
 // All-time median W/L per owner across regular season weeks only (weeks 1-14)
+// ── THE MEDIAN GAME ────────────────────────────────────────────────────────
+// This league plays TWO games a week: your opponent, and the league median.
+// Beat the median and you bank a second win. The rule only exists in the
+// regular season — weeks 15-17 are the brackets, where only 8 of 12 teams
+// play and there is no median game at all.
+//
+// One implementation, used by both the all-time record engine and the Scores
+// tab, so the two can never disagree about what the median was.
+function weekMedianOf(weekData){
+  const scores=(weekData||[]).filter(e=>e&&e.matchup_id&&e.points!=null);
+  if(!scores.length)return null;
+  const vals=scores.map(e=>e.points||0).sort((a,b)=>a-b);
+  const mid=vals.length/2;
+  return vals.length%2===0?(vals[mid-1]+vals[mid])/2:vals[Math.floor(mid)];
+}
+
+// Is there a median game for this week at all? Regular season, actually played.
+function weekHasMedian(week,weekData){
+  return Number(week)<=REG_WEEKS&&weekWasPlayed(weekData);
+}
+
 function buildMedianMap(){
   const med={};
   for(const year of[2023,2024,2025,2026]){
     const data=loadPerm(`tol_matchups_${year}`);
     if(!data)continue;
     Object.entries(data).forEach(([wk,weekData])=>{
-      if(Number(wk)>14)return;
-      if(!weekWasPlayed(weekData))return;
+      if(!weekHasMedian(wk,weekData))return;
       const scores=weekData.filter(e=>e.matchup_id&&e.points!=null);
       if(!scores.length)return;
-      const vals=scores.map(e=>e.points||0).sort((a,b)=>a-b);
-      const mid=vals.length/2;
-      const median=vals.length%2===0?(vals[mid-1]+vals[mid])/2:vals[Math.floor(mid)];
+      const median=weekMedianOf(weekData);
+      if(median===null)return;
       scores.forEach(e=>{
         const uid=RM[e.roster_id];
         if(!uid)return;
@@ -2721,6 +2882,44 @@ async function loadProjectionsFile(year){
     }catch(e){return null;}
   })();
   return _projFilePromise[year];
+}
+
+// ── MATCHUP COMMENTARY ─────────────────────────────────────────────────────
+// Hand-written write-ups for the Scores tab, one per matchup, keyed
+// "week|matchup_id" in matchup-commentary-<year>.json. Not every game has one:
+// consolation-bracket games with nothing at stake are deliberately absent, and
+// a missing file (any year we haven't written yet) just means no toggles
+// render. Never let this break the scoreboard — it is decoration on top of it.
+let _commentaryPromise={};
+
+// Commentary is hand-written by us, but it goes through innerHTML like
+// everything else on this page and it is full of apostrophes, ampersands and
+// team names. Escape it rather than trusting a JSON file to stay well-behaved.
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+async function loadCommentary(year){
+  if(_commentaryPromise[year]!==undefined)return _commentaryPromise[year];
+  _commentaryPromise[year]=(async()=>{
+    try{
+      const r=await fetch(`matchup-commentary-${year}.json?_=`+Math.floor(Date.now()/3600000));
+      if(!r.ok)return null;
+      const data=await r.json();
+      return(data&&data.matchups)?data.matchups:null;
+    }catch(e){return null;}
+  })();
+  return _commentaryPromise[year];
+}
+
+function toggleMatchupCommentary(key,el){
+  const body=document.getElementById('mc-body-'+key.replace('|','-'));
+  if(!body)return;
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  if(el)el.classList.toggle('open',!open);
 }
 
 async function fetchWeekProjectionsLive(year,week){
@@ -2848,14 +3047,36 @@ async function buildScores(){
     const projTotals=(projYear===currentScoresYear)
       ?await computeWeekProjections(currentScoresYear,currentScoresWeek,matchups[currentScoresWeek]||[]).catch(()=>({}))
       :{};
-    renderHistoricalScores(c,matchups,currentScoresWeek,projTotals);
+    const commentary=await loadCommentary(currentScoresYear).catch(()=>null);
+    renderHistoricalScores(c,matchups,currentScoresWeek,projTotals,commentary);
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not load scores.<br><small>${e.message}</small></div>`;
   }
 }
 
-function renderHistoricalScores(container,matchups,week,projTotals){
+// One matchup's write-up, as a collapsed click-to-open strip at the foot of
+// the card. Renders nothing at all when there is no entry for this matchup —
+// an empty toggle on a game nobody wrote about is worse than no toggle.
+function renderCommentaryBlock(commentary,week,matchupId){
+  const key=`${week}|${matchupId}`;
+  const c=commentary&&commentary[key];
+  if(!c||!c.body)return '';
+  const id=key.replace('|','-');
+  const tags=(c.tags||[]).map(t=>`<span class="mc-tag">${esc(t)}</span>`).join('');
+  return `<div class="mc-toggle" onclick="toggleMatchupCommentary('${key}',this)">
+      <span class="mc-chev">&#9656;</span>
+      <span class="mc-teaser">Matchup Recap</span>
+    </div>
+    <div class="mc-body" id="mc-body-${id}">
+      ${c.headline?`<div class="mc-head">${esc(c.headline)}</div>`:''}
+      <div class="mc-text">${esc(c.body)}</div>
+      ${tags?`<div class="mc-tags">${tags}</div>`:''}
+    </div>`;
+}
+
+function renderHistoricalScores(container,matchups,week,projTotals,commentary){
   projTotals=projTotals||{};
+  commentary=commentary||{};
   const h2h=buildH2HMap();
   const is2026=currentScoresYear===2026;
   const weekData=matchups[week]||[];
@@ -2867,6 +3088,23 @@ function renderHistoricalScores(container,matchups,week,projTotals){
     return;
   }
   const isRivalry=(RIVALRY_WEEKS[currentScoresYear]||[]).includes(week);
+  // The median game (weeks 1-14 only — see weekHasMedian). null in the
+  // brackets and in any week that hasn't been played, and the median UI is
+  // suppressed entirely in that case rather than showing a misleading 0-2.
+  const weekMedian=weekHasMedian(week,weekData)?weekMedianOf(weekData):null;
+  // A team's full week: the head-to-head result plus the median result.
+  const weekRecord=(entry,wonH2H)=>{
+    if(weekMedian===null)return null;
+    const pts=entry.points||0;
+    const beatMed=pts>weekMedian;
+    const w=(wonH2H?1:0)+(beatMed?1:0);
+    return {w,l:2-w,beatMed,
+      label:`${w}-${2-w}`,
+      cls:w===2?'good':(w===0?'bad':'split'),
+      title:beatMed
+        ?`Scored ${pts.toFixed(2)}, above the week's median of ${weekMedian.toFixed(2)} — banked a second win`
+        :`Scored ${pts.toFixed(2)}, below the week's median of ${weekMedian.toFixed(2)} — no second win`};
+  };
   // A team's score is "projected" when it hasn't scored yet AND we have a
   // projection for it. Sleeper's matchup payload has NO projected_points
   // field (verified live — it returns roster_id/points/starters/players and
@@ -2904,6 +3142,11 @@ function renderHistoricalScores(container,matchups,week,projTotals){
     const bChip=bIsProj?'<span class="proj-chip">PROJ</span>'+dot(bProjInfo):'';
     const aWinCls=!noScores&&aWin?'winner':'';
     const bWinCls=!noScores&&!aWin?'winner':'';
+    // Week record chips. Only for real scores — a projected team hasn't played
+    // the median game yet, so claiming a 2-0 for it would be fiction.
+    const aRec=(!noScores&&!aIsProj)?weekRecord(a,aWin):null;
+    const bRec=(!noScores&&!bIsProj)?weekRecord(b,!aWin):null;
+    const recChip=r=>r?`<span class="wk-rec ${r.cls}" title="${r.title}">${r.label}</span>`:'';
     const ridA=a.roster_id,ridB=b.roster_id;
     const aW=(h2h[ridA]&&h2h[ridA][ridB])?h2h[ridA][ridB].w:0;
     const aL=(h2h[ridA]&&h2h[ridA][ridB])?h2h[ridA][ridB].l:0;
@@ -2915,13 +3158,15 @@ function renderHistoricalScores(container,matchups,week,projTotals){
       ${bracketLabel?`<div class="bracket-chip ${bracketStyle}">${bracketLabel}</div>`:''}
       <div class="match-side ${aWinCls}">
         <div class="match-tm"><div class="match-name">${ta.name}</div><div class="match-own">${ta.team}</div></div>
-        <div class="match-pts ${aWinCls==='winner'?'leading':''}">${aScoreStr}${aChip}</div>
+        <div class="match-pts ${aWinCls==='winner'?'leading':''}">${recChip(aRec)}${aScoreStr}${aChip}</div>
       </div>
       <div class="match-side ${bWinCls}">
         <div class="match-tm"><div class="match-name">${tb.name}</div><div class="match-own">${tb.team}</div></div>
-        <div class="match-pts ${bWinCls==='winner'?'leading':''}">${bScoreStr}${bChip}</div>
+        <div class="match-pts ${bWinCls==='winner'?'leading':''}">${recChip(bRec)}${bScoreStr}${bChip}</div>
       </div>
+      ${(aRec||bRec)?`<div class="match-med" title="Every regular-season week is two games: your opponent, and the league median."><span class="mm-lbl">Week median</span> <span class="mm-val">${weekMedian.toFixed(2)}</span></div>`:''}
       ${(currentScoresYear===2025||currentScoresYear===2026)?`<div class="match-h2h">All-time: ${abbrev(ta.name)} ${aW}&ndash;${aL} ${abbrev(tb.name)}</div>`:''}
+      ${renderCommentaryBlock(commentary,week,pair[0].matchup_id)}
     </div>`;
   });
   html+='</div>';

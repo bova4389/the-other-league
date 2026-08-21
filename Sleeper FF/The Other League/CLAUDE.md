@@ -30,10 +30,13 @@ the-other-league/                      ← outer repo root
     ├── roster-grades-<period-id>.json  ← Phase 6 frozen grading period, e.g. roster-grades-2026-preseason.json
     │                                     (exists as of 2026-08-20). One file per grading run; hand-committed from the
     │                                     Export panel in Rosters > Grades & Outlook with ?admin=1 on the URL
+    ├── matchup-commentary-<year>.json  ← Phase 8 Scores-tab write-ups, keyed "week|matchup_id".
+    │                                     matchup-commentary-2025.json exists as of 2026-08-21.
     └── scripts/
         ├── tuesday_update.py          ← weekly H2H records updater
         ├── fetch_ktc.py               ← KTC values scraper (top-500 + per-player deep lookup)
         ├── fetch_projections.py       ← daily Sleeper projections pull → projections-<year>.json
+        ├── build_matchup_facts.py     ← Phase 8 offline fact sheet; writes to a temp dir, never committed
         └── bot_state.json             ← tracks which weeks have been applied
 ```
 
@@ -265,6 +268,29 @@ State variables: `currentScoresYear` (default 2026), `currentScoresWeek` (defaul
 - `setScoresWeek(week, el)` — switches week pill, rebuilds scores
 - `goToScoresWeek(year, week)` — navigates from Rivalries tab: switches to scores tab, sets year+week, calls `updateRivalryPills(year)`, rebuilds scores
 - `updateRivalryPills(year)` — toggles `.rivalry` class on W4/W13 pills based on `RIVALRY_WEEKS[year]`; called whenever year changes
+
+### Matchup Commentary (Phase 8 — built 2026-08-21)
+Hand-written write-ups under each matchup on the Scores tab, collapsed behind a click-to-open strip. See DEVELOPMENT ROADMAP Phase 8 for scope and the writing rules.
+
+- `loadCommentary(year)` — fetches `matchup-commentary-<year>.json` (same no-CORS + hourly cache-buster pattern as `loadProjectionsFile`), memoised per year in `_commentaryPromise`. Returns `null` for any year with no file, which is the normal case for 2023/2024/2026 — a missing file must never break the scoreboard.
+- `renderCommentaryBlock(commentary, week, matchupId)` — returns `''` when there's no entry for `week|matchup_id`, so consolation games and unwritten seasons render **no toggle at all**. An empty toggle is worse than none.
+- `toggleMatchupCommentary(key, el)` — pure show/hide on `#mc-body-<week>-<matchupId>`, plus `.open` on the strip (rotates the chevron). No re-render, no refetch.
+- **The collapsed strip reads "Matchup Recap"** (Matt, 2026-08-21), not the headline. It used to preview the headline, which gave the punchline away before the click.
+- `esc(s)` — HTML-escape helper. **There was no escape helper in this file before Phase 8**; commentary is our own prose but it goes through `innerHTML` and is full of apostrophes and ampersands, so it is escaped rather than trusted. Reuse it for any new string-into-`innerHTML` work.
+- CSS lives in the appended `SCORES TAB — MATCHUP COMMENTARY` layer (`.mc-*`), per the redesign convention.
+
+### The Median Game on the Scores tab (2026-08-21)
+This league plays **two games a week** — the opponent, and the league median. The Scores card now shows both.
+
+- `weekMedianOf(weekData)` — the median of every scored entry in a week. **Extracted so `buildMedianMap()` and the Scores tab share one implementation** and can never disagree about what the median was; `buildMedianMap()` was refactored onto it. Verified unchanged after the refactor: every owner still at exactly 42 median games, 252 median wins across 252 games, Matt Bova still 10-32 (the known-correct post-`weekWasPlayed` value).
+- `weekHasMedian(week, weekData)` — `week <= REG_WEEKS && weekWasPlayed(weekData)`. **There is no median game in weeks 15-17** — those are the brackets, only 8 of 12 teams play, and a "median" of that field is meaningless. Verified: W13/W14 render it, W15/W16/W17 render nothing at all.
+- **`.wk-rec` chip** on each side of the card: the team's whole week as `2-0` / `1-1` / `0-2` (teal / muted / magenta), with a `title` spelling out the median comparison. This is the single clearest answer to "did they get the extra win" — it folds the H2H and median results into one token.
+- **`.match-med` strip** under the scores carries the median score itself.
+- Both are suppressed for **projected** scores (`aIsProj`), so a team that hasn't played can't be shown banking a 2-0 it hasn't earned. Verified: 2026 shows 12 PROJ chips and zero median UI.
+- Works retroactively for 2023/2024 as well as 2025.
+- CSS in the appended `SCORES TAB — MEDIAN GAME` layer.
+
+**`.match-grid` overflow fix (2026-08-21).** `repeat(auto-fill,minmax(290px,1fr))` → `minmax(min(290px,100%),1fr)`. Below a 290px container the card could not shrink and pushed 23px past the viewport at 280px wide. **Pre-existing, not caused by the commentary block** — verified by removing the `.mc-*` elements from the DOM and re-measuring (card stayed 290px in a 252px grid). Exactly the same bug, and the same fix, as `.roster-grid` on 2026-08-20.
 
 ### Projections Data Layer
 Everything projected on the site funnels through here, so "projected points" always means *scored under this league's rules* (`calcPts`/`SDATA`), never Sleeper's generic `pts_ppr`.
@@ -572,6 +598,7 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honour it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
   If playoff stats are ever wanted they belong in a **separate** set, and they must be filtered to the *winners* bracket via `PLAYOFF_BRACKET_INFO` — an all-weeks-15-to-17 aggregate is exactly the noise this rule exists to keep out.
 - **Careers is two sub-tabs, and superlatives live in exactly one of them** — Records (career table + All-Time Record Book + season standings) and Hall of Fame & Shame (the award grid). The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated.
+- **Matchup commentary: 2025 is hybrid, 2026 forward is hand-written only** (Matt, 2026-08-21). Placement games (3rd, 5th) and the Consolation Final are in scope because they carry a reward; the rest of the consolation bracket gets nothing and renders no toggle. See Phase 8.
 - **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
 - **"Ask Claude" is fully gone** — panel, icon tab, JS and CSS all removed (the last of it 2026-08-20). The old note here claimed the JS "must remain because `getTradeAI()` calls them"; `getTradeAI()` had itself been removed in the June 2026 overhaul, so that was stale and kept ~20 KB of dead code alive for two months.
 
@@ -695,6 +722,40 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - ~~Visual polish deferred~~ — done 2026-08-20 via the `.gr-*` CSS layer. The admin-only metric cards still reuse `.r-card` as-is, which is fine for a working view.
 
 **Data source:** Sleeper rosters + KTC values (same as Phases 3–4). **Complexity: Medium — KTC integration was the key dependency; matching turned out to need two real fixes.**
+
+---
+
+### Phase 8 — Matchup Commentary — **2025 complete 2026-08-21; 2026 written live, week by week**
+**Goal:** a write-up under every matchup that mattered, on the Scores tab. See "Matchup Commentary" under JAVASCRIPT FUNCTIONS for the functions.
+
+**Which games get one.** All of weeks 1–14. In the brackets, driven mechanically off `PLAYOFF_BRACKET_INFO`: Winners Bracket, Championship, 3rd Place, **5th Place**, and the **Consolation Final · 13th Pick** — that last one is deliberate and confirmed by Matt, because it hands the winner the 1.13 rookie pick and is not a nothing game. A bare `Consolation` / `Consolation · Round 1` / `Consolation · Semifinal` gets nothing. For 2025 that is 84 + 8 = **92 write-ups**.
+
+**How they're written.** 2025 is a **hybrid**: `build_matchup_facts.py` emits a fact sheet, routine games get a generated first draft, and the games that mattered are hand-written. **2026 forward is 100% hand-written** (Matt, 2026-08-21) — the script stays, but only as a fact sheet. Voice is Hall of Fame & Shame roast level; punch at the decision, not the person; nothing boring.
+
+**`scripts/build_matchup_facts.py`** — offline, run by hand, output **never committed** (it is a writing source, not a site asset). Goes back to the live Sleeper payload for `players_points`/`starters_points`, which `fetchAllMatchups()` deliberately trims away. Per matchup it computes margin class, the median result for both sides (lucky win / unlucky loss), per-starter projected-vs-actual, the biggest over/underperformer, bench total, the best legal bench swap and whether it exceeded the margin, optimal-lineup points left on the table, position-group totals, records/streaks entering, and prior H2H.
+
+- **Scoring is a verified port of `calcPts()`**, fed by the league's own live `scoring_settings` rather than a hardcoded table. Confirmed exact: replaying 2025 W3 reproduces Sleeper's own team totals to the cent (127.47 / 105.58 / 143.00 / 155.13), with 11/11 starter projection coverage.
+- **Sleeper's projections are optimistic, and by a different amount every week** — 2025 ranged from **−29.6 in W1 to +7.4 in W5** league-wide. So a raw "underperformed by 25" is meaningless; in Week 1 that was simply average. Every proj-vs-actual claim must use **`proj_delta_adj`**, which nets out `week_proj_bias` (the median of all twelve teams' deltas that week). Do not quote `proj_delta` in prose.
+- Records follow the site's own convention — **H2H plus median**, weeks 1–14 only, matching the career table's "Total W-L". Verified against the 2025 final standings.
+- Historical projections are available: `/projections/nfl/regular/2025/{week}` returns real stat lines including the distance buckets (`rec_0_4` … `rec_40p`), so `calcPts()` scores them correctly under this league's rules.
+
+**Writing traps found in the test slice.** Both were caught by checking, and both would have shipped as false claims:
+1. **"Lowest score of the season" was wrong.** Jake Bogardus' 62.60 in the W17 3rd-place game is the *second* lowest — Erin Jacobs posted **4.85** in a W16 *consolation* game with an abandoned lineup, which is exactly the noise the weeks-1–14 rule exists to exclude. Phrase such claims as "in a game anyone was trying to win."
+2. Anything the prose asserts beyond the facts file (a player being inactive, a retired QB starting) needs a direct check against `/stats/nfl/regular/{year}/{week}`. Lamar Jackson's 0.00 in that same game is real — he has *no stat line at all* for 2025 W17.
+
+**Status: 2025 is COMPLETE — all 92 write-ups shipped 2026-08-21.** Length and tone signed off by Matt: headline + 3-4 sentences, Hall of Fame & Shame roast level. Don't re-litigate the voice; match what is there. Real point figures (bench totals, points left on the table) are deliberately kept in the prose, unlike the Phase 6 rule that strips raw KTC values — points are a scale everyone reads natively, KTC is not.
+
+**Verified before shipping, mechanically not by eye:**
+- 92/92 coverage, zero consolation leakage, per-week counts 6×14 + 2 + 3 + 3. Confirmed in-browser week by week: W1-14 render 6 cards / 6 recaps, W15 4/2, W16 6/3, W17 4/3.
+- **All 617 quoted decimal figures checked against the facts file** by script, with a ±0.06 rounding tolerance. The 14 that didn't match a single field are deliberate cross-week callbacks (Mark Andrews' 1.75 / 1.40 / 29.35 run, Bowers' 47.05 the week before) or sums, each verified separately.
+- Tags checked against the facts predicates. Two false `NAILBITER` tags were caught and removed (7|5 at 9.07 and 13|2 at 6.79 — the tag means margin under 5, and a chip that lies is worse than no chip).
+- Only non-ASCII character in the file is U+2014; every apostrophe is ASCII.
+
+**Four false superlatives were caught and corrected during writing** — worth reading before adding a season-wide claim, because the pattern repeats:
+- "Best week against par all season" was claimed for Erin's +65.8 (W8), then Bogardus' +56.7 (W6), then Matt's +54.8 (W9). The real answer is **Andrew Bova +67.6 in W14**, with Jake Blackwell +67.0 second. Week 14 outscored everything and was written last.
+- "Tidiest lineup of the year" was claimed twice off `left_on_table`. The real minimum is **0.43 (Andrew Bova, W14)**; Chris Bova's W8 3.30 is the lowest *bench total*, which is a different statistic.
+
+**Rule for the 2026 pass: rank the metric across the whole season before writing any superlative, not from the week in front of you.** Every "best/worst/lowest/highest ever" needs a sort, and the sort must cover all 17 weeks.
 
 ---
 
