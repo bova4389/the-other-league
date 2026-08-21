@@ -23,6 +23,9 @@ the-other-league/                      ← outer repo root
     ├── TOL Small Logo.png             ← available if needed
     ├── TOL Abbreviated Icon.png       ← favicon + iOS add-to-homescreen icon
     ├── TOL iPhone background image.png ← iOS splash screen
+    ├── img/profiles/                  ← 12 manager headshots, 600x750 JPEG (~50 KB each, 660 KB)
+    │                                    Source photos + cropping script live in `League Pics/`
+    │                                    (untracked); only the web-sized JPEGs are committed.
     ├── ktc-values.json                ← KTC dynasty values (updated weekly by GitHub Action)
     ├── projections-<year>.json        ← all 17 weeks of Sleeper projections, trimmed (updated DAILY by GitHub Action)
     ├── stats-history.json             ← historical player stats cache
@@ -133,7 +136,10 @@ Contains:
 **Removed from home panel:** Consolation winner card (Nick Merkel), Quick-nav grid (replaced by icon nav)
 
 ### Careers Panel (`panel-careers`)
-Restructured 2026-08-20 (Phase 1) into sub-tabs and widened to **six** on 2026-08-21 (Phase 9), using the same self-contained-divs pattern as `setRosterView`:
+Restructured 2026-08-20 (Phase 1) into sub-tabs, widened to **six** on 2026-08-21 (Phase 9) and to
+**seven** the same day (Phase 11 — "Managers", which is now the FIRST tab and the default view), using the same self-contained-divs pattern as `setRosterView`:
+0. `#careers-view-profiles` (**"Managers"**) → `#profile-grid`: the twelve manager cards. **This is
+   the default view now**, not All Time. Built by `buildProfileGrid()`.
 1. Section title "LEAGUE HISTORY" + subtitle
 2. `.careers-view-toggle` — six `.yr-btn` buttons, switched by `setCareersView('records'|'hof'|'2026'|'2025'|'2024'|'2023', el)`
 3. `#careers-view-records` (**"All Time"**) → `#careers-container`: career table, then the **All-Time Record Book** (`#record-book`). Built by `buildCareers()`. **Per-season standings no longer live here** — they moved to the year tabs on 2026-08-21.
@@ -520,6 +526,44 @@ Lives inside the Rosters panel as a sub-tab (`setRosterView`), not a new top-lev
 - `buildSnapshotPayload(allTeamsData, year)` / `buildSnapshotExportHtml(...)` — builds the frozen-snapshot JSON and a copyable `<textarea>` in the UI. Payload freezes `readinessTier`/`deadWeightCount`/`highDeadWeightRisk`/`pickValue` alongside the grade, since they're now grade inputs — this is what the grade was based on at snapshot time; the live card always shows current (unfrozen) readiness/depth/assets regardless. **There is no automated write path** — this is a static GitHub Pages site with no server. Taking a snapshot is a manual step: open Grades & Outlook with `?admin=1`, switch to the Live tab, copy the textarea JSON, commit it as `roster-grades-<period-id>.json` at the repo root, then add the period to `GRADE_PERIODS` — same manual-commit pattern already used for `KTC_SNAPSHOT`. The payload also freezes `topAssets`, `readinessRank` and `readinessPts` (2026-08-20) so a past period renders entirely from its own file.
 - `buildRosterGrades()` — main build; lazy-fetches KTC values + `buildFuturePicksMap()` if not already loaded, computes all 12 teams, loads every committed period file, stashes it in `_gradeState`, then calls `renderRosterGrades()`. (`renderGradeCard` was renamed `renderGradeAdminCard` on 2026-08-20 — it is no longer the league-facing renderer.)
 
+### Manager Profiles (Phase 11 — built 2026-08-21)
+Twelve cards on a new first Careers sub-tab, each opening a full career profile. **Every manager
+name anywhere on the site is a link into it** — 936 of them as of build day.
+
+- **`ownerAwardDefs(at,ledger)` is the single definition of every ranked award**, consumed by BOTH
+  `buildHallOfFame()` and `buildOwnerProfile()`. The Hall of Fame was refactored onto it rather
+  than leaving two lists to drift; verified byte-identical afterwards (all 19 cards and all 12
+  record-book cards unchanged). **Add a new award here, never in `buildHallOfFame`.**
+- `ownerRank(map,uid,dir,gate)` — where one manager sits in an award's field. Ties SHARE a rank,
+  matching the convention `leaderBody` already uses when it prints two names on one card.
+- `buildOwnerProfile(uid)` — pure data, no DOM, so it can be checked from the console. Returns
+  identity, all-time record, per-owner record book, award standings, season-by-season and team
+  names. Every figure comes from `buildAllTimeStats()`, so a profile **cannot** disagree with the
+  Careers table, the record book or the standings. Verified: all 12 profiles reconcile against the
+  rendered careers table for both record and earnings.
+- `ownerLink(uid,text)` / `ridLink(rid,text)` — **the only sanctioned way to render a manager's
+  name.** A `<button>` with its styling stripped back to `inherit`, so it drops into a table cell,
+  a card header or a sentence without moving anything. **No underline** (Matt, 2026-08-21) — names
+  inherit their surrounding colour and reveal themselves on hover; `:focus-visible` still draws a
+  ring so keyboard users keep an affordance. `ridLink` exists because most render sites carry a
+  roster_id, not a uid. An unknown uid falls through to plain escaped text, which is what
+  makes the Stats table's free-agent rows (rid 0) safe.
+- `openProfile(uid,ev)` / `closeProfile(ev)` — **an overlay, deliberately not a route.** Clicking a
+  name in a Week 8 matchup must not cost you your place on the Scores tab. Verified: tab stays
+  active, scroll position holds, `location.hash` unchanged. Closes on the backdrop, the ✕, or Esc,
+  and returns focus to the link that opened it. `openProfile` calls `stopPropagation`, which is why
+  a link inside an already-clickable row (Stats, H2H grid) doesn't trigger the row's own handler.
+- `ownerTeamNames(uid)` — collapses `TEAM_NAME_HISTORY` into display rows. **Merges on name AND
+  holder**, not name alone: Andrew inherited "Joshin Around" from Chris Jacobs for the 2026
+  preseason, and merging on name alone filed a year of Andrew's tenure under Chris's label.
+- Per-owner record fields were added to `blankOwnerStats()` / `buildAllTimeStats()`: `hiWk`, `loWk`,
+  `bestWin`, `worstLoss`, `closest`, `seasonHi`, `seasonLo`. Purely additive — the league-wide
+  `rec` object and every existing consumer are untouched. Cross-checked: Matt Bova's personal
+  closest finish (+0.65 over Chris Merkel) is the same game the league-wide card shows.
+- CSS lives in the appended `MANAGER PROFILES` layer (`.pf-*` / `.own-link`), per the redesign
+  convention, with its light-mode overrides. Verified 280/375/1280px in both themes: zero page
+  overflow, the season table scrolls inside its own `.pf-tblwrap`.
+
 ### Boot
 - `startCountdown()` — countdown timer to **Sep 9, 2026 8:20 PM ET**; ticks every 1s
 - `routeFromHash()` — reads `location.hash` on boot and navigates to matching tab
@@ -560,6 +604,23 @@ Two guardrails: `MAX_DEEP_LOOKUPS` (40) aborts rather than mass-requesting KTC i
 // user_id → { name, team, you, tier, note?, co? }
 ```
 `you: true` marks Matt Bova's team. `co` is for co-owned teams.
+
+### `TEAM_NAME_HISTORY` — every team name each franchise has carried
+Pulled from `/league/{lid}/users` across all four seasons and hardcoded (the site does not fetch
+that endpoint at runtime). Two rules that are easy to get wrong:
+1. **Keyed by the SITE's uid — the franchise, not the human.** Roster 11's 2023–25 names are Chris
+   Jacobs'; they sit under Andrew Bova's uid so the franchise reads continuously, and a `who` field
+   marks whose they actually were.
+2. **A year can hold MORE than one entry.** Sleeper only ever reports the name as it stands *now*,
+   so a rename is only detectable by diffing against what we last recorded. The doubled 2026 rows
+   are exactly that: what the site had hardcoded through the August preseason, then what Sleeper
+   returned on 2026-08-21.
+
+**`TEAMS` team names were refreshed to live 2026 values on 2026-08-21** — five were stale (Matt,
+Bogardus, Chris Merkel, Nick Merkel, Andrew). Known cosmetic side effect: the frozen 2026-Preseason
+`GRADE_WRITEUPS` still name the old teams ("Show Me Your Penix", "Joshin Around"), including a joke
+that depends on Matt's old team name. That prose is period-correct and was left alone; the snapshot
+JSON stores no team name, so a frozen grade row renders today's name beside period prose.
 
 ### `RM` / `RMR` — roster → owner mapping
 ```javascript
@@ -720,6 +781,23 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
   jobs. Don't collapse them into one.
 - **Year standings default to Place ascending; the All Time career table defaults to Career Earnings descending.** Confirmed by Matt 2026-08-21. Both are sticky per table once a header is clicked — that is deliberate, don't reset them on tab switch.
 - **Matchup commentary: 2025 is hybrid, 2026 forward is hand-written only** (Matt, 2026-08-21). Placement games (3rd, 5th) and the Consolation Final are in scope because they carry a reward; the rest of the consolation bracket gets nothing and renders no toggle. See Phase 8.
+- **A manager's name is rendered through `ownerLink()`/`ridLink()`, never as bare text.** That is
+  what makes every name on the site open a profile, and it is the thing a new render site will
+  forget. If you add a surface that shows a manager's name, route it through the helper.
+- **The profile is an overlay, not a route.** It opens over whatever you were reading and closes
+  back to it, with the tab, scroll position and URL hash untouched. Don't convert it to a tab or a
+  hash route — losing your place on the Scores tab is the exact failure it exists to avoid.
+- **Award definitions live in `ownerAwardDefs()` only.** The Hall of Fame grid and the profile
+  award standings both read it. Two lists is how the two surfaces drift.
+- **\* Andrew Bova inherited roster 11 from Chris Jacobs in 2026.** Verified against the API: roster
+  11's `owner_id` is `728293730280427520` ("CCJ") for 2023/24/25 and `467166827215056896` (Andrew)
+  from 2026. `RM` maps roster 11 to Andrew for *every* season, so all of Chris's results already
+  flowed into Andrew's totals before this was noticed. **That attribution was deliberately kept**
+  (Matt's call, 2026-08-21) so the franchise history stays continuous — the star and the footnote
+  on his profile are what make it honest. Do not silently re-split it; changing it would move
+  career earnings, playoff berths and Hall of Fame standings. The marker is a plain `*` in
+  `var(--muted)` at 60% opacity (Matt, 2026-08-21) — it appears beside his name in ~90 places, so
+  anything louder read as decoration rather than a footnote.
 - **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
 - **"Ask Claude" is fully gone** — panel, icon tab, JS and CSS all removed (the last of it 2026-08-20). The old note here claimed the JS "must remain because `getTradeAI()` calls them"; `getTradeAI()` had itself been removed in the June 2026 overhaul, so that was stale and kept ~20 KB of dead code alive for two months.
 
@@ -962,6 +1040,45 @@ horizontal overflow at 375px in both themes.
 **Not built:** no per-week *automation*. `scripts/tuesday_update.py` still only maintains
 `h2h-records.md`; it does not draft recaps or touch either JSON. Worth considering: extend
 `build_matchup_facts.py` to emit a week's fact sheet for both files in one run.
+
+---
+
+### Phase 11 — Manager Profiles — **shipped 2026-08-21**
+**Goal:** a per-manager career profile, reachable from every occurrence of that manager's name
+anywhere on the site. Asked for by Matt on 2026-08-21. See "Manager Profiles" under JAVASCRIPT
+FUNCTIONS for the mechanics.
+
+- ✅ Twelve cards on a new **Managers** sub-tab (the first, and now the default Careers view),
+  small with a headline stat, expanding to a full profile on click
+- ✅ Profile carries: all-time record, H2H/median split, points for and against, earnings, titles,
+  playoff berths, the personal record book (highest/lowest week, biggest blowout, worst defeat,
+  closest finish, win/losing streaks, most/fewest points in a season), a standing in all 18 Hall of
+  Fame & Shame awards, season-by-season placements and payouts, and every team name used
+- ✅ **936 manager names across the site made clickable** — Careers, Scores, Rivalries (both the
+  six rivalry cards and the H2H explorer), Rosters, Roster Grades, Draft, Transactions, Stats and
+  the Trade Evaluator verdict. Deliberately NOT linked: `<option>` elements in the trade dropdowns
+  (an option cannot contain markup), the pick checkboxes in the Trade Evaluator (a button inside a
+  `<label>` would toggle the checkbox) and the team filter chips (they already own their click).
+  **The six rivalry cards were missed on the first pass** and caught by Matt — they build in
+  `buildRivalries()` from `p.a`/`p.b`, separate code from the H2H explorer underneath them.
+- ✅ Team-name history for all 12 franchises, 2023–2026, including mid-2026 renames
+- ✅ `*` on Andrew Bova with the Chris Jacobs footnote
+
+**Placement decision (Matt, 2026-08-21):** a Careers sub-tab rather than an 11th nav tab, because
+every stat on a profile is already a Careers stat and an 11th tab breaks the 5+5 mobile nav grid.
+
+**Verified before shipping, mechanically:**
+- Hall of Fame and Record Book output **byte-identical** after refactoring both onto
+  `ownerAwardDefs()` — 19 and 12 cards, diffed string by string against a pre-change capture.
+  (First diff attempt compared a stale cached page against itself and falsely passed; the second
+  compared against the real new build. Watch for that — python http.server 304s aggressively.)
+- All 12 profiles reconcile against the rendered Careers table for record and earnings; H2H and
+  median ledgers both balance 252/252.
+- Click-through from Scores preserves the active tab, scroll position and hash.
+- 280/375/1280px, dark and light: zero page overflow, no offenders.
+
+**Not built:** photos are committed as static JPEGs, so a new member needs a file added to
+`img/profiles/` and a `photo:` key in `TEAMS`; there is no upload path and shouldn't be.
 
 ---
 

@@ -2001,6 +2001,187 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .sv-block { padding: 11px 11px 12px; }
   .sv-line { font-size: 11.5px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MANAGER PROFILES — clickable names, the card grid and the profile overlay
+   .own-link is the shared name link and lands inside tables, card headers and
+   running prose, so it inherits everything and adds only an underline. The
+   profile itself is an overlay, not a route: clicking a name in a Week 8
+   matchup must not cost you your place on the Scores tab.
+   ══════════════════════════════════════════════════════════════════════════ */
+.own-link {
+  display: inline; margin: 0; padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; letter-spacing: inherit; text-align: inherit;
+  cursor: pointer; text-decoration: none;
+  transition: color .15s ease;
+}
+.own-link:hover { color: var(--accent); }
+/* No underline by design, so the keyboard affordance has to come from
+   somewhere. :focus-visible fires only for keyboard navigation, so this ring
+   never shows up on a mouse click. */
+.own-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+/* Deliberately quiet: a footnote marker, not a badge. It sits beside a name in
+   891 places, so anything louder reads as decoration. */
+.own-star { color: var(--muted); font-size: .95em; margin-left: 2px; opacity: .6; font-weight: 400; }
+
+/* ── Grid of manager cards ── */
+.pf-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr));
+}
+.pf-card {
+  display: flex; flex-direction: column; text-align: left;
+  padding: 0; overflow: hidden; cursor: pointer;
+  background: linear-gradient(160deg, #120D26, #0C0920);
+  border: 1px solid #2A1C54; border-radius: 10px;
+  font: inherit; color: var(--text);
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.pf-card:hover, .pf-card:focus-visible {
+  transform: translateY(-3px); border-color: var(--accent); outline: none;
+  box-shadow: 0 6px 22px rgba(33,245,228,.16);
+}
+.pf-card.is-you { border-color: var(--accent2); }
+.pf-card-photo { position: relative; width: 100%; aspect-ratio: 4/5; background: var(--surface); }
+.pf-card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pf-initials {
+  display: flex; align-items: center; justify-content: center; height: 100%;
+  font-family: 'Saira Condensed', sans-serif; font-style: italic;
+  font-size: 40px; color: var(--accent); background: var(--surface);
+}
+.pf-ring { position: absolute; top: 7px; right: 7px; font-size: 15px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.pf-card-body { padding: 9px 11px 4px; }
+.pf-card-name {
+  font-family: 'Saira Condensed', sans-serif; font-style: italic;
+  font-size: 18px; font-weight: 600; letter-spacing: .01em; color: var(--text);
+}
+.pf-card-team { font-size: 11px; color: var(--muted); margin: 1px 0 7px; overflow-wrap: anywhere; }
+.pf-card-stats { display: flex; flex-wrap: wrap; gap: 4px; }
+.pf-chip {
+  display: inline-block; padding: 2px 7px; border-radius: 999px;
+  background: rgba(154,85,255,.13); border: 1px solid var(--border);
+  font-size: 10.5px; color: var(--text2);
+}
+.pf-chip b { color: var(--accent); font-weight: 600; }
+.pf-chip-gold { background: rgba(255,210,90,.13); border-color: rgba(255,210,90,.4); color: #FFD25A; }
+.pf-card-more {
+  margin-top: auto; padding: 8px 11px 10px;
+  font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent);
+}
+
+/* ── Overlay ── */
+.pf-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  display: none; align-items: flex-start; justify-content: center;
+  padding: 24px 14px; overflow-y: auto;
+  background: rgba(4,3,10,.78); backdrop-filter: blur(3px);
+}
+.pf-overlay.open { display: flex; }
+body.pf-locked { overflow: hidden; }
+.pf-modal {
+  position: relative; width: 100%; max-width: 780px; margin: auto;
+  background: var(--card); border: 1px solid #2A1C54; border-radius: 14px;
+  padding: 20px 20px 24px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.6);
+}
+.pf-close {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text2);
+  font-size: 15px; line-height: 1;
+}
+.pf-close:hover, .pf-close:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+
+.pf-head { display: flex; gap: 15px; align-items: flex-start; padding-right: 34px; }
+.pf-head-photo {
+  flex: 0 0 96px; width: 96px; aspect-ratio: 4/5; border-radius: 10px;
+  overflow: hidden; border: 1px solid var(--border); background: var(--surface);
+}
+.pf-head-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pf-head-txt { min-width: 0; flex: 1; }
+.pf-name {
+  font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 600;
+  font-size: clamp(23px, 6vw, 31px); line-height: 1.05; color: var(--text);
+}
+[data-theme="dark"] .pf-name { text-shadow: 0 0 16px rgba(33,245,228,.3); }
+.pf-team { font-size: 12px; color: var(--accent3); margin: 2px 0 10px; overflow-wrap: anywhere; }
+.pf-headline { display: flex; flex-wrap: wrap; gap: 7px; }
+.pf-hl {
+  display: flex; flex-direction: column; min-width: 62px;
+  padding: 5px 9px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.pf-hl b { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-size: 17px; color: var(--accent); }
+.pf-hl i { font-style: normal; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+.pf-sec {
+  margin: 20px 0 9px; padding-bottom: 5px; border-bottom: 1px solid var(--border);
+  font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent3); font-weight: 600;
+}
+.pf-split { display: flex; flex-wrap: wrap; gap: 6px; }
+.pf-note {
+  margin-top: 13px; padding: 9px 12px; border-radius: 8px;
+  background: rgba(255,210,90,.08); border: 1px solid rgba(255,210,90,.32);
+  font-size: 11.5px; line-height: 1.5; color: var(--text2);
+}
+.pf-muted { color: var(--muted); }
+.pf-recs { grid-template-columns: repeat(auto-fill, minmax(min(155px, 100%), 1fr)); gap: 8px; }
+
+/* ── Award standings ── */
+.pf-awards { display: flex; flex-direction: column; gap: 5px; }
+.pf-award {
+  display: grid; gap: 4px 9px; align-items: center;
+  grid-template-columns: 20px 1fr auto auto;
+  padding: 7px 10px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.pf-award.won { border-color: rgba(255,210,90,.5); background: rgba(255,210,90,.07); }
+.pf-aw-icon { font-size: 13px; }
+.pf-aw-lbl { font-size: 11.5px; color: var(--text2); min-width: 0; }
+.pf-aw-val { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-size: 15px; color: var(--accent); }
+.pf-award.shame .pf-aw-val { color: var(--accent3); }
+.pf-aw-rank { display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; color: var(--text2); }
+.pf-aw-rank i { font-style: normal; font-size: 8.5px; color: var(--muted); }
+
+.pf-tblwrap { overflow-x: auto; }
+.pf-tbl { width: 100%; }
+.pf-names { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pf-names li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; font-size: 12px; }
+.pf-nm-yr { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--muted); min-width: 74px; }
+.pf-nm-nm { color: var(--text); }
+.pf-nm-cur {
+  padding: 1px 6px; border-radius: 999px; font-size: 9px; letter-spacing: .05em;
+  text-transform: uppercase; background: rgba(33,245,228,.14);
+  border: 1px solid var(--accent); color: var(--accent);
+}
+
+@media(max-width:680px){
+  .pf-grid { grid-template-columns: repeat(auto-fill, minmax(min(145px, 100%), 1fr)); gap: 9px; }
+  .pf-card-name { font-size: 15px; }
+  .pf-card-team { font-size: 10px; }
+  .pf-overlay { padding: 10px 8px; }
+  .pf-modal { padding: 16px 14px 20px; border-radius: 11px; }
+  .pf-head { gap: 11px; }
+  .pf-head-photo { flex-basis: 74px; width: 74px; }
+  .pf-award { grid-template-columns: 18px 1fr auto; }
+  .pf-aw-rank { grid-column: 3; }
+  .pf-aw-val { grid-column: 2; grid-row: 2; justify-self: start; }
+  .pf-nm-yr { min-width: 68px; }
+}
+
+/* Light mode — the card/modal surfaces above are dark-only literals, so each
+   one needs its counterpart here or the toggle leaves them black. */
+[data-theme="light"] .pf-card { background: var(--card); border-color: var(--border); }
+[data-theme="light"] .pf-card:hover { box-shadow: 0 6px 20px rgba(14,156,146,.16); }
+[data-theme="light"] .pf-modal { background: var(--card); border-color: var(--border); box-shadow: 0 18px 50px rgba(20,26,40,.28); }
+[data-theme="light"] .pf-overlay { background: rgba(28,32,44,.55); }
+[data-theme="light"] .pf-chip { background: rgba(122,51,224,.09); }
+[data-theme="light"] .pf-chip-gold { background: rgba(191,140,20,.12); border-color: rgba(191,140,20,.4); color: #8A6300; }
+[data-theme="light"] .own-star { color: var(--muted); }
+[data-theme="light"] .pf-award.won { background: rgba(191,140,20,.09); border-color: rgba(191,140,20,.42); }
+[data-theme="light"] .pf-note { background: rgba(191,140,20,.09); border-color: rgba(191,140,20,.34); }
+
 </style>
 </head>
 <body class="is-home">
@@ -2423,14 +2604,19 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
            Adding a season = one button + one empty div here, plus the usual
            SEASON_HISTORY / PLAYOFF_BRACKET_INFO entries and CAREER_YEARS. -->
       <div class="careers-view-toggle" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;">
-        <button class="yr-btn active" id="cview-records-btn" onclick="setCareersView('records',this)">All Time</button>
+        <button class="yr-btn active" id="cview-profiles-btn" onclick="setCareersView('profiles',this)">Managers</button>
+        <button class="yr-btn" id="cview-records-btn" onclick="setCareersView('records',this)">All Time</button>
         <button class="yr-btn" id="cview-hof-btn" onclick="setCareersView('hof',this)">Hall of Fame &amp; Shame</button>
         <button class="yr-btn" id="cview-2026-btn" onclick="setCareersView('2026',this)">2026</button>
         <button class="yr-btn" id="cview-2025-btn" onclick="setCareersView('2025',this)">2025</button>
         <button class="yr-btn" id="cview-2024-btn" onclick="setCareersView('2024',this)">2024</button>
         <button class="yr-btn" id="cview-2023-btn" onclick="setCareersView('2023',this)">2023</button>
       </div>
-      <div id="careers-view-records">
+      <div id="careers-view-profiles">
+        <div class="sec-sub" style="margin-top:0">Tap anyone for their full career profile · every manager name on the site opens this</div>
+        <div id="profile-grid"></div>
+      </div>
+      <div id="careers-view-records" style="display:none">
         <div id="careers-container"></div>
       </div>
       <div id="careers-view-hof" style="display:none">
@@ -2520,18 +2706,51 @@ const CACHE_TTL = 6 * 60 * 60 * 1000;
 
 // All 12 teams: user_id → info
 const TEAMS = {
-  '721908735856967680':{name:'Matt Bova',team:'Show Me Your Penix',you:true,tier:'mid'},
-  '722615938792382464':{name:'Jake Bogardus',team:'BoKnows723',co:'Katie',tier:'contender'},
-  '722927129620197376':{name:'Jared Hayes',team:'SirWinsAlot',tier:'mid'},
-  '728290759668797440':{name:'Chris Bova',team:'Titsburg Feelers',tier:'contender'},
-  '722827711751487488':{name:'Nick Bova',team:'Nabers in Paris',tier:'mid'},
-  '728292169563099136':{name:'Erin Jacobs',team:'eejacobs',tier:'mid'},
-  '470747640758267904':{name:'Jake Blackwell',team:'Nacua Matata',tier:'champion',note:'2025 Champ 🏆'},
-  '722612742522994688':{name:'Chris Merkel',team:'Your Team is the PITTsMAN',tier:'trader'},
-  '722920890647515136':{name:'Mitch Blackwell',team:'i LOVE mendoza',co:'Andrew Evans',tier:'mid'},
-  '723731618132504576':{name:'Nick Merkel',team:'Breeces Peanut ButterCups',tier:'trader',note:'Consolation 🥈'},
-  '467166827215056896':{name:'Andrew Bova',team:'Joshin Around',tier:'mid'},
-  '728292202471604224':{name:'Duane Gillenwater',team:'Enter the Maye-Trix',tier:'mid'},
+  '721908735856967680':{name:'Matt Bova',team:'Tee Baggin Swift’s Tate',you:true,tier:'mid',photo:'img/profiles/matt-bova.jpg'},
+  '722615938792382464':{name:'Jake Bogardus',team:'Public Enemy No. 1',co:'Katie',tier:'contender',photo:'img/profiles/jake-bogardus.jpg'},
+  '722927129620197376':{name:'Jared Hayes',team:'SirWinsAlot',tier:'mid',photo:'img/profiles/jared-hayes.jpg'},
+  '728290759668797440':{name:'Chris Bova',team:'Titsburg Feelers',tier:'contender',photo:'img/profiles/chris-bova.jpg'},
+  '722827711751487488':{name:'Nick Bova',team:'Nabers in Paris',tier:'mid',photo:'img/profiles/nick-bova.jpg'},
+  '728292169563099136':{name:'Erin Jacobs',team:'eejacobs',tier:'mid',photo:'img/profiles/erin-jacobs.jpg'},
+  '470747640758267904':{name:'Jake Blackwell',team:'Nacua Matata',tier:'champion',note:'2025 Champ 🏆',photo:'img/profiles/jake-blackwell.jpg'},
+  '722612742522994688':{name:'Chris Merkel',team:'U.S.zAy.! U.S.A.!',tier:'trader',photo:'img/profiles/chris-merkel.jpg'},
+  '722920890647515136':{name:'Mitch Blackwell',team:'i LOVE mendoza',co:'Andrew Evans',tier:'mid',photo:'img/profiles/mitch-blackwell.jpg'},
+  '723731618132504576':{name:'Nick Merkel',team:'McConkey Kong',tier:'trader',note:'Consolation 🥈',photo:'img/profiles/nick-merkel.jpg'},
+  // ★ Andrew took over roster 11 in 2026. Verified against the API: that roster
+  // was owned by user 728293730280427520 ("CCJ" — Chris Jacobs) in 2023/24/25 and
+  // by Andrew only from 2026. RM maps roster 11 to Andrew for every season, so
+  // the franchise history IS Chris's record for those years; `succeeded` is what
+  // renders the star and the footnote rather than quietly passing it off.
+  '467166827215056896':{name:'Andrew Bova',team:'TurtleNeckTie',tier:'mid',photo:'img/profiles/andrew-bova.jpg',
+    succeeded:{predecessor:'Chris Jacobs',from:2026,years:'2023–2025'}},
+  '728292202471604224':{name:'Duane Gillenwater',team:'Enter the Maye-Trix',tier:'mid',photo:'img/profiles/duane-gillenwater.jpg'},
+};
+
+// Every team name each franchise has carried, oldest first. Pulled from
+// /league/{lid}/users across all four seasons.
+//
+// Two things to know before hand-editing:
+//  1. Keyed by the SITE's uid — the franchise, not the human. Roster 11's
+//     2023-25 names are Chris Jacobs'; they sit under Andrew's uid so the
+//     franchise reads continuously, and `who` marks whose they actually were.
+//  2. A year can hold MORE than one entry. Sleeper only ever reports the name
+//     as it stands right now, so a rename is only detectable by comparing
+//     against what we last recorded. The doubled 2026 rows are exactly that:
+//     first what the site had hardcoded through the August preseason, second
+//     what Sleeper returned on 2026-08-21.
+const TEAM_NAME_HISTORY = {
+  '721908735856967680':[{yr:2023,name:'Brady’s Kids'},{yr:2024,name:'House of Darnold'},{yr:2025,name:'Show Me Your Penix'},{yr:2026,name:'Show Me Your Penix'},{yr:2026,name:'Tee Baggin Swift’s Tate',current:true}],
+  '722615938792382464':[{yr:2023,name:'BoKnows723'},{yr:2024,name:'BoKnows723'},{yr:2025,name:'BoKnows723'},{yr:2026,name:'Public Enemy No. 1',current:true}],
+  '722927129620197376':[{yr:2023,name:'SirWinsAlot'},{yr:2024,name:'SirWinsAlot'},{yr:2025,name:'SirWinsAlot'},{yr:2026,name:'SirWinsAlot',current:true}],
+  '728290759668797440':[{yr:2023,name:'Titsburg Feelers'},{yr:2024,name:'Titsburg Feelers'},{yr:2025,name:'Titsburg Feelers'},{yr:2026,name:'Titsburg Feelers',current:true}],
+  '722827711751487488':[{yr:2023,name:'Too many Cooks'},{yr:2024,name:'Too many Cooks'},{yr:2025,name:'Nabers in Paris'},{yr:2026,name:'Nabers in Paris',current:true}],
+  '728292169563099136':[{yr:2023,name:'eejacobs'},{yr:2024,name:'eejacobs'},{yr:2025,name:'eejacobs'},{yr:2026,name:'eejacobs',current:true}],
+  '470747640758267904':[{yr:2023,name:'Nacua Matata'},{yr:2024,name:'Nacua Matata'},{yr:2025,name:'Nacua Matata'},{yr:2026,name:'Nacua Matata',current:true}],
+  '722612742522994688':[{yr:2023,name:'The Merkel Dynasty'},{yr:2024,name:'Do the TANKy Leg'},{yr:2025,name:'Your Team is the PITTsMAN'},{yr:2026,name:'Your Team is the PITTsMAN'},{yr:2026,name:'U.S.zAy.! U.S.A.!',current:true}],
+  '722920890647515136':[{yr:2023,name:'Blackwell #2'},{yr:2024,name:'Slightly used belt 4 sale'},{yr:2025,name:'Ewers? Barely know her'},{yr:2026,name:'i LOVE mendoza',current:true}],
+  '723731618132504576':[{yr:2023,name:'Merk ‘N’ Twerk'},{yr:2024,name:'The Red Riflers'},{yr:2025,name:'Breeces Peanut ButterCups'},{yr:2026,name:'Breeces Peanut ButterCups'},{yr:2026,name:'McConkey Kong',current:true}],
+  '467166827215056896':[{yr:2023,name:'Team Bustersx9',who:'Chris Jacobs'},{yr:2024,name:'Joshin Around',who:'Chris Jacobs'},{yr:2025,name:'Joshin Around',who:'Chris Jacobs'},{yr:2026,name:'Joshin Around'},{yr:2026,name:'TurtleNeckTie',current:true}],
+  '728292202471604224':[{yr:2023,name:'ChubbLess'},{yr:2024,name:'Team_IR'},{yr:2025,name:'Enter the Maye-Trix'},{yr:2026,name:'Enter the Maye-Trix',current:true}],
 };
 
 // roster_id (1-12) → user_id
@@ -3711,15 +3930,15 @@ function renderHistoricalScores(container,matchups,week,projTotals,commentary,we
     html+=`<div class="match-card">
       ${bracketLabel?`<div class="bracket-chip ${bracketStyle}">${bracketLabel}</div>`:''}
       <div class="match-side ${aWinCls}">
-        <div class="match-tm"><div class="match-name">${ta.name}</div><div class="match-own">${ta.team}</div></div>
+        <div class="match-tm"><div class="match-name">${ridLink(ridA,ta.name)}</div><div class="match-own">${ta.team}</div></div>
         <div class="match-pts ${aWinCls==='winner'?'leading':''}">${recChip(aRec)}${aScoreStr}${aChip}</div>
       </div>
       <div class="match-side ${bWinCls}">
-        <div class="match-tm"><div class="match-name">${tb.name}</div><div class="match-own">${tb.team}</div></div>
+        <div class="match-tm"><div class="match-name">${ridLink(ridB,tb.name)}</div><div class="match-own">${tb.team}</div></div>
         <div class="match-pts ${bWinCls==='winner'?'leading':''}">${recChip(bRec)}${bScoreStr}${bChip}</div>
       </div>
       ${(aRec||bRec)?`<div class="match-med" title="Every regular-season week is two games: your opponent, and the league median."><span class="mm-lbl">Week median</span> <span class="mm-val">${weekMedian.toFixed(2)}</span></div>`:''}
-      ${(currentScoresYear===2025||currentScoresYear===2026)?`<div class="match-h2h">All-time: ${abbrev(ta.name)} ${aW}&ndash;${aL} ${abbrev(tb.name)}</div>`:''}
+      ${(currentScoresYear===2025||currentScoresYear===2026)?`<div class="match-h2h">All-time: ${ridLink(ridA,abbrev(ta.name))} ${aW}&ndash;${aL} ${ridLink(ridB,abbrev(tb.name))}</div>`:''}
       ${renderCommentaryBlock(commentary,week,pair[0].matchup_id)}
     </div>`;
   });
@@ -3780,7 +3999,7 @@ function renderDraft2026Board(){
   let html=`<div style="overflow-x:auto"><div class="draft-board" style="display:grid;grid-template-columns:repeat(${n},minmax(90px,1fr));gap:2px;">`;
   teamUids.forEach(uid=>{
     const td_=t(uid);
-    html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:6px 7px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:center;">${abbrev(td_.name)}</div>`;
+    html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:6px 7px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:center;">${ownerLink(uid,abbrev(td_.name))}</div>`;
   });
   for(let i=0;i<maxPicks;i++){
     teamUids.forEach(uid=>{
@@ -3788,7 +4007,7 @@ function renderDraft2026Board(){
       if(pick){
         html+=`<div style="background:var(--card);border:1px solid var(--border);padding:7px 8px;text-align:center;">
           <div class="pk-r" style="font-size:14px">${pick.pick}</div>
-          ${pick.traded?`<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent2);margin-top:2px">from ${t(pick.origUid).name.split(' ')[0]}</div>`:''}
+          ${pick.traded?`<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent2);margin-top:2px">from ${ownerLink(pick.origUid,t(pick.origUid).name.split(' ')[0])}</div>`:''}
         </div>`;
       }else{
         html+=`<div style="background:var(--surface);border:1px solid var(--border);padding:7px 8px;"></div>`;
@@ -3861,12 +4080,12 @@ async function buildRosters(rostersData,playersData){
       const teamPicks=(picksMap&&picksMap[uid])||[];
       const pickChips=teamPicks.map(pk=>{
         const yr=`'${String(pk.year).slice(2)}`;
-        const from=pk.fromUid?`<span class="from">(from ${abbrev(t(pk.fromUid).name)})</span>`:'';
+        const from=pk.fromUid?`<span class="from">(from ${ownerLink(pk.fromUid,abbrev(t(pk.fromUid).name))})</span>`:'';
         return`<span class="chip chip-pick">${yr} ${RD_LABEL[pk.round]}${from}</span>`;
       }).join('');
       g.innerHTML+=`<div class="r-card" id="roster-card-${uid}">
         <div class="rch">
-          <div><div class="rch-team">${td_.team}</div><div class="rch-own">${td_.name}${td_.co?` + ${td_.co}`:''}${td_.note?` · ${td_.note}`:''}</div></div>
+          <div><div class="rch-team">${td_.team}</div><div class="rch-own">${ownerLink(uid,td_.name)}${td_.co?` + ${td_.co}`:''}${td_.note?` · ${td_.note}`:''}</div></div>
           <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">${tags}<span class="bdg bdg-m">Avg Age ${avgAge}</span></div>
         </div>
         <div class="rcb">
@@ -4041,10 +4260,10 @@ function buildH2HPicker(){
   _h2hPairs=buildAllTimePairs();
   const rids=Object.keys(RM).map(Number).sort((a,b)=>a-b);
   let html='<div style="overflow-x:auto"><table class="dtbl h2h-grid-tbl"><thead><tr><th></th>';
-  rids.forEach(rid=>{html+=`<th>${esc(abbrev(t(RM[rid]).name))}</th>`;});
+  rids.forEach(rid=>{html+=`<th>${ridLink(rid,abbrev(t(RM[rid]).name))}</th>`;});
   html+='</tr></thead><tbody>';
   rids.forEach(ridRow=>{
-    html+=`<tr><th class="h2h-row-lbl">${esc(abbrev(t(RM[ridRow]).name))}</th>`;
+    html+=`<tr><th class="h2h-row-lbl">${ridLink(ridRow,abbrev(t(RM[ridRow]).name))}</th>`;
     rids.forEach(ridCol=>{
       if(ridRow===ridCol){html+='<td class="h2h-cell h2h-self">&mdash;</td>';return;}
       const v=pairView(_h2hPairs,ridRow,ridCol);
@@ -4085,14 +4304,14 @@ function renderH2HDetail(){
   c.innerHTML=`
     <div class="riv-card" style="margin-top:14px;">
       <div class="riv-names">
-        <div class="rv-nm"><div class="rv-n">${esc(nameX)}</div><div class="rv-t">${esc(t(RM[ridX]).team)}</div></div>
+        <div class="rv-nm"><div class="rv-n">${ridLink(ridX,nameX)}</div><div class="rv-t">${esc(t(RM[ridX]).team)}</div></div>
         <div class="vs-b">VS</div>
-        <div class="rv-nm"><div class="rv-n">${esc(nameY)}</div><div class="rv-t">${esc(t(RM[ridY]).team)}</div></div>
+        <div class="rv-nm"><div class="rv-n">${ridLink(ridY,nameY)}</div><div class="rv-t">${esc(t(RM[ridY]).team)}</div></div>
       </div>
       <div class="riv-at-row">
-        <div class="riv-at-col"><span class="riv-at-nm">${esc(abbrev(nameX))}</span><span class="riv-at-stat">${v.w}W &middot; ${v.pf.toFixed(1)} pts</span></div>
+        <div class="riv-at-col"><span class="riv-at-nm">${ridLink(ridX,abbrev(nameX))}</span><span class="riv-at-stat">${v.w}W &middot; ${v.pf.toFixed(1)} pts</span></div>
         <span class="riv-at-sep">vs</span>
-        <div class="riv-at-col riv-at-col-r"><span class="riv-at-nm">${esc(abbrev(nameY))}</span><span class="riv-at-stat">${v.l}W &middot; ${v.pa.toFixed(1)} pts</span></div>
+        <div class="riv-at-col riv-at-col-r"><span class="riv-at-nm">${ridLink(ridY,abbrev(nameY))}</span><span class="riv-at-stat">${v.l}W &middot; ${v.pa.toFixed(1)} pts</span></div>
       </div>
       <div class="riv-rec-yr">Avg. margin ${v.avgMargin.toFixed(1)} pts &middot; ${v.gp} all-time meeting${v.gp===1?'':'s'}${v.tie?` &middot; ${v.tie} tie${v.tie===1?'':'s'}`:''}</div>
       <div class="riv-history">
@@ -4110,9 +4329,9 @@ function buildNemesisBoard(){
   const rows=uids.map(uid=>{
     const n=map[uid];
     const cell=n
-      ?`${esc(t(RM[n.oppRid]).name)} <span class="hof-sub" style="margin-left:6px">${n.w}-${n.l}</span>`
+      ?`${ridLink(n.oppRid,t(RM[n.oppRid]).name)} <span class="hof-sub" style="margin-left:6px">${n.w}-${n.l}</span>`
       :'<span class="hof-sub">Not enough data yet</span>';
-    return`<tr><td>${esc(t(uid).name)}</td><td>${cell}</td></tr>`;
+    return`<tr><td>${ownerLink(uid,t(uid).name)}</td><td>${cell}</td></tr>`;
   }).join('');
   c.innerHTML=`<div style="overflow-x:auto"><table class="dtbl"><thead><tr><th>Manager</th><th>Nemesis</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -4140,9 +4359,9 @@ function buildRivalries(){
         atW+=rec.w;atL+=rec.l;atPF+=rec.pf||0;atPB+=rec.pa||0;
         // Determine year winner (more wins; tie-break on points); record always shown from winner's perspective
         let yrWinner,wrW,wrL;
-        if(rec.w>rec.l){yrWinner=abbrev(a.name);wrW=rec.w;wrL=rec.l;}
-        else if(rec.l>rec.w){yrWinner=abbrev(b.name);wrW=rec.l;wrL=rec.w;}
-        else{const aWon=(rec.pf||0)>=(rec.pa||0);yrWinner=aWon?abbrev(a.name):abbrev(b.name);wrW=aWon?rec.w:rec.l;wrL=aWon?rec.l:rec.w;}
+        if(rec.w>rec.l){yrWinner=ownerLink(p.a,abbrev(a.name));wrW=rec.w;wrL=rec.l;}
+        else if(rec.l>rec.w){yrWinner=ownerLink(p.b,abbrev(b.name));wrW=rec.l;wrL=rec.w;}
+        else{const aWon=(rec.pf||0)>=(rec.pa||0);yrWinner=aWon?ownerLink(p.a,abbrev(a.name)):ownerLink(p.b,abbrev(b.name));wrW=aWon?rec.w:rec.l;wrL=aWon?rec.l:rec.w;}
         // Week links back to Scores tab
         const wks=findRivalWeeks(year,ridA,ridB);
         const wkLinks=wks.map(w=>`<a href="#" onclick="goToScoresWeek(${year},${w});return false;" class="riv-wk-link">W${w}</a>`).join(' ');
@@ -4159,20 +4378,20 @@ function buildRivalries(){
     const atRecord=hasData?`
       <div class="riv-at-row">
         <div class="riv-at-col">
-          <span class="riv-at-nm">${abbrev(a.name)}</span>
+          <span class="riv-at-nm">${ownerLink(p.a,abbrev(a.name))}</span>
           <span class="riv-at-stat">${atW}W · ${atPF.toFixed(1)} pts</span>
         </div>
         <span class="riv-at-sep">vs</span>
         <div class="riv-at-col riv-at-col-r">
-          <span class="riv-at-nm">${abbrev(b.name)}</span>
+          <span class="riv-at-nm">${ownerLink(p.b,abbrev(b.name))}</span>
           <span class="riv-at-stat">${atL}W · ${atPB.toFixed(1)} pts</span>
         </div>
       </div>`:'<div style="color:var(--muted);font-size:12px">Loading...</div>';
     g.innerHTML+=`<div class="riv-card">
       <div class="riv-names">
-        <div class="rv-nm"><div class="rv-n">${a.name}</div><div class="rv-t">${a.team}</div></div>
+        <div class="rv-nm"><div class="rv-n">${ownerLink(p.a,a.name)}</div><div class="rv-t">${a.team}</div></div>
         <div class="vs-b">VS</div>
-        <div class="rv-nm"><div class="rv-n">${b.name}</div><div class="rv-t">${b.team}</div></div>
+        <div class="rv-nm"><div class="rv-n">${ownerLink(p.b,b.name)}</div><div class="rv-t">${b.team}</div></div>
       </div>
       <div class="riv-record">
         <div class="riv-rec-label">All-Time Rivalry Record</div>
@@ -4462,7 +4681,7 @@ function renderTxnRow(tx){
   const label=tx.type==='waiver'?'WAIVER':'FREE AGT';
   return`<div class="txn-row">
     <div class="txn-meta"><span class="txn-date">${date}</span><span class="txn-badge ${badge}">${label}</span></div>
-    <div class="txn-team">${team.name} <span style="color:var(--muted);font-weight:400;font-size:10px">${team.team}</span></div>
+    <div class="txn-team">${ridLink(teamRid,team.name)} <span style="color:var(--muted);font-weight:400;font-size:10px">${team.team}</span></div>
     <div class="txn-detail">${detail||'—'}</div>
   </div>`;
 }
@@ -4478,16 +4697,16 @@ function renderTxnTrade(tx,date){
   (tx.draft_picks||[]).forEach(pick=>{
     if(sides[pick.owner_id]){
       const orig=rToTeam(pick.roster_id);
-      sides[pick.owner_id].picks.push(`${pick.season} Rd ${pick.round} (via ${orig.name.split(' ')[0]})`);
+      sides[pick.owner_id].picks.push(`${pick.season} Rd ${pick.round} (via ${ridLink(pick.roster_id,orig.name.split(' ')[0])})`);
     }
   });
-  const teamNames=rids.map(rid=>abbrev(rToTeam(rid).name)).join(' ↔ ');
+  const teamNames=rids.map(rid=>ridLink(rid,abbrev(rToTeam(rid).name))).join(' ↔ ');
   const sidesHtml=rids.map(rid=>{
     const team=rToTeam(rid);
     const s=sides[rid];
     const items=[...s.players.map(pl=>`<div class="trade-item" style="color:${posColor(pl.pos)||'inherit'}">${pl.pos?pl.pos+' ':''}${pl.name}</div>`),...s.picks.map(p=>`<div class="trade-item is-pick">${p}</div>`)];
     return`<div class="trade-side">
-      <div class="trade-side-lbl">→ <strong>${team.name}</strong> received</div>
+      <div class="trade-side-lbl">→ <strong>${ridLink(rid,team.name)}</strong> received</div>
       <div class="trade-items">${items.join('')||'<div class="trade-item" style="opacity:.4">Nothing</div>'}</div>
     </div>`;
   }).join('');
@@ -4571,7 +4790,7 @@ function renderDraftPicks(container,picks,year){
     return`<tr>
       <td class="dh-pick">${pick.pick_no}</td>
       <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Rd ${pick.round}</td>
-      <td style="font-size:11px;color:var(--text2)">${team.name}</td>
+      <td style="font-size:11px;color:var(--text2)">${ridLink(pick.roster_id,team.name)}</td>
       <td><span class="chip ${posClass}" style="font-size:11px">${pos?`<span class="cp">${pos} </span>`:''}${name}</span></td>
     </tr>`;
   }).join('');
@@ -4596,7 +4815,7 @@ function renderDraftBoard(picks,year){
   const n=teamOrder.length;
   let html=`<div class="note" style="margin-bottom:12px"><strong>${year} Rookie Draft — Board View</strong></div>
   <div style="overflow-x:auto"><table class="dtbl draft-board-tbl" style="min-width:${n*110}px">
-    <thead><tr>${teamOrder.map(rid=>{const tm=rToTeam(rid);return`<th style="text-align:center;">${abbrev(tm.name)}</th>`;}).join('')}</tr></thead>
+    <thead><tr>${teamOrder.map(rid=>{const tm=rToTeam(rid);return`<th style="text-align:center;">${ridLink(rid,abbrev(tm.name))}</th>`;}).join('')}</tr></thead>
     <tbody>`;
   for(let i=0;i<maxRounds;i++){
     html+=`<tr>`;
@@ -4678,6 +4897,10 @@ function blankOwnerStats(){
     h2hW:0,h2hL:0,medW:0,medL:0,luckyW:0,unluckyL:0,
     weekHigh:0,weekLow:0,movSum:0,movN:0,
     seasonPF:{},seasonGP:{},
+    // Per-owner mirrors of the league-wide record book. A profile needs YOUR
+    // biggest blowout and YOUR closest finish, not just the league extreme.
+    hiWk:null,loWk:null,bestWin:null,worstLoss:null,closest:null,
+    seasonHi:null,seasonLo:null,
     bestStreak:0,bestFrom:null,bestTo:null,
     worstStreak:0,worstFrom:null,worstTo:null,
     curW:0,curWFrom:null,curL:0,curLFrom:null};
@@ -4718,8 +4941,8 @@ function buildAllTimeStats(){
         s.gp++;s.pf+=p;s.scores.push(p);
         s.seasonPF[year]=(s.seasonPF[year]||0)+p;
         s.seasonGP[year]=(s.seasonGP[year]||0)+1;
-        if(s.hi==null||p>s.hi)s.hi=p;
-        if(s.lo==null||p<s.lo)s.lo=p;
+        if(s.hi==null||p>s.hi){s.hi=p;s.hiWk={pts:p,year,week:wk};}
+        if(s.lo==null||p<s.lo){s.lo=p;s.loWk={pts:p,year,week:wk};}
         if(p>median)s.medW++;else s.medL++;
         if(p===topPts)s.weekHigh++;
         if(p===botPts)s.weekLow++;
@@ -4752,6 +4975,19 @@ function buildAllTimeStats(){
             rec.blowout={wUid,lUid,margin,wPts,lPts,year,week:wk};
           if(!rec.nailbiter||margin<rec.nailbiter.margin)
             rec.nailbiter={wUid,lUid,margin,wPts,lPts,year,week:wk};
+          // Same three records, kept per owner. Closest is tracked for BOTH
+          // sides because a one-point loss is every bit as much your closest
+          // finish as a one-point win.
+          const wS=per[wUid],lS=per[lUid];
+          if(!wS.bestWin||margin>wS.bestWin.margin)
+            wS.bestWin={margin,oppUid:lUid,mine:wPts,theirs:lPts,year,week:wk};
+          if(!lS.worstLoss||margin>lS.worstLoss.margin)
+            lS.worstLoss={margin,oppUid:wUid,mine:lPts,theirs:wPts,year,week:wk};
+          [[wUid,wPts,lPts,lUid,true],[lUid,lPts,wPts,wUid,false]].forEach(([cu,mine,theirs,opp,won])=>{
+            const cs=per[cu];
+            if(!cs.closest||margin<cs.closest.margin)
+              cs.closest={margin,oppUid:opp,mine,theirs,won,year,week:wk};
+          });
           // Luck = did the head-to-head result agree with the week's median?
           // Winning while below the median is a gift; losing while above it
           // is the league's oldest grievance.
@@ -4797,6 +5033,8 @@ function buildAllTimeStats(){
       if((s.seasonGP[yr]||0)<REG_WEEKS)return;
       if(!rec.seasonHigh||pf>rec.seasonHigh.pts)rec.seasonHigh={uid,pts:pf,year:Number(yr)};
       if(!rec.seasonLow||pf<rec.seasonLow.pts)rec.seasonLow={uid,pts:pf,year:Number(yr)};
+      if(!s.seasonHi||pf>s.seasonHi.pts)s.seasonHi={pts:pf,year:Number(yr)};
+      if(!s.seasonLo||pf<s.seasonLo.pts)s.seasonLo={pts:pf,year:Number(yr)};
     });
     if(s.bestStreak&&(!rec.winStreak||s.bestStreak>rec.winStreak.n))
       rec.winStreak={uid,n:s.bestStreak,from:s.bestFrom,to:s.bestTo};
@@ -4956,8 +5194,8 @@ function leaderBody(map,dir,fmt,gate){
   const best=rows[0].v;
   const tied=rows.filter(r=>r.v===best);
   const rest=rows.slice(tied.length,tied.length+2)
-    .map((r,i)=>`<span>${tied.length+i+1}. ${t(r.uid).name} · ${fmt(r.v)}</span>`).join('');
-  return{val:fmt(best),name:tied.map(r=>t(r.uid).name).join(' / '),list:rest};
+    .map((r,i)=>`<span>${tied.length+i+1}. ${ownerLink(r.uid)} · ${fmt(r.v)}</span>`).join('');
+  return{val:fmt(best),name:tied.map(r=>ownerLink(r.uid)).join(' / '),list:rest};
 }
 
 const NEEDS_SCORES='<div class="note" style="max-width:540px">Matchup data isn\'t cached yet — open the <strong>Scores</strong> tab once and these fill in automatically.</div>';
@@ -4969,7 +5207,7 @@ function buildRecordBook(){
   const at=buildAllTimeStats();
   if(!at.hasData){el.innerHTML=NEEDS_SCORES;return;}
   const r=at.rec;
-  const nm=uid=>t(uid).name;
+  const nm=uid=>ownerLink(uid);
   const cards=[];
 
   if(r.highWeek)cards.push({icon:'🔥',label:'Highest Single Week',
@@ -5020,88 +5258,363 @@ function buildHallOfFame(){
   const el=document.getElementById('hof-container');
   if(!el)return;
   const at=buildAllTimeStats();
-  const{years,earnings,avgF}=computeCareerLedger();
-  const owners=Object.keys(TEAMS);
-  const played=uid=>at.per[uid]&&at.per[uid].gp>0;
+  const ledger=computeCareerLedger();
   const cards=[];
-  const pick=(cfg,body)=>{if(body)cards.push(Object.assign({},cfg,body));};
-  const pending=(cfg,where)=>cards.push(Object.assign({},cfg,{val:'—',name:'',sub:`Visit the ${where} tab to load`}));
+  const pending=(cfg,where)=>cards.push(Object.assign({},cfg,{val:'\u2014',name:'',sub:`Visit the ${where} tab to load`}));
 
   // Past Champions — wide card, one line per season
-  cards.push({icon:'🏆',label:'Past Champions',wide:true,
-    val:`${years.length} SEASONS`,
+  cards.push({icon:'\ud83c\udfc6',label:'Past Champions',wide:true,
+    val:`${ledger.years.length} SEASONS`,
     list:[2025,2024,2023].map(yr=>
-      `<span>${yr} · ${t(SEASON_HISTORY[yr].placements[0]).name}</span>`).join('')});
+      `<span>${yr} \u00b7 ${ownerLink(SEASON_HISTORY[yr].placements[0])}</span>`).join('')});
 
-  pick({icon:'💰',label:'Highest Career Earnings'},
-    leaderBody(earnings,-1,v=>'$'+v));
+  // Every ranked award now comes from ownerAwardDefs() so this grid and the
+  // manager profiles can never disagree about what an award measures or how it
+  // is formatted. Card order is unchanged from the hand-written version.
+  ownerAwardDefs(at,ledger).forEach(d=>{
+    const body=leaderBody(d.map,d.dir,d.fmt,d.gate);
+    if(body)cards.push(Object.assign({icon:d.icon,label:d.label,tone:d.tone,sub:d.sub},body));
+  });
 
-  if(at.hasData){
-    const winsMap={};owners.forEach(uid=>{winsMap[uid]=at.per[uid].totalW;});
-    pick({icon:'🏅',label:'Most Career Wins',sub:'H2H + median'},
-      leaderBody(winsMap,-1,v=>String(v)));
-    const pctMap={};owners.forEach(uid=>{pctMap[uid]=at.per[uid].winPct;});
-    pick({icon:'⚔️',label:'Best All-Time Win %'},
-      leaderBody(pctMap,-1,v=>(v*100).toFixed(1)+'%',played));
-  }else{
-    pending({icon:'🏅',label:'Most Career Wins'},'Scores');
+  if(!at.hasData){
+    pending({icon:'\ud83c\udfc5',label:'Most Career Wins'},'Scores');
+    pending({icon:'\ud83d\udcca',label:'Best Scoring Average'},'Scores');
   }
-
-  pick({icon:'🎯',label:'Most Consistent Finisher',sub:'lowest average finish'},
-    leaderBody(avgF,1,v=>v.toFixed(1)));
-  pick({icon:'📉',label:'Worst Average Finish',tone:'bad'},
-    leaderBody(avgF,-1,v=>v.toFixed(1)));
-
-  if(at.hasData){
-    const ppg={};owners.forEach(uid=>{ppg[uid]=at.per[uid].ppg;});
-    pick({icon:'📊',label:'Best Scoring Average',sub:'points per game, all-time'},
-      leaderBody(ppg,-1,fmt1,played));
-    pick({icon:'🥶',label:'Worst Scoring Average',tone:'bad',sub:'points per game, all-time'},
-      leaderBody(ppg,1,fmt1,played));
-
-    const hiWk={},loWk={};
-    owners.forEach(uid=>{hiWk[uid]=at.per[uid].weekHigh;loWk[uid]=at.per[uid].weekLow;});
-    pick({icon:'👑',label:'Most Weekly Crowns',sub:'weeks as the league high scorer'},
-      leaderBody(hiWk,-1,v=>String(v),played));
-    pick({icon:'🥴',label:'Most Weekly Duds',tone:'bad',sub:'weeks as the league low scorer'},
-      leaderBody(loWk,-1,v=>String(v),played));
-
-    const lucky={},unlucky={};
-    owners.forEach(uid=>{lucky[uid]=at.per[uid].luckyW;unlucky[uid]=at.per[uid].unluckyL;});
-    pick({icon:'🍀',label:'Luckiest Manager',sub:'wins scored BELOW the weekly median'},
-      leaderBody(lucky,-1,v=>String(v),played));
-    pick({icon:'🪦',label:'Unluckiest Manager',tone:'bad',sub:'losses scored ABOVE the weekly median'},
-      leaderBody(unlucky,-1,v=>String(v),played));
-
-    const sd={};owners.forEach(uid=>{sd[uid]=at.per[uid].stdev;});
-    pick({icon:'🧱',label:'Mr. Reliable',sub:'smallest week-to-week swing'},
-      leaderBody(sd,1,v=>'±'+fmt1(v),played));
-    pick({icon:'🎢',label:'Boom or Bust',sub:'biggest week-to-week swing'},
-      leaderBody(sd,-1,v=>'±'+fmt1(v),played));
-
-    const paMap={};owners.forEach(uid=>{paMap[uid]=at.per[uid].papg;});
-    pick({icon:'🥊',label:'Punching Bag',tone:'bad',sub:'most points allowed per game'},
-      leaderBody(paMap,-1,fmt1,played));
-    const mov={};owners.forEach(uid=>{mov[uid]=at.per[uid].avgMov;});
-    pick({icon:'🔨',label:'Most Lopsided Wins',sub:'average margin of victory'},
-      leaderBody(mov,-1,v=>'+'+fmt1(v),uid=>at.per[uid].movN>0));
-  }else{
-    pending({icon:'📊',label:'Best Scoring Average'},'Scores');
-  }
-
-  const picksMap=computePickCounts();
-  if(picksMap)pick({icon:'📋',label:'Most Draft Picks'},leaderBody(picksMap,-1,v=>String(v)));
-  else pending({icon:'📋',label:'Most Draft Picks'},'Draft');
-  const tradeMap=computeTradeCounts();
-  if(tradeMap)pick({icon:'🔄',label:'Most Trades Completed'},leaderBody(tradeMap,-1,v=>String(v)));
-  else pending({icon:'🔄',label:'Most Trades Completed'},'Transactions');
-  const addMap=computeAddCounts();
-  if(addMap)pick({icon:'🌊',label:'Waiver Wire Warrior',sub:'waiver + free-agent adds'},
-    leaderBody(addMap,-1,v=>String(v)));
-  else pending({icon:'🌊',label:'Waiver Wire Warrior'},'Transactions');
+  if(!computePickCounts())pending({icon:'\ud83d\udccb',label:'Most Draft Picks'},'Draft');
+  if(!computeTradeCounts())pending({icon:'\ud83d\udd04',label:'Most Trades Completed'},'Transactions');
+  if(!computeAddCounts())pending({icon:'\ud83c\udf0a',label:'Waiver Wire Warrior'},'Transactions');
 
   el.innerHTML=`<div class="hof-grid">${cards.map(hofCard).join('')}</div>`;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MANAGER PROFILES
+   One definition of every ranked award, consumed by BOTH the Hall of Fame
+   grid and the per-manager profile. Every number traces back to
+   buildAllTimeStats(), which is the same engine the Careers table, the record
+   book and the season standings read from — so a profile physically cannot
+   show a different figure than the page you clicked the name on.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+// dir: -1 = highest value wins the award, 1 = lowest wins. Matches leaderBody.
+function ownerAwardDefs(at,ledger){
+  const owners=Object.keys(TEAMS);
+  const played=uid=>at.per[uid]&&at.per[uid].gp>0;
+  const mapOf=f=>{const m={};owners.forEach(uid=>{m[uid]=f(at.per[uid]);});return m;};
+  const defs=[];
+
+  defs.push({key:'earnings',icon:'\ud83d\udcb0',label:'Highest Career Earnings',dir:-1,
+    map:ledger.earnings,fmt:v=>'$'+v});
+
+  if(at.hasData){
+    defs.push({key:'wins',icon:'\ud83c\udfc5',label:'Most Career Wins',sub:'H2H + median',dir:-1,
+      map:mapOf(s=>s.totalW),fmt:v=>String(v)});
+    defs.push({key:'winpct',icon:'\u2694\ufe0f',label:'Best All-Time Win %',dir:-1,
+      map:mapOf(s=>s.winPct),fmt:v=>(v*100).toFixed(1)+'%',gate:played});
+  }
+
+  defs.push({key:'consistent',icon:'\ud83c\udfaf',label:'Most Consistent Finisher',sub:'lowest average finish',dir:1,
+    map:ledger.avgF,fmt:v=>v.toFixed(1)});
+  defs.push({key:'worstfinish',icon:'\ud83d\udcc9',label:'Worst Average Finish',tone:'bad',dir:-1,
+    map:ledger.avgF,fmt:v=>v.toFixed(1)});
+
+  if(at.hasData){
+    defs.push({key:'ppg',icon:'\ud83d\udcca',label:'Best Scoring Average',sub:'points per game, all-time',dir:-1,
+      map:mapOf(s=>s.ppg),fmt:fmt1,gate:played});
+    defs.push({key:'ppgworst',icon:'\ud83e\udd76',label:'Worst Scoring Average',tone:'bad',sub:'points per game, all-time',dir:1,
+      map:mapOf(s=>s.ppg),fmt:fmt1,gate:played});
+    defs.push({key:'crowns',icon:'\ud83d\udc51',label:'Most Weekly Crowns',sub:'weeks as the league high scorer',dir:-1,
+      map:mapOf(s=>s.weekHigh),fmt:v=>String(v),gate:played});
+    defs.push({key:'duds',icon:'\ud83e\udd74',label:'Most Weekly Duds',tone:'bad',sub:'weeks as the league low scorer',dir:-1,
+      map:mapOf(s=>s.weekLow),fmt:v=>String(v),gate:played});
+    defs.push({key:'lucky',icon:'\ud83c\udf40',label:'Luckiest Manager',sub:'wins scored BELOW the weekly median',dir:-1,
+      map:mapOf(s=>s.luckyW),fmt:v=>String(v),gate:played});
+    defs.push({key:'unlucky',icon:'\ud83e\udea6',label:'Unluckiest Manager',tone:'bad',sub:'losses scored ABOVE the weekly median',dir:-1,
+      map:mapOf(s=>s.unluckyL),fmt:v=>String(v),gate:played});
+    defs.push({key:'reliable',icon:'\ud83e\uddf1',label:'Mr. Reliable',sub:'smallest week-to-week swing',dir:1,
+      map:mapOf(s=>s.stdev),fmt:v=>'\u00b1'+fmt1(v),gate:played});
+    defs.push({key:'boom',icon:'\ud83c\udfa2',label:'Boom or Bust',sub:'biggest week-to-week swing',dir:-1,
+      map:mapOf(s=>s.stdev),fmt:v=>'\u00b1'+fmt1(v),gate:played});
+    defs.push({key:'punchbag',icon:'\ud83e\udd4a',label:'Punching Bag',tone:'bad',sub:'most points allowed per game',dir:-1,
+      map:mapOf(s=>s.papg),fmt:fmt1,gate:played});
+    defs.push({key:'lopsided',icon:'\ud83d\udd28',label:'Most Lopsided Wins',sub:'average margin of victory',dir:-1,
+      map:mapOf(s=>s.avgMov),fmt:v=>'+'+fmt1(v),gate:uid=>at.per[uid].movN>0});
+  }
+
+  // Transaction-derived awards return null until their tab has been visited;
+  // omitting the def entirely is what makes buildHallOfFame fall back to its
+  // "Visit the X tab" placeholder instead of ranking half the league.
+  const picks=computePickCounts();
+  if(picks)defs.push({key:'picks',icon:'\ud83d\udccb',label:'Most Draft Picks',dir:-1,map:picks,fmt:v=>String(v)});
+  const trades=computeTradeCounts();
+  if(trades)defs.push({key:'trades',icon:'\ud83d\udd04',label:'Most Trades Completed',dir:-1,map:trades,fmt:v=>String(v)});
+  const adds=computeAddCounts();
+  if(adds)defs.push({key:'adds',icon:'\ud83c\udf0a',label:'Waiver Wire Warrior',sub:'waiver + free-agent adds',dir:-1,map:adds,fmt:v=>String(v)});
+
+  return defs;
+}
+
+// Where one manager sits in an award's field. Ties SHARE a rank (both read
+// "2nd of 12"), which is the same convention leaderBody uses when it prints
+// two names on one card.
+function ownerRank(map,uid,dir,gate){
+  if(!map||map[uid]==null||(gate&&!gate(uid)))return null;
+  const rows=Object.keys(TEAMS)
+    .filter(u=>map[u]!=null&&(!gate||gate(u)))
+    .map(u=>({u,v:map[u]}));
+  if(!rows.length)return null;
+  rows.sort((a,b)=>dir===-1?b.v-a.v:a.v-b.v);
+  const mine=map[uid];
+  return{rank:rows.findIndex(r=>r.v===mine)+1,of:rows.length,val:mine};
+}
+
+// Team names this franchise has carried, collapsed so a name held for three
+// straight years reads as one row spanning them rather than three rows.
+function ownerTeamNames(uid){
+  const hist=TEAM_NAME_HISTORY[uid];
+  if(!hist||!hist.length)return[];
+  const out=[];
+  hist.forEach(h=>{
+    const last=out[out.length-1];
+    // Merge only when the name AND the person holding it both carry over.
+    // Andrew inherited "Joshin Around" from Chris Jacobs for the 2026
+    // preseason, so merging on name alone would file a year of Andrew's
+    // tenure under Chris's label.
+    if(last&&last.name===h.name&&last.who===h.who){last.to=h.yr;last.current=last.current||h.current;}
+    else out.push({name:h.name,from:h.yr,to:h.yr,current:!!h.current,who:h.who});
+  });
+  return out;
+}
+
+// Everything one manager's profile needs. Pure data — no DOM — so it can be
+// checked from the console.
+function buildOwnerProfile(uid){
+  const td=t(uid);
+  const at=buildAllTimeStats();
+  const ledger=computeCareerLedger();
+  const s=(at.per&&at.per[uid])||blankOwnerStats();
+  const nm=u=>ownerLink(u);
+  const champYears=[2023,2024,2025].filter(yr=>SEASON_HISTORY[yr].placements[0]===uid);
+  const berths=computePlayoffAppearances()[uid]||0;
+
+  // Personal versions of the All-Time Record Book cards.
+  const records=[];
+  if(at.hasData&&s.gp){
+    if(s.hiWk)records.push({icon:'\ud83d\udd25',label:'Highest Single Week',
+      val:fmt2(s.hiWk.pts),sub:whenLbl(s.hiWk)});
+    if(s.loWk)records.push({icon:'\ud83d\udc80',label:'Lowest Single Week',tone:'bad',
+      val:fmt2(s.loWk.pts),sub:whenLbl(s.loWk)});
+    if(s.bestWin)records.push({icon:'\ud83d\udca5',label:'Biggest Blowout',
+      val:'+'+fmt2(s.bestWin.margin),name:'over '+nm(s.bestWin.oppUid),
+      sub:`${fmt2(s.bestWin.mine)} \u2013 ${fmt2(s.bestWin.theirs)} \u00b7 ${whenLbl(s.bestWin)}`});
+    if(s.worstLoss)records.push({icon:'\ud83e\uddef',label:'Worst Defeat',tone:'bad',
+      val:'\u2212'+fmt2(s.worstLoss.margin),name:'to '+nm(s.worstLoss.oppUid),
+      sub:`${fmt2(s.worstLoss.mine)} \u2013 ${fmt2(s.worstLoss.theirs)} \u00b7 ${whenLbl(s.worstLoss)}`});
+    if(s.closest)records.push({icon:'\ud83d\ude30',label:'Closest Finish',
+      val:(s.closest.won?'+':'\u2212')+fmt2(s.closest.margin),
+      name:(s.closest.won?'over ':'to ')+nm(s.closest.oppUid),
+      sub:`${fmt2(s.closest.mine)} \u2013 ${fmt2(s.closest.theirs)} \u00b7 ${whenLbl(s.closest)}`});
+    if(s.bestStreak)records.push({icon:'\ud83d\udcc8',label:'Longest Win Streak',
+      val:s.bestStreak+'W',sub:streakSpan({from:s.bestFrom,to:s.bestTo})});
+    if(s.worstStreak)records.push({icon:'\ud83d\udcc9',label:'Longest Losing Streak',tone:'bad',
+      val:s.worstStreak+'L',sub:streakSpan({from:s.worstFrom,to:s.worstTo})});
+    if(s.seasonHi)records.push({icon:'\ud83d\uddd3\ufe0f',label:'Most Points, One Season',
+      val:fmt1(s.seasonHi.pts),sub:s.seasonHi.year+' \u00b7 weeks 1\u201314'});
+    if(s.seasonLo)records.push({icon:'\ud83d\udd73\ufe0f',label:'Fewest Points, One Season',tone:'bad',
+      val:fmt1(s.seasonLo.pts),sub:s.seasonLo.year+' \u00b7 weeks 1\u201314'});
+  }
+  records.push({icon:'\ud83c\udfc6',label:'Championships',val:String(champYears.length),
+    sub:champYears.length?champYears.join(' \u00b7 '):'none yet'});
+  records.push({icon:'\ud83c\udf9f\ufe0f',label:'Playoff Berths',val:berths+'/3',sub:'2023\u20132025'});
+
+  // Where this manager places in every Hall of Fame award.
+  const awards=[];
+  ownerAwardDefs(at,ledger).forEach(d=>{
+    const r=ownerRank(d.map,uid,d.dir,d.gate);
+    if(r)awards.push({key:d.key,icon:d.icon,label:d.label,tone:d.tone,sub:d.sub,
+      val:d.fmt(r.val),rank:r.rank,of:r.of,won:r.rank===1});
+  });
+
+  const seasons=CAREER_YEARS.map(yr=>{
+    const done=!!SEASON_HISTORY[yr];
+    const place=done?(ledger.place[uid]||{})[yr]:null;
+    const pay=done?(SEASON_HISTORY[yr].payouts[uid]||0):0;
+    const names=(TEAM_NAME_HISTORY[uid]||[]).filter(h=>h.yr===yr).map(h=>h.name);
+    return{year:yr,place,pay,live:!done,
+      team:names.length?names[names.length-1]:null,
+      alias:(TEAM_NAME_HISTORY[uid]||[]).find(h=>h.yr===yr&&h.who)||null};
+  });
+
+  return{uid,td,name:td.name,team:td.team,photo:td.photo,succeeded:td.succeeded||null,
+    hasData:at.hasData&&s.gp>0,
+    record:{w:s.totalW||0,l:s.totalL||0,winPct:s.winPct||0,
+      h2hW:s.h2hW,h2hL:s.h2hL,medW:s.medW,medL:s.medL,
+      gp:s.gp,ppg:s.ppg,papg:s.papg,pf:s.pf,pa:s.pa},
+    earnings:ledger.earnings[uid]||0,avgFinish:ledger.avgF[uid],
+    champs:champYears,berths,records,awards,seasons,names:ownerTeamNames(uid)};
+}
+
+/* ── Rendering ─────────────────────────────────────────────────────────────
+   ownerLink() is the ONLY way a manager's name should reach the page. It is
+   deliberately a <button> so it is keyboard-reachable, with the styling
+   stripped back to inherit so it can sit inside a table cell, a card header or
+   a sentence without disturbing the layout around it. */
+function ownerLink(uid,text,cls){
+  const label=text==null?(TEAMS[uid]?t(uid).name:String(uid)):String(text);
+  if(!uid||!TEAMS[uid])return esc(label);
+  return`<button type="button" class="own-link${cls?' '+cls:''}" `
+    +`onclick="openProfile('${uid}',event)" title="View ${esc(t(uid).name)}'s profile">`
+    +`${esc(label)}${TEAMS[uid].succeeded?'<span class="own-star">*</span>':''}</button>`;
+}
+
+// Most render sites carry a roster_id rather than a uid, so this saves every
+// one of them repeating the RM lookup.
+function ridLink(rid,text){return ownerLink(RM[rid]||RM[String(rid)],text);}
+
+function profileStarNote(p){
+  if(!p.succeeded)return'';
+  return`<div class="pf-note"><span class="own-star">*</span> `
+    +`${esc(p.name)} took this team over from <strong>${esc(p.succeeded.predecessor)}</strong> in `
+    +`${p.succeeded.from}. The ${esc(p.succeeded.years)} seasons below are `
+    +`${esc(p.succeeded.predecessor)}'s results for the franchise.</div>`;
+}
+
+// Small card for the grid. Deliberately shows only the headline numbers —
+// the detail arrives on click.
+function profileCardHtml(p){
+  const rec=p.hasData?`${p.record.w}\u2013${p.record.l}`:'\u2014';
+  const wins=p.awards.filter(a=>a.won).length;
+  return`<button type="button" class="pf-card${p.td.you?' is-you':''}" onclick="openProfile('${p.uid}',event)">
+    <div class="pf-card-photo">${p.photo
+      ?`<img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy">`
+      :`<span class="pf-initials">${esc(p.name.split(' ').map(w=>w[0]).join(''))}</span>`}
+      ${p.champs.length?`<span class="pf-ring" title="${p.champs.length} title(s)">\ud83c\udfc6</span>`:''}
+    </div>
+    <div class="pf-card-body">
+      <div class="pf-card-name">${esc(p.name)}${p.succeeded?'<span class="own-star">*</span>':''}</div>
+      <div class="pf-card-team">${esc(p.team)}</div>
+      <div class="pf-card-stats">
+        <span class="pf-chip"><b>${rec}</b></span>
+        ${wins?`<span class="pf-chip pf-chip-gold">${wins} award${wins>1?'s':''}</span>`:''}
+      </div>
+    </div>
+    <div class="pf-card-more">View profile \u2192</div>
+  </button>`;
+}
+
+function buildProfileGrid(){
+  const el=document.getElementById('profile-grid');
+  if(!el)return;
+  const uids=Object.keys(TEAMS).sort((a,b)=>t(a).name.localeCompare(t(b).name));
+  el.innerHTML=`<div class="pf-grid">${uids.map(u=>profileCardHtml(buildOwnerProfile(u))).join('')}</div>`;
+}
+
+function profileModalHtml(p){
+  const r=p.record;
+  const recLine=p.hasData?`${r.w}\u2013${r.l}`:'\u2014';
+  const seasonRows=p.seasons.map(sn=>{
+    const place=sn.live?'<span class="pf-muted">in progress</span>'
+      :(sn.place?ordinal(sn.place):'\u2014');
+    return`<tr><td>${sn.year}</td><td>${sn.team?esc(sn.team):'\u2014'}${
+      sn.alias?` <span class="pf-muted">(${esc(sn.alias.who)})</span>`:''}</td>`
+      +`<td>${place}</td><td>${sn.pay?'$'+sn.pay:'\u2014'}</td></tr>`;
+  }).join('');
+  const nameRows=p.names.map(n=>{
+    const span=n.from===n.to?String(n.from):`${n.from}\u2013${n.to}`;
+    return`<li><span class="pf-nm-yr">${span}</span> <span class="pf-nm-nm">${esc(n.name)}</span>`
+      +`${n.current?'<span class="pf-nm-cur">current</span>':''}`
+      +`${n.who?`<span class="pf-muted"> \u00b7 ${esc(n.who)}</span>`:''}</li>`;
+  }).join('');
+
+  return`<button type="button" class="pf-close" onclick="closeProfile()" aria-label="Close">\u2715</button>
+  <div class="pf-head">
+    <div class="pf-head-photo">${p.photo
+      ?`<img src="${esc(p.photo)}" alt="${esc(p.name)}">`
+      :`<span class="pf-initials">${esc(p.name.split(' ').map(w=>w[0]).join(''))}</span>`}</div>
+    <div class="pf-head-txt">
+      <div class="pf-name" id="pf-modal-name">${esc(p.name)}${p.succeeded?'<span class="own-star">*</span>':''}</div>
+      <div class="pf-team">${esc(p.team)}</div>
+      <div class="pf-headline">
+        <span class="pf-hl"><b>${recLine}</b><i>all-time</i></span>
+        ${p.hasData?`<span class="pf-hl"><b>${(r.winPct*100).toFixed(1)}%</b><i>win rate</i></span>`:''}
+        ${p.hasData?`<span class="pf-hl"><b>${fmt1(r.ppg)}</b><i>pts / game</i></span>`:''}
+        <span class="pf-hl"><b>$${p.earnings}</b><i>earnings</i></span>
+        <span class="pf-hl"><b>${p.champs.length}</b><i>titles</i></span>
+        <span class="pf-hl"><b>${p.berths}/3</b><i>playoffs</i></span>
+      </div>
+    </div>
+  </div>
+  ${profileStarNote(p)}
+  ${p.hasData?`<div class="pf-sec">Record breakdown</div>
+  <div class="pf-split">
+    <span class="pf-chip"><b>${r.h2hW}\u2013${r.h2hL}</b> head-to-head</span>
+    <span class="pf-chip"><b>${r.medW}\u2013${r.medL}</b> vs median</span>
+    <span class="pf-chip"><b>${fmt1(r.papg)}</b> allowed / game</span>
+    <span class="pf-chip"><b>${r.gp}</b> games</span>
+  </div>`:`<div class="pf-note">Matchup data isn't cached yet \u2014 open the <strong>Scores</strong> tab once and this fills in.</div>`}
+
+  <div class="pf-sec">Career record book</div>
+  <div class="hof-grid pf-recs">${p.records.map(hofCard).join('')}</div>
+
+  ${p.awards.length?`<div class="pf-sec">Hall of Fame &amp; Shame standing</div>
+  <div class="pf-awards">${p.awards.map(a=>
+    `<div class="pf-award${a.tone==='bad'?' shame':''}${a.won?' won':''}">
+      <span class="pf-aw-icon">${a.icon}</span>
+      <span class="pf-aw-lbl">${esc(a.label)}</span>
+      <span class="pf-aw-val">${esc(a.val)}</span>
+      <span class="pf-aw-rank">${a.won?'\ud83e\udd47 1st':ordinal(a.rank)}<i>of ${a.of}</i></span>
+    </div>`).join('')}</div>`:''}
+
+  <div class="pf-sec">Season by season</div>
+  <div class="pf-tblwrap"><table class="dtbl pf-tbl">
+    <thead><tr><th>Year</th><th>Team name</th><th>Finish</th><th>Won</th></tr></thead>
+    <tbody>${seasonRows}</tbody>
+  </table></div>
+
+  <div class="pf-sec">Team names used</div>
+  <ul class="pf-names">${nameRows}</ul>`;
+}
+
+function ordinal(n){
+  if(n==null)return'\u2014';
+  const v=n%100;
+  if(v>=11&&v<=13)return n+'th';
+  return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th');
+}
+
+// The profile opens as an overlay rather than a route, so clicking a name in a
+// Week 8 matchup doesn't throw away where you were reading.
+let _profileReturnFocus=null;
+function openProfile(uid,ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
+  if(!TEAMS[uid])return;
+  const ov=document.getElementById('pf-overlay');
+  const md=document.getElementById('pf-modal');
+  if(!ov||!md)return;
+  _profileReturnFocus=(ev&&ev.currentTarget)||null;
+  md.innerHTML=profileModalHtml(buildOwnerProfile(uid));
+  md.scrollTop=0;
+  ov.classList.add('open');
+  document.body.classList.add('pf-locked');
+  const c=md.querySelector('.pf-close');
+  if(c)c.focus();
+}
+function closeProfile(ev){
+  // Clicking the backdrop closes; clicking inside the card must not.
+  if(ev&&ev.target&&ev.target.id!=='pf-overlay')return;
+  const ov=document.getElementById('pf-overlay');
+  if(!ov)return;
+  ov.classList.remove('open');
+  document.body.classList.remove('pf-locked');
+  if(_profileReturnFocus&&document.contains(_profileReturnFocus))_profileReturnFocus.focus();
+  _profileReturnFocus=null;
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    const ov=document.getElementById('pf-overlay');
+    if(ov&&ov.classList.contains('open'))closeProfile();
+  }
+});
 
 // Seasons that get their own Careers sub-tab, newest first. Must match the
 // buttons and the #careers-view-<year> divs in the panel markup.
@@ -5113,13 +5626,16 @@ const CAREER_YEARS=[2026,2025,2024,2023];
 // season in CAREER_YEARS. Year views are lazy-built on first switch.
 function setCareersView(view,el){
   document.querySelectorAll('.careers-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  const pv=document.getElementById('careers-view-profiles');
+  if(pv)pv.style.display=view==='profiles'?'':'none';
   document.getElementById('careers-view-records').style.display=view==='records'?'':'none';
   document.getElementById('careers-view-hof').style.display=view==='hof'?'':'none';
   CAREER_YEARS.forEach(y=>{
     const d=document.getElementById('careers-view-'+y);
     if(d)d.style.display=view===String(y)?'':'none';
   });
-  if(view==='hof')buildHallOfFame();
+  if(view==='profiles')buildProfileGrid();
+  else if(view==='hof')buildHallOfFame();
   else if(view!=='records')buildSeasonYear(Number(view));
 }
 
@@ -5161,7 +5677,7 @@ function renderStandingsTbody(year,rowData){
     const plCls=r.pending?'p-mid':r.place===1?'p1':r.place===2?'p2':r.place===3?'p3':r.place>=10?'p-low':'p-mid';
     return`<tr>
       <td class="${plCls}" style="font-family:'DM Mono',monospace;text-align:center;white-space:nowrap">${r.pending?'—':placeLabel(r.place)}</td>
-      <td style="font-weight:500;color:var(--text)">${r.name}</td>
+      <td style="font-weight:500;color:var(--text)">${ownerLink(r.uid,r.name)}</td>
       <td style="color:var(--muted);font-size:10px">${r.team}</td>
       <td style="font-family:'DM Mono',monospace;text-align:center;font-weight:600">${r.totalW}-${r.totalL}</td>
       <td style="font-family:'DM Mono',monospace;text-align:center">${r.h2hW}-${r.h2hL}</td>
@@ -5415,7 +5931,7 @@ function renderCareerTbody(){
     return dir*((av??999)-(bv??999));
   });
   return sorted.map(r=>`<tr>
-    <td style="font-weight:500;color:var(--text)">${r.name}</td>
+    <td style="font-weight:500;color:var(--text)">${ownerLink(r.uid,r.name)}</td>
     <td style="color:var(--muted);font-size:10px">${r.team}</td>
     <td class="${r.earn>0?'earn':'earn-zero'}">${r.earn>0?'$'+r.earn:'$0'}</td>
     ${careerPCell(r.p2025)}${careerPCell(r.p2024)}${careerPCell(r.p2023)}
@@ -5815,7 +6331,7 @@ async function build2026Stats(c,pos){
         ?`<td>${fmt(r.stats.rec)}</td><td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>${showTEPrem?`<td style="color:var(--pos-te)">${tePrem||'—'}</td>`:''}`
         :`<td>—</td><td>—</td><td>—</td>${showTEPrem?'<td>—</td>':''}`):'';
       const tdTeam=isAllView?`<td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>`:'';
-      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" data-rid="${r.rid}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
+      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" data-rid="${r.rid}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${ridLink(r.rid,abbrev(r.owner))}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
     };
     const weekLabel=currentStatsWeek==='season'?'season':`week ${currentStatsWeek}`;
     const sortLabel=is2026Season?'total (actual+proj) pts':'est. pts';
@@ -5897,7 +6413,7 @@ async function buildPlayerStats(year,posFilter){
         ?`<td>${fmt(r.stats.rec)}</td><td style="color:var(--text)">${fmt(r.stats.rec_yd)}</td><td style="color:var(--accent)">${fmt(r.stats.rec_td)}</td>${showTEPrem?`<td style="color:var(--pos-te)">${tePrem||'—'}</td>`:''}`
         :`<td>—</td><td>—</td><td>—</td>${showTEPrem?'<td>—</td>':''}`):'';
       const tdTeam=isAllView?`<td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:10px">${r.nflTeam}</td>`:'';
-      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" data-rid="${r.rid}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${abbrev(r.owner)}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
+      return`<tr id="stats-player-${r.pid}" data-pid="${r.pid}" data-name="${r.name.toLowerCase()}" data-rid="${r.rid}" onclick="toggleStatsComparison('${r.pid}','${r.name.replace(/'/g,"\\'")}',event)" style="cursor:pointer"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px">${i+1}</td><td><span class="chip pos-${p.toLowerCase()}" style="cursor:default"><span class="cp">${p}</span>${r.name}${rk(r)}</span></td>${tdTeam}<td style="color:var(--text2)">${ridLink(r.rid,abbrev(r.owner))}</td><td>${fmt(r.stats.gp)}</td>${tdPass}${tdRush}${tdRec}${ptsCell(r)}</tr>`;
     };
     const hasRookies=filtered.some(r=>isRookieInYear(r.pid,currentStatsYear));
     c.innerHTML=`
@@ -6058,6 +6574,10 @@ function showTab(tab,el){
   history.replaceState(null,'','#'+tab);
   if(tab==='scores'&&!document.getElementById('scores-container').dataset.loaded)buildScores();
   if(tab==='transactions'&&!document.getElementById('txn-container').dataset.loaded){document.getElementById('txn-container').dataset.loaded='1';buildTransactions('all',2025);}
+  // Managers is the default Careers view, so it has to build on the tab's first
+  // paint too — not only when its sub-tab button is clicked. Landing on
+  // #careers directly otherwise shows an empty grid.
+  if(tab==='careers')buildProfileGrid();
   if(tab==='careers'&&!document.getElementById('careers-container').dataset.loaded)buildCareers();
   if(tab==='stats'&&!document.getElementById('stats-container').dataset.loaded)buildPlayerStats(currentStatsYear,currentStatsPos);
   if(tab==='rivalries')buildRivalries();
@@ -6632,13 +7152,13 @@ function evaluateTrade(){
   el.innerHTML=`<div class="trade-result-box">
     <div class="trade-result-sides">
       <div class="trade-result-side">
-        <div class="trade-result-side-lbl">You Give · ${t(giveUid).name}</div>
+        <div class="trade-result-side-lbl">You Give · ${ownerLink(giveUid)}</div>
         <div class="trade-result-side-val" style="color:${delta<0?'var(--accent)':'var(--text2)'};">${giveVal.toLocaleString()}</div>
         <div class="trade-result-side-items">${giveItems}</div>
       </div>
       <div class="trade-result-vs">VS</div>
       <div class="trade-result-side">
-        <div class="trade-result-side-lbl">You Receive · ${t(receiveUid).name}</div>
+        <div class="trade-result-side-lbl">You Receive · ${ownerLink(receiveUid)}</div>
         <div class="trade-result-side-val" style="color:${delta>0?'var(--accent)':'var(--text2)'};">${recVal.toLocaleString()}</div>
         <div class="trade-result-side-items">${recItems}</div>
       </div>
@@ -7449,7 +7969,7 @@ function buildGradeRowHtml(period,teamData,view,rowNum){
       <span class="gr-rank">${rowNum}</span>
       <div class="gr-names">
         <div class="gr-team">${info.team}</div>
-        <div class="gr-owner">${info.name}</div>
+        <div class="gr-owner">${ownerLink(teamData.uid,info.name)}</div>
       </div>
       <span class="gr-grade ${gradeChipClass(view.grade)}">${view.grade}</span>
       <span class="gr-caret">&#9660;</span>
@@ -7566,7 +8086,7 @@ function renderGradeAdminCard(teamData,snapshot,year){
     :'';
   return `<div class="r-card" id="grade-card-${teamData.uid}">
     <div class="rch">
-      <div><div class="rch-team">${info.team}</div><div class="rch-own">${info.name}</div></div>
+      <div><div class="rch-team">${info.team}</div><div class="rch-own">${ownerLink(teamData.uid,info.name)}</div></div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px;align-items:center;">
         <span class="bdg bdg-m" style="font-size:14px;">${gradeLabel}</span>
       </div>
@@ -7736,5 +8256,10 @@ routeFromHash();
   }catch(e){el.textContent=new Date().getFullYear();}
 })();
 </script>
+<!-- Manager profile overlay. Lives outside every panel so it can be opened
+     from any tab without disturbing that tab's scroll position. -->
+<div class="pf-overlay" id="pf-overlay" onclick="closeProfile(event)">
+  <div class="pf-modal" id="pf-modal" role="dialog" aria-modal="true" aria-labelledby="pf-modal-name"></div>
+</div>
 </body>
 </html>

@@ -13,3 +13,8 @@ __pycache__/
 # build_season_facts.py) — a trimmed copy of Sleeper's ~5 MB player dump.
 # Regenerated on demand; never a site asset.
 Sleeper FF/The Other League/scripts/.cache/
+
+# Manager-photo working folder: 121 MB of full-res source photos, the input/
+# output copies and the YuNet face-detection model. Only the web-sized JPEGs in
+# `Sleeper FF/The Other League/img/profiles/` are site assets and get committed.
+Sleeper FF/The Other League/League Pics/
