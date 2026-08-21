@@ -413,7 +413,7 @@ One WRRB_FLEX converts to WR/RB/TE FLEX. This meaningfully increases TE value on
 **Championship:** jblack511 165.72 def. NickBova 126.01
 
 **2025 Payouts (set by cbova1222 as 2024 champion):**
-- League Champion 1st — jblack511: $455
+- League Champion 1st — jblack511: $480 (incl. $25 held back from the pot for the trophy)
 - Runner-Up 2nd — NickBova: $205
 - Regular Season Points Leader — NickBova: $115
 - Best Regular Season Record — djbogardus72: $55
@@ -431,7 +431,7 @@ One WRRB_FLEX converts to WR/RB/TE FLEX. This meaningfully increases TE value on
 **2025 Total Payouts:**
 | Owner | Total |
 |-------|-------|
-| jblack511 | $490 |
+| jblack511 | $515 |
 | NickBova | $390 |
 | jhayes3134 | $70 |
 | djbogardus72 | $65 |
