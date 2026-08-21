@@ -123,12 +123,13 @@ Contains:
 **Removed from home panel:** Consolation winner card (Nick Merkel), Quick-nav grid (replaced by icon nav)
 
 ### Careers Panel (`panel-careers`)
-Contains:
-1. Section title "LEAGUE LEADERS" + subtitle
-2. `.career-status-bar` — the perpetual stats bar (7 `.s-pill` items) — **lives here, not globally**
-3. `#careers-container` — career stats table + per-season standings tables (built by `buildCareers()`)
+Restructured 2026-08-20 (Phase 1) into **two sub-tabs**, using the same self-contained-divs pattern as `setRosterView`:
+1. Section title "LEAGUE HISTORY" + subtitle
+2. `.careers-view-toggle` — two `.yr-btn` buttons, switched by `setCareersView('records'|'hof', el)`
+3. `#careers-view-records` → `#careers-container`: career table, then the **All-Time Record Book** (`#record-book`), then per-season standings. Built by `buildCareers()`.
+4. `#careers-view-hof` → `#hof-container`: the **Hall of Fame & Shame** award grid. Lazy-built by `buildHallOfFame()` on first switch.
 
-The perpetual stats bar was formerly a global `.status` div shown above all panels. It was moved inside this panel so it only appears on the Careers tab.
+**The 7-pill `.career-status-bar` is gone.** Those stats were not deleted — they are now the first cards of the Hall of Fame grid, so a superlative lives in exactly one place. The `.s-pill` class is still used by other panels; only this bar's markup and its `stat-*` IDs were removed.
 
 ---
 
@@ -148,14 +149,8 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 - `cache-status-txt` — cache status message — inside hidden `.cache-bar`
 - `refresh-btn` — original refresh button — inside hidden `.cache-bar`; `refreshData()` still uses it programmatically
 
-### Perpetual Stats (inside `panel-careers`)
-- `stat-champs` — past champions list
-- `stat-earn-val`, `stat-earn-sub` — highest career earnings
-- `stat-wins-val`, `stat-wins-sub` — most career wins
-- `stat-cons-val`, `stat-cons-sub` — most consistent finisher
-- `stat-picks-val`, `stat-picks-sub` — most draft picks
-- `stat-trades-val`, `stat-trades-sub` — most trades completed
-- `stat-worst-val`, `stat-worst-sub` — worst average finish
+### Perpetual Stats (inside `panel-careers`) — **REMOVED 2026-08-20**
+The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-*` / `stat-trades-*` / `stat-worst-*` IDs no longer exist. Every one of those stats survives as a card in the Hall of Fame & Shame grid — look for its label in `buildHallOfFame()`, not for an ID.
 
 ### Scores Panel
 - `scores-container` — main scores area
@@ -190,7 +185,11 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 - `txn-team-chips` — multi-select team filter chip bar (replaced the old `txn-team-filter` dropdown)
 
 ### Careers Panel
-- `careers-container` — career stats table + season standings
+- `careers-view-records` / `careers-view-hof` — the two sub-tab views, toggled by `setCareersView('records'|'hof', el)`
+- `cview-records-btn` / `cview-hof-btn` — the sub-tab buttons
+- `careers-container` — career table + record book + season standings (Records view)
+- `record-book` — All-Time Record Book card grid, rendered by `buildRecordBook()`
+- `hof-container` — Hall of Fame & Shame card grid, rendered by `buildHallOfFame()`
 
 ### Trade Evaluator Panel (`panel-trade`)
 - `ktc-badge` — green = live/cached KTC values; yellow = snapshot fallback
@@ -235,11 +234,26 @@ The perpetual stats bar was formerly a global `.status` div shown above all pane
 - `buildH2HMap()` — all-time H2H record map from all cached seasons; returns `h2h[ridA][ridB] = {w, l}`
 - `buildH2HForYear(year)` — same but single season
 
-### Stats Banner (Perpetual Stats)
-- `buildLeaderStats()` — computes and renders all 7 perpetual stats from `SEASON_HISTORY` + cached pick/transaction data. Called at boot and after each background data fetch. Targets IDs inside `panel-careers`.
+### All-Time Stats Engine (Phase 1 — built 2026-08-20)
+`buildLeaderStats()` **no longer exists** — it was renamed `buildHallOfFame()`, and the recomputation behind it moved into a shared engine. It used to rebuild the entire H2H and median maps from scratch on every one of its ~6 call sites.
+
+- `buildAllTimeStats()` — **the entry point.** One walk over every cached `tol_matchups_{year}` (2023–2026, regular-season weeks 1–14 only) returning `{hasData, games, seasons, per, rec}`. `per[uid]` carries gp / pf / pa / ppg / papg / scores / stdev / h2hW-L / medW-L / winPct / luckyW / unluckyL / weekHigh / weekLow / avgMov / seasonPF / streaks; `rec` carries the single-game and single-season extremes. Memoised in `_allTimeCache`.
+- `invalidateAllTimeStats()` — **must be called by anything that writes `tol_matchups_*`.** `fetchAllMatchups()` already does. Without it the cards freeze at whatever was cached on the first pass, because the boot prefetch lands 2023/2024/2025 one season at a time.
+- `weekWasPlayed(weekData)` — **the guard that fixed a real, live bug.** An unplayed Sleeper week returns 12 rows with a real `matchup_id` and `points: 0.0` (verified against the live 2026 payload — all 17 weeks are paired months before kickoff). The median math evaluated `0 > 0` as false for all twelve teams and booked everyone a median **loss** for every unplayed week, so merely opening the Scores tab in the preseason silently added 14 phantom losses per owner per cached future season. Confirmed by loading the pre-change file side by side: Matt Bova's median record read 10-46 (56 games) instead of 10-32 (42), and his career Total W-L read 25-73 instead of 25-59. The guard now sits in `buildAllTimeStats`, `buildMedianMap`, `buildH2HMap`, `buildH2HForYear` and `buildSeasonStandingsData` — **don't drop it from any of them.**
+- **Two week-bound bugs found in the 2026-08-20 regular-season audit** (the Phase 1 code was already correct; these were pre-existing):
+  1. `buildH2HForYear(year, maxWeek)` defaulted to **17**. Every caller happened to pass an explicit 14, so it was never exercised — but it was a trap for the next caller. Default is now `REG_WEEKS`. Verified: the default now returns 84 games for 2025 (14 × 6) where an explicit 17 returns 98, i.e. the bracket would have added 14 games of noise per season.
+  2. The **live-season standings** derived `maxWeek` by scanning all 17 weeks for the latest played one and handing that straight to `buildSeasonStandingsData`. From Week 15 of a live season onward it would have folded playoff and consolation results into the regular-season W/L, PF and PA, and captioned itself "Through Week 17". Now capped at `REG_WEEKS`. Verified by injecting a completed 17-week season as 2026 data: the table holds at 28 games per team (14 H2H + 14 median) and the caption reads "Through Week 14".
+- `computePlayoffAppearances()` — playoff berths per owner, **derived** from `PLAYOFF_BRACKET_INFO` rather than hardcoded a second time: the union of everyone appearing in a "Winners Bracket" game in a year is exactly the six-team field (the two first-round byes turn up in the semifinal row). Verified to sum to 18 = 6 × 3 seasons. Keys there are owner *names*, so it maps back through `TEAMS`.
+- `computePickCounts()` / `computeTradeCounts()` / `computeAddCounts()` — per-owner draft picks, trades, and waiver + free-agent adds. Each returns **`null` if any completed season is still unfetched**, so the card renders "Visit the X tab to load" instead of crowning a leader computed from half the data.
+- `computeCareerLedger()` — earnings, per-season placement and average finish from static `SEASON_HISTORY`.
+- `leaderBody(map, dir, fmt, gate)` — turns a `uid → value` map into a card body: the leader (**all** of them when tied) plus the next two placings. `dir` -1 = highest value wins, 1 = lowest wins.
+- `hofCard(cfg)` — renders one `.hof-card`. `tone:'bad'` adds `.shame` (magenta); `wide:true` spans two grid columns.
 
 ### Careers
-- `buildCareers()` — calls `buildLeaderStats()` to refresh pills, then builds the career earnings/placement table and per-season standings tables
+- `setCareersView(view, el)` — sub-tab switcher; lazy-calls `buildHallOfFame()` on first switch to the awards view
+- `buildCareers()` — Records view: career earnings/placement table, then `buildRecordBook()`, then `buildSeasonStandings()`
+- `buildRecordBook()` — 12 record cards: highest/lowest single week, biggest blowout, closest finish, highest/lowest-scoring matchup, longest win/losing streak, most/fewest points in a season, most championships, most playoff berths. **Streaks deliberately run across season boundaries.** Single-season point records only count *complete* 14-week seasons, so a live or half-cached year can't walk away with "fewest points ever".
+- `buildHallOfFame()` — 19 award cards: the 7 former pills (Past Champions, Career Earnings, Career Wins, Consistent Finisher, Draft Picks, Trades, Worst Finish) plus Best All-Time Win %, Best/Worst Scoring Average, Most Weekly Crowns/Duds, Luckiest/Unluckiest Manager (measured against the weekly median), Mr. Reliable / Boom or Bust (score std dev), Punching Bag, Most Lopsided Wins, and Waiver Wire Warrior.
 
 ### Scores Tab
 State variables: `currentScoresYear` (default 2026), `currentScoresWeek` (default 1)
@@ -470,7 +484,8 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 Aesthetic: late-90s NFL Blitz / arcade-neon sports broadcast — glossy electric-teal + hot-magenta + neon-purple on near-black, pulled directly from the TOL logo. Premium / "legit" (ESPN/Sleeper-grade), **mobile-first**. Dark is the default theme; light mode is fully supported.
 
 **HOW THE REDESIGN IS STRUCTURED — read this before editing styles:**
-- The redesign is a stack of **appended CSS layers at the very END of `<style>`**, each opened by a banner comment: `ARCADE NEON REDESIGN`, then one block per tab (`CAREERS TAB — Arcade Neon polish`, `SCORES TAB…`, `RIVALRIES…`, `TRADE EVALUATOR…`, `DRAFT · STATS · TRANSACTIONS · LEAGUE…`, `HOME TAB…`, `LIGHT MODE…`). They cascade over the original CSS above them — do not delete them.
+- The redesign is a stack of **appended CSS layers at the very END of `<style>`**, each opened by a banner comment: `ARCADE NEON REDESIGN`, then one block per tab (`CAREERS TAB — Arcade Neon polish`, `SCORES TAB…`, `RIVALRIES…`, `TRADE EVALUATOR…`, `DRAFT · STATS · TRANSACTIONS · LEAGUE…`, `HOME TAB…`, `LIGHT MODE…`), then the Phase 6 `.gr-*` block and the Phase 1 `CAREERS TAB · RECORD BOOK + HALL OF FAME & SHAME` block. They cascade over the original CSS above them — do not delete them.
+- The Phase 1 layer styles `.hof-card` as an extension of the existing `.fun-card` (which had been defined but unused), with `.shame` recolouring to `--accent3`. Verified at 280 / 375 / 1280px in both themes: 1 / 2 / 5 columns, zero page or card overflow, and no hardcoded hex — light mode picks up `#0E9C92` / `#D6258F` automatically.
 - Styling is **by class name and CSS variable**, never by editing individual elements. New content rendered by the existing JS inherits the look automatically **as long as it reuses the existing class names**.
 - **To keep the design when adding things:** (1) reuse existing classes (`.r-card`, `.chip`, `.cp`, `.f-pill`, `.match-card`, `.dtbl`/`.career-tbl`, `.s-pill`, `.ic`, `.note`, …); (2) use the palette **variables**, never hardcode hex; (3) put any NEW css at the very bottom; (4) keep the banner-commented blocks.
 
@@ -554,7 +569,9 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1
 - **Sidebar is gone entirely** — removed 2026-08-20, markup and JS and CSS. Do not add it back without explicit request.
 - **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
-- **Perpetual stats live in `panel-careers`** — the `.career-status-bar` inside `panel-careers` holds the stat pills. They are populated by `buildLeaderStats()` which is called at boot and after each background fetch.
+- **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honour it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
+  If playoff stats are ever wanted they belong in a **separate** set, and they must be filtered to the *winners* bracket via `PLAYOFF_BRACKET_INFO` — an all-weeks-15-to-17 aggregate is exactly the noise this rule exists to keep out.
+- **Careers is two sub-tabs, and superlatives live in exactly one of them** — Records (career table + All-Time Record Book + season standings) and Hall of Fame & Shame (the award grid). The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated.
 - **Home panel has no quick-nav grid** — navigation is entirely via the icon nav and the logo home link
 - **"Ask Claude" is fully gone** — panel, icon tab, JS and CSS all removed (the last of it 2026-08-20). The old note here claimed the JS "must remain because `getTradeAI()` calls them"; `getTradeAI()` had itself been removed in the June 2026 overhaul, so that was stale and kept ~20 KB of dead code alive for two months.
 
@@ -576,16 +593,26 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 
 ## DEVELOPMENT ROADMAP
 
-### Phase 1 — All-Time Records & Career Stats — **partially done**
-**Goal:** New "Records" tab (or section within Careers) displaying all-time per-owner stats.
-- ✅ All-time W/L record per owner — `buildCareers()` career table ("Total W-L" column) + per-opponent history in `buildRivalries()`
-- ❌ Most championships, most playoff appearances — not built
-- ❌ Highest single-week score (all-time + per season) — not built
-- ❌ Biggest blowout margin, worst loss margin — not built
-- ❌ Longest win/lose streak (current + all-time) — not built
-- ❌ Most points scored in a season — not built
+### Phase 1 — All-Time Records & Career Stats — **shipped 2026-08-20**
+**Goal:** all-time per-owner records and superlatives. Built as **two sub-tabs inside Careers**, not a new top-level tab (the nav is already 10 wide) — see "Careers Panel" under NAVIGATION STRUCTURE and "All-Time Stats Engine" under JAVASCRIPT FUNCTIONS.
 
-**Data source:** Already in dashboard — Sleeper API + `SEASON_HISTORY` hardcoded data. **Complexity: Low.** The remaining gap is specifically the weekly-stat records (single-week high, blowout/worst-loss margin, streaks) — not the career W/L, which already exists.
+- ✅ All-time W/L record per owner — `buildCareers()` career table + per-opponent history in `buildRivalries()`
+- ✅ Most championships, most playoff berths — `buildRecordBook()`; berths derived from `PLAYOFF_BRACKET_INFO`
+- ✅ Highest / lowest single-week score — `buildRecordBook()`
+- ✅ Biggest blowout, closest finish, highest / lowest-scoring matchup — `buildRecordBook()`
+- ✅ Longest win / losing streak — `buildRecordBook()`, running across season boundaries
+- ✅ Most / fewest points in a season — `buildRecordBook()`, complete 14-week seasons only
+- ✅ 12 new superlatives beyond the original 7 pills — `buildHallOfFame()`
+
+**Verified against live cached data, not assumed:** 252 games (3 seasons × 14 weeks × 6), every owner at exactly 42 games with H2H and median each summing to 42, playoff berths summing to 18. 2026 correctly contributes nothing — see the `weekWasPlayed` note below.
+
+**One real bug fixed on the way in.** Unplayed Sleeper weeks come back as scored-zero rows, and the all-time median math was counting every one of them as a loss for all twelve owners. This was already live and visible in the career table. Full detail under `weekWasPlayed()` in JAVASCRIPT FUNCTIONS.
+
+**Layout decisions (Matt, 2026-08-20):** two sub-tabs rather than three (season standings stay stacked under the Records view); the second tab is named **"Hall of Fame & Shame"** because roughly half the awards are roasts; and the original 7 pills were **folded into** the card grid rather than kept as a separate strip above it, so there is one surface for superlatives instead of two.
+
+**Scope confirmed by Matt 2026-08-20: regular season only, weeks 1–14** — see the standing rule under KEY DESIGN DECISIONS for the reasoning and the audit it triggered. All four Careers captions now state the week range on screen so nobody has to guess what "Total W-L" covers.
+
+**Possible follow-ups (not built):** a **separate** playoff record set — which must be winners-bracket only via `PLAYOFF_BRACKET_INFO`, not a blanket weeks 15–17 aggregate; a per-season record book (currently all-time only); a "current streak" alongside the all-time longest; and clicking a record through to that week on the Scores tab.
 
 ---
 

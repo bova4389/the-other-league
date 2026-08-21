@@ -1444,6 +1444,102 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .gr-writeup { font-size: 13px; }
   .gr-method h4 { font-size: 15px; }
 }
+
+/* ── CAREERS TAB · RECORD BOOK + HALL OF FAME & SHAME (Phase 1) ── */
+/* Appended layer per the redesign convention. Both grids — the Record Book on
+   the Records sub-tab and the award cards on the Hall of Fame & Shame sub-tab —
+   render the same `.hof-card`, which extends the existing `.fun-card` rather
+   than inventing a new surface. `.shame` recolours to magenta; nothing here
+   hardcodes a hex. */
+
+.hof-grid {
+  display: grid;
+  /* min() keeps a narrow container from overflowing the page — the same fix
+     the shared .roster-grid needed on 2026-08-20. */
+  grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.hof-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 13px 15px 14px;
+  min-width: 0;
+}
+.hof-card.wide { grid-column: span 2; }
+
+.hof-top { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.hof-icon { font-size: 14px; line-height: 1; flex: none; }
+.hof-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.hof-val {
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+
+.hof-name {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.hof-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+/* Runner-up list — the part people actually argue about */
+.hof-rest {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+}
+.hof-rest span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.45;
+}
+
+/* Shame cards run magenta instead of teal, both themes */
+.hof-card.shame .hof-val { color: var(--accent3); }
+[data-theme="dark"] .hof-card.shame .hof-val { text-shadow: 0 0 14px rgba(255,61,190,0.38); }
+.hof-card.shame .hof-label { color: var(--accent3); opacity: .8; }
+[data-theme="dark"] .hof-card.shame { border-color: rgba(255,61,190,0.22); }
+[data-theme="dark"] .hof-card.shame:hover { border-color: rgba(255,61,190,0.45); box-shadow: 0 0 16px rgba(255,61,190,0.09); }
+
+/* Careers sub-tab bar reuses .yr-btn — nothing to restyle, just spacing */
+.careers-view-toggle { align-items: center; }
+
+@media(max-width:680px){
+  .hof-grid { grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr)); gap: 9px; }
+  .hof-card { padding: 11px 12px 12px; }
+  .hof-card.wide { grid-column: 1 / -1; }
+  .hof-val { font-size: 21px; }
+  .hof-name { font-size: 12px; }
+  .hof-label { font-size: 8.5px; letter-spacing: .07em; }
+}
 </style>
 </head>
 <body class="is-home">
@@ -1904,45 +2000,19 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 
     <!-- CAREERS -->
     <div class="panel" id="panel-careers">
-      <div class="sec-title">LEAGUE LEADERS</div>
-      <div class="sec-sub">2023–2025 · Career Records · All-Time Bests</div>
-      <div class="status career-status-bar">
-        <div class="s-pill" style="min-width:155px">
-          <div class="sl">🏆 Past Champions</div>
-          <div id="stat-champs" style="font-size:11px;line-height:1.7;margin-top:3px;color:var(--text2)">—</div>
-        </div>
-        <div class="s-pill" style="min-width:120px">
-          <div class="sl">💰 Highest Career Earnings</div>
-          <div class="sv" id="stat-earn-val">—</div>
-          <div class="sn" id="stat-earn-sub"></div>
-        </div>
-        <div class="s-pill" style="min-width:115px">
-          <div class="sl">🏅 Most Career Wins</div>
-          <div class="sv" id="stat-wins-val">—</div>
-          <div class="sn" id="stat-wins-sub"></div>
-        </div>
-        <div class="s-pill" style="min-width:148px">
-          <div class="sl">🎯 Most Consistent Finisher</div>
-          <div class="sv" id="stat-cons-val" style="font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0;line-height:1.2;margin-top:2px">—</div>
-          <div class="sn" id="stat-cons-sub"></div>
-        </div>
-        <div class="s-pill" style="min-width:120px">
-          <div class="sl">📋 Most Draft Picks</div>
-          <div class="sv" id="stat-picks-val">—</div>
-          <div class="sn" id="stat-picks-sub"></div>
-        </div>
-        <div class="s-pill" style="min-width:138px">
-          <div class="sl">🔄 Most Trades Completed</div>
-          <div class="sv" id="stat-trades-val">—</div>
-          <div class="sn" id="stat-trades-sub"></div>
-        </div>
-        <div class="s-pill" style="min-width:135px;border-right:none">
-          <div class="sl">📉 Worst Average Finish</div>
-          <div class="sv" id="stat-worst-val" style="font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0;line-height:1.2;margin-top:2px">—</div>
-          <div class="sn" id="stat-worst-sub"></div>
-        </div>
+      <div class="sec-title">LEAGUE HISTORY</div>
+      <div class="sec-sub">2023–2026 · Career Records · All-Time Bests</div>
+      <div class="careers-view-toggle" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;">
+        <button class="yr-btn active" id="cview-records-btn" onclick="setCareersView('records',this)">Records</button>
+        <button class="yr-btn" id="cview-hof-btn" onclick="setCareersView('hof',this)">Hall of Fame &amp; Shame</button>
       </div>
-      <div id="careers-container"></div>
+      <div id="careers-view-records">
+        <div id="careers-container"></div>
+      </div>
+      <div id="careers-view-hof" style="display:none">
+        <div class="sec-sub" style="margin-top:0">One winner per award · all-time, regular season only (wks 1–14)</div>
+        <div id="hof-container"><div class="ld"><div class="spin"></div><div class="lt">Tallying the receipts...</div></div></div>
+      </div>
     </div>
 
     <!-- TRADE EVALUATOR -->
@@ -2469,7 +2539,7 @@ async function findLeagueIds(){
 // come from computeWeekProjections(). Cache key bumped to _v2 so old entries
 // carrying the dead field are dropped rather than migrated.
 // The freshness stamp lives in its OWN key, not wrapped around the data.
-// Eight other places (buildH2HMap, buildLeaderStats, the Rivalries tab...)
+// Eight other places (buildH2HMap, buildAllTimeStats, the Rivalries tab...)
 // read `tol_matchups_{year}` straight out of localStorage and expect the bare
 // {week: [...]} shape — don't nest it.
 const MATCHUP_CACHE_TTL = 60 * 60 * 1000;
@@ -2492,6 +2562,7 @@ async function fetchAllMatchups(leagueId,year){
   });
   savePerm(key,matchups);
   savePerm(`tol_matchups_ts_${year}`,Date.now());
+  invalidateAllTimeStats();
   return matchups;
 }
 
@@ -2510,7 +2581,7 @@ function buildH2HMap(){
     if(!data)continue;
     Object.entries(data).forEach(([wk,weekData])=>{
       if(Number(wk)>14)return;
-      if(!weekData||!weekData.length)return;
+      if(!weekWasPlayed(weekData))return;
       const groups={};
       weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
       Object.values(groups).forEach(pair=>{
@@ -2533,7 +2604,7 @@ function buildMedianMap(){
     if(!data)continue;
     Object.entries(data).forEach(([wk,weekData])=>{
       if(Number(wk)>14)return;
-      if(!weekData||!weekData.length)return;
+      if(!weekWasPlayed(weekData))return;
       const scores=weekData.filter(e=>e.matchup_id&&e.points!=null);
       if(!scores.length)return;
       const vals=scores.map(e=>e.points||0).sort((a,b)=>a-b);
@@ -3035,7 +3106,13 @@ function buildScoring(){
 
 // ── RIVALRIES ──
 // Builds a per-year H2H map from cached matchup data for a single season
-function buildH2HForYear(year,maxWeek=17){
+// maxWeek defaults to the regular season, NOT 17. Weeks 15-17 are the playoff
+// and consolation brackets: half those games are consolation matchups with
+// nothing at stake, where managers routinely leave a stale or empty lineup, so
+// folding them into any aggregate poisons it. Pass 15-17 explicitly only when
+// you actually want bracket data, and see PLAYOFF_BRACKET_INFO to tell a real
+// playoff game apart from a consolation one.
+function buildH2HForYear(year,maxWeek=REG_WEEKS){
   const data=loadPerm(`tol_matchups_${year}`);
   if(!data)return null;
   const h2h={};
@@ -3047,7 +3124,7 @@ function buildH2HForYear(year,maxWeek=17){
   };
   Object.entries(data).forEach(([_wk,weekData])=>{
     if(Number(_wk)>maxWeek)return;
-    if(!weekData||!weekData.length)return;
+    if(!weekWasPlayed(weekData))return;
     const groups={};
     weekData.forEach(e=>{if(e.matchup_id){if(!groups[e.matchup_id])groups[e.matchup_id]=[];groups[e.matchup_id].push(e);}});
     Object.values(groups).forEach(pair=>{
@@ -3164,7 +3241,7 @@ async function fetchTransactions(leagueId,year){
   const all=results.flat().filter(tx=>tx&&tx.status==='complete');
   // Sort newest first
   all.sort((a,b)=>(b.created||0)-(a.created||0));
-  savePerm(key,all);buildLeaderStats(); // cache and update trades stat (2026 cleared on Refresh)
+  savePerm(key,all);buildHallOfFame(); // cache and update the trades card (2026 cleared on Refresh)
   return all;
 }
 
@@ -3512,7 +3589,7 @@ async function buildDraftHistory(year){
     const rookieDraft=drafts.find(d=>d.type==='snake'||d.type==='linear')||drafts[0];
     const picks=await api(`/draft/${rookieDraft.draft_id}/picks`);
     savePerm(key,picks);
-    buildLeaderStats(); // update most draft picks stat now that data is cached
+    buildHallOfFame(); // update the draft-picks card now that data is cached
     _draftPicks=picks;
     _draftPicksYear=year;
     renderDraftPicks(c,picks,year);
@@ -3608,15 +3685,272 @@ function setDraftYear(year,el){
   v2026.style.display='none';vPast.style.display='';buildDraftHistory(year);
 }
 
-// ── LEAGUE LEADERS BANNER ──
-// Computes and renders the 7 leader stats that replace the old settings pills
-function buildLeaderStats(){
+// ── ALL-TIME STATS ENGINE ──
+// One walk over every cached `tol_matchups_{year}` produces everything BOTH
+// Careers sub-tabs need: the per-owner career aggregates behind the Hall of
+// Fame cards, and the single-game / single-season extremes behind the Record
+// Book. Doing it in one pass matters — this runs on boot and again after each
+// background prefetch resolves, and the old buildLeaderStats() rebuilt the
+// whole H2H and median maps from scratch on every one of those passes.
+//
+// Result is memoised in `_allTimeCache`. fetchAllMatchups() calls
+// invalidateAllTimeStats() after every write, which is the ONLY thing keeping
+// the cards from freezing at whatever was cached on the first pass — the boot
+// prefetch lands 2023/2024/2025 one season at a time.
+let _allTimeCache=null;
+function invalidateAllTimeStats(){_allTimeCache=null;}
+
+// A week Sleeper hasn't played yet still comes back as 12 rows carrying a real
+// matchup_id and points:0.0 — verified against the live 2026 payload, where
+// all 17 weeks are already paired up months before kickoff. Treat those as
+// absent. WITHOUT this guard the median math evaluates 0 > 0 as false for all
+// twelve teams and books everyone a median LOSS for every unplayed week, which
+// silently added 168 phantom losses per owner to the career table the moment
+// anyone opened the Scores tab in the preseason.
+function weekWasPlayed(weekData){
+  return Array.isArray(weekData)&&weekData.some(e=>e&&(e.points||0)>0);
+}
+
+const ALLTIME_YEARS=[2023,2024,2025,2026];
+const REG_WEEKS=14;   // 1–14 regular season; 15–17 are the playoff brackets
+
+function blankOwnerStats(){
+  return{gp:0,pf:0,pa:0,hi:null,lo:null,scores:[],
+    h2hW:0,h2hL:0,medW:0,medL:0,luckyW:0,unluckyL:0,
+    weekHigh:0,weekLow:0,movSum:0,movN:0,
+    seasonPF:{},seasonGP:{},
+    bestStreak:0,bestFrom:null,bestTo:null,
+    worstStreak:0,worstFrom:null,worstTo:null,
+    curW:0,curWFrom:null,curL:0,curLFrom:null};
+}
+
+function buildAllTimeStats(){
+  if(_allTimeCache)return _allTimeCache;
+  const owners=Object.keys(TEAMS);
+  const per={};owners.forEach(uid=>{per[uid]=blankOwnerStats();});
+  const rec={highWeek:null,lowWeek:null,blowout:null,nailbiter:null,
+    highMatch:null,lowMatch:null,winStreak:null,loseStreak:null,
+    seasonHigh:null,seasonLow:null};
+  const seasons=[];
+  let games=0;
+
+  for(const year of ALLTIME_YEARS){
+    const data=loadPerm(`tol_matchups_${year}`);
+    if(!data)continue;
+    let played=false;
+    // Ascending week order matters — the streak bookkeeping below walks games
+    // in schedule order and carries across season boundaries.
+    for(let wk=1;wk<=REG_WEEKS;wk++){
+      const weekData=data[wk]||data[String(wk)];
+      if(!weekWasPlayed(weekData))continue;
+      played=true;
+      const rows=weekData.filter(e=>e&&e.matchup_id&&e.points!=null);
+      if(rows.length<2)continue;
+      const vals=rows.map(e=>e.points||0).sort((a,b)=>a-b);
+      const mid=vals.length/2;
+      const median=vals.length%2===0?(vals[mid-1]+vals[mid])/2:vals[Math.floor(mid)];
+      const topPts=vals[vals.length-1],botPts=vals[0];
+
+      // Per-team weekly bookkeeping
+      rows.forEach(e=>{
+        const uid=RM[e.roster_id];
+        if(!uid||!per[uid])return;
+        const p=e.points||0,s=per[uid];
+        s.gp++;s.pf+=p;s.scores.push(p);
+        s.seasonPF[year]=(s.seasonPF[year]||0)+p;
+        s.seasonGP[year]=(s.seasonGP[year]||0)+1;
+        if(s.hi==null||p>s.hi)s.hi=p;
+        if(s.lo==null||p<s.lo)s.lo=p;
+        if(p>median)s.medW++;else s.medL++;
+        if(p===topPts)s.weekHigh++;
+        if(p===botPts)s.weekLow++;
+        if(!rec.highWeek||p>rec.highWeek.pts)rec.highWeek={uid,pts:p,year,week:wk};
+        if(!rec.lowWeek||p<rec.lowWeek.pts)rec.lowWeek={uid,pts:p,year,week:wk};
+      });
+
+      // Per-matchup bookkeeping
+      const groups={};
+      rows.forEach(e=>{(groups[e.matchup_id]=groups[e.matchup_id]||[]).push(e);});
+      Object.values(groups).forEach(pair=>{
+        if(pair.length!==2)return;
+        const[a,b]=pair;
+        const ua=RM[a.roster_id],ub=RM[b.roster_id];
+        if(!ua||!ub||!per[ua]||!per[ub])return;
+        const pa=a.points||0,pb=b.points||0;
+        per[ua].pa+=pb;per[ub].pa+=pa;
+        games++;
+        const total=pa+pb,margin=Math.abs(pa-pb);
+        if(!rec.highMatch||total>rec.highMatch.total)
+          rec.highMatch={uidA:ua,uidB:ub,ptsA:pa,ptsB:pb,total,year,week:wk};
+        if(!rec.lowMatch||total<rec.lowMatch.total)
+          rec.lowMatch={uidA:ua,uidB:ub,ptsA:pa,ptsB:pb,total,year,week:wk};
+        if(pa!==pb){
+          const wUid=pa>pb?ua:ub,lUid=pa>pb?ub:ua;
+          const wPts=Math.max(pa,pb),lPts=Math.min(pa,pb);
+          per[wUid].h2hW++;per[lUid].h2hL++;
+          per[wUid].movSum+=margin;per[wUid].movN++;
+          if(!rec.blowout||margin>rec.blowout.margin)
+            rec.blowout={wUid,lUid,margin,wPts,lPts,year,week:wk};
+          if(!rec.nailbiter||margin<rec.nailbiter.margin)
+            rec.nailbiter={wUid,lUid,margin,wPts,lPts,year,week:wk};
+          // Luck = did the head-to-head result agree with the week's median?
+          // Winning while below the median is a gift; losing while above it
+          // is the league's oldest grievance.
+          if(wPts<median)per[wUid].luckyW++;
+          if(lPts>median)per[lUid].unluckyL++;
+        }
+        // Streaks — advance both sides in schedule order. Deliberately runs
+        // across season boundaries: a run that carries from Week 13 of one
+        // year into Week 2 of the next is still a streak.
+        [[ua,pa,pb],[ub,pb,pa]].forEach(([uid,mine,theirs])=>{
+          const s=per[uid];
+          if(mine>theirs){
+            s.curL=0;s.curLFrom=null;
+            if(!s.curW)s.curWFrom={year,week:wk};
+            s.curW++;
+            if(s.curW>s.bestStreak){s.bestStreak=s.curW;s.bestFrom=s.curWFrom;s.bestTo={year,week:wk};}
+          }else if(theirs>mine){
+            s.curW=0;s.curWFrom=null;
+            if(!s.curL)s.curLFrom={year,week:wk};
+            s.curL++;
+            if(s.curL>s.worstStreak){s.worstStreak=s.curL;s.worstFrom=s.curLFrom;s.worstTo={year,week:wk};}
+          }else{s.curW=0;s.curL=0;s.curWFrom=null;s.curLFrom=null;}
+        });
+      });
+    }
+    if(played)seasons.push(year);
+  }
+
+  owners.forEach(uid=>{
+    const s=per[uid];
+    s.ppg=s.gp?s.pf/s.gp:0;
+    s.papg=s.gp?s.pa/s.gp:0;
+    s.totalW=s.h2hW+s.medW;s.totalL=s.h2hL+s.medL;
+    const n=s.totalW+s.totalL;
+    s.winPct=n?s.totalW/n:0;
+    s.avgMov=s.movN?s.movSum/s.movN:0;
+    s.stdev=s.scores.length>1
+      ?Math.sqrt(s.scores.reduce((acc,p)=>acc+(p-s.ppg)*(p-s.ppg),0)/s.scores.length)
+      :null;
+    // Season point records only count COMPLETE regular seasons — a live or
+    // half-cached year would otherwise walk away with "fewest points ever".
+    Object.entries(s.seasonPF).forEach(([yr,pf])=>{
+      if((s.seasonGP[yr]||0)<REG_WEEKS)return;
+      if(!rec.seasonHigh||pf>rec.seasonHigh.pts)rec.seasonHigh={uid,pts:pf,year:Number(yr)};
+      if(!rec.seasonLow||pf<rec.seasonLow.pts)rec.seasonLow={uid,pts:pf,year:Number(yr)};
+    });
+    if(s.bestStreak&&(!rec.winStreak||s.bestStreak>rec.winStreak.n))
+      rec.winStreak={uid,n:s.bestStreak,from:s.bestFrom,to:s.bestTo};
+    if(s.worstStreak&&(!rec.loseStreak||s.worstStreak>rec.loseStreak.n))
+      rec.loseStreak={uid,n:s.worstStreak,from:s.worstFrom,to:s.worstTo};
+  });
+
+  _allTimeCache={hasData:games>0,games,seasons,per,rec};
+  return _allTimeCache;
+}
+
+// Playoff berths per owner, derived from PLAYOFF_BRACKET_INFO rather than
+// hardcoded again: the union of everyone appearing in a "Winners Bracket" game
+// in a given year is exactly the six-team playoff field (the two first-round
+// byes turn up in the semifinal row). Keys there are owner NAMES, so map back.
+function computePlayoffAppearances(){
+  const nameToUid={};
+  Object.keys(TEAMS).forEach(uid=>{nameToUid[t(uid).name]=uid;});
+  const cnt={};
+  Object.keys(TEAMS).forEach(uid=>{cnt[uid]=0;});
+  Object.values(PLAYOFF_BRACKET_INFO).forEach(weeks=>{
+    const made=new Set();
+    Object.values(weeks).forEach(gamesInWeek=>{
+      Object.entries(gamesInWeek).forEach(([key,info])=>{
+        if(!/Winners Bracket/.test(info.label||''))return;
+        key.split('|').forEach(nm=>{if(nameToUid[nm])made.add(nameToUid[nm]);});
+      });
+    });
+    made.forEach(uid=>{cnt[uid]++;});
+  });
+  return cnt;
+}
+
+// Waiver + free-agent adds per owner across every cached season.
+// Returns null if any completed season is still unfetched, so the card can say
+// so rather than quietly crowning a leader computed from half the data.
+function computeAddCounts(){
+  const cnt={};
+  Object.keys(TEAMS).forEach(uid=>{cnt[uid]=0;});
+  const tally=txns=>{
+    txns.forEach(tx=>{
+      if(tx.type!=='waiver'&&tx.type!=='free_agent')return;
+      if(!tx.adds||!Object.keys(tx.adds).length)return;
+      (tx.roster_ids||[]).forEach(rid=>{
+        const uid=RM[rid]||RM[String(rid)];
+        if(uid&&cnt[uid]!==undefined)cnt[uid]++;
+      });
+    });
+  };
+  for(const year of[2023,2024,2025]){
+    const txns=loadPerm(`tol_txn_${year}`);
+    if(!txns)return null;
+    tally(txns);
+  }
+  const cur=loadPerm('tol_txn_2026');
+  if(cur)tally(cur);
+  return cnt;
+}
+
+// Trades completed per owner. Same all-or-nothing contract as computeAddCounts.
+function computeTradeCounts(){
+  const cnt={};
+  Object.keys(TEAMS).forEach(uid=>{cnt[uid]=0;});
+  const tally=txns=>{
+    txns.filter(tx=>tx.type==='trade').forEach(tx=>{
+      (tx.roster_ids||[]).forEach(rid=>{
+        const uid=RM[rid]||RM[String(rid)];
+        if(uid&&cnt[uid]!==undefined)cnt[uid]++;
+      });
+    });
+  };
+  for(const year of[2023,2024,2025]){
+    const txns=loadPerm(`tol_txn_${year}`);
+    if(!txns)return null;
+    tally(txns);
+  }
+  const cur=loadPerm('tol_txn_2026');
+  if(cur)tally(cur);
+  return cnt;
+}
+
+// Draft picks made per owner (2024 + 2025, plus 2026 actuals when cached).
+function computePickCounts(){
+  const cnt={};
+  Object.keys(TEAMS).forEach(uid=>{cnt[uid]=0;});
+  for(const year of[2024,2025]){
+    const picks=loadPerm(`tol_drafts_${year}`);
+    if(!picks)return null;
+    picks.forEach(p=>{
+      const uid=RM[p.roster_id]||RM[String(p.roster_id)];
+      if(uid&&cnt[uid]!==undefined)cnt[uid]++;
+    });
+  }
+  const p26=loadPerm('tol_drafts_2026');
+  if(p26){
+    p26.forEach(p=>{
+      const uid=RM[p.roster_id]||RM[String(p.roster_id)];
+      if(uid&&cnt[uid]!==undefined)cnt[uid]++;
+    });
+  }else{
+    // 2026 draft is complete but not cached yet — fall back to the known
+    // first-round order plus the three later rounds every team gets.
+    DRAFT_ORDER_2026.forEach(p=>{if(cnt[p.uid]!==undefined)cnt[p.uid]++;});
+    Object.keys(TEAMS).forEach(uid=>{cnt[uid]+=3;});
+  }
+  return cnt;
+}
+
+// Career earnings, per-season placement and average finish, from static history.
+function computeCareerLedger(){
   const years=[2023,2024,2025];
   const owners=Object.keys(TEAMS);
-
-  // Career earnings and placements per owner from static season history
-  const earnings={};
-  const place={};
+  const earnings={},place={},avgF={};
   owners.forEach(uid=>{
     earnings[uid]=years.reduce((s,yr)=>s+(SEASON_HISTORY[yr].payouts[uid]||0),0);
     place[uid]={};
@@ -3624,146 +3958,199 @@ function buildLeaderStats(){
       const idx=computeFullPlacements(yr).indexOf(uid);
       place[uid][yr]=idx>=0?idx+1:null;
     });
-  });
-
-  // Average finish per owner (lower = better)
-  const avgF={};
-  owners.forEach(uid=>{
     const ps=years.map(yr=>place[uid][yr]).filter(Boolean);
     avgF[uid]=ps.length?(ps.reduce((a,b)=>a+b,0)/ps.length):12;
   });
+  return{years,earnings,place,avgF};
+}
 
-  // Past Champions — who finished 1st each year
+// ── CARD RENDERING (shared by the Record Book and Hall of Fame grids) ──
+function fmt2(n){return(Math.round(n*100)/100).toFixed(2);}
+function fmt1(n){return(Math.round(n*10)/10).toFixed(1);}
+function whenLbl(o){return o?`${o.year} · Week ${o.week}`:'';}
+function streakSpan(o){
+  if(!o||!o.from||!o.to)return'';
+  return`${o.from.year} Wk ${o.from.week} → ${o.to.year} Wk ${o.to.week}`;
+}
+
+function hofCard(c){
+  if(!c)return'';
+  return`<div class="fun-card hof-card${c.tone==='bad'?' shame':''}${c.wide?' wide':''}">
+    <div class="hof-top"><span class="hof-icon">${c.icon}</span><span class="hof-label">${c.label}</span></div>
+    <div class="fun-val hof-val">${c.val}</div>
+    ${c.name?`<div class="hof-name">${c.name}</div>`:''}
+    ${c.sub?`<div class="hof-sub">${c.sub}</div>`:''}
+    ${c.list?`<div class="hof-rest">${c.list}</div>`:''}
+  </div>`;
+}
+
+// Turns a uid→value map into a card body: the leader (all of them when tied)
+// plus the next two placings, which is the part league mates actually argue
+// about. `dir` -1 = highest value wins, 1 = lowest value wins.
+function leaderBody(map,dir,fmt,gate){
+  if(!map)return null;
+  const rows=Object.keys(map)
+    .filter(uid=>map[uid]!=null&&(!gate||gate(uid)))
+    .map(uid=>({uid,v:map[uid]}))
+    .sort((a,b)=>dir<0?b.v-a.v:a.v-b.v);
+  if(!rows.length)return null;
+  const best=rows[0].v;
+  const tied=rows.filter(r=>r.v===best);
+  const rest=rows.slice(tied.length,tied.length+2)
+    .map((r,i)=>`<span>${tied.length+i+1}. ${t(r.uid).name} · ${fmt(r.v)}</span>`).join('');
+  return{val:fmt(best),name:tied.map(r=>t(r.uid).name).join(' / '),list:rest};
+}
+
+const NEEDS_SCORES='<div class="note" style="max-width:540px">Matchup data isn\'t cached yet — open the <strong>Scores</strong> tab once and these fill in automatically.</div>';
+
+// ── RECORD BOOK (Records sub-tab) ──
+function buildRecordBook(){
+  const el=document.getElementById('record-book');
+  if(!el)return;
+  const at=buildAllTimeStats();
+  if(!at.hasData){el.innerHTML=NEEDS_SCORES;return;}
+  const r=at.rec;
+  const nm=uid=>t(uid).name;
+  const cards=[];
+
+  if(r.highWeek)cards.push({icon:'🔥',label:'Highest Single Week',
+    val:fmt2(r.highWeek.pts),name:nm(r.highWeek.uid),sub:whenLbl(r.highWeek)});
+  if(r.lowWeek)cards.push({icon:'💀',label:'Lowest Single Week',tone:'bad',
+    val:fmt2(r.lowWeek.pts),name:nm(r.lowWeek.uid),sub:whenLbl(r.lowWeek)});
+  if(r.blowout)cards.push({icon:'💥',label:'Biggest Blowout',
+    val:'+'+fmt2(r.blowout.margin),name:`${nm(r.blowout.wUid)} over ${nm(r.blowout.lUid)}`,
+    sub:`${fmt2(r.blowout.wPts)} – ${fmt2(r.blowout.lPts)} · ${whenLbl(r.blowout)}`});
+  if(r.nailbiter)cards.push({icon:'😰',label:'Closest Finish',
+    val:'+'+fmt2(r.nailbiter.margin),name:`${nm(r.nailbiter.wUid)} over ${nm(r.nailbiter.lUid)}`,
+    sub:`${fmt2(r.nailbiter.wPts)} – ${fmt2(r.nailbiter.lPts)} · ${whenLbl(r.nailbiter)}`});
+  if(r.highMatch)cards.push({icon:'🎆',label:'Highest-Scoring Matchup',
+    val:fmt2(r.highMatch.total),name:`${nm(r.highMatch.uidA)} vs ${nm(r.highMatch.uidB)}`,
+    sub:`${fmt2(r.highMatch.ptsA)} – ${fmt2(r.highMatch.ptsB)} · ${whenLbl(r.highMatch)}`});
+  if(r.lowMatch)cards.push({icon:'🧊',label:'Lowest-Scoring Matchup',tone:'bad',
+    val:fmt2(r.lowMatch.total),name:`${nm(r.lowMatch.uidA)} vs ${nm(r.lowMatch.uidB)}`,
+    sub:`${fmt2(r.lowMatch.ptsA)} – ${fmt2(r.lowMatch.ptsB)} · ${whenLbl(r.lowMatch)}`});
+  if(r.winStreak)cards.push({icon:'📈',label:'Longest Win Streak',
+    val:r.winStreak.n+'W',name:nm(r.winStreak.uid),sub:streakSpan(r.winStreak)});
+  if(r.loseStreak)cards.push({icon:'📉',label:'Longest Losing Streak',tone:'bad',
+    val:r.loseStreak.n+'L',name:nm(r.loseStreak.uid),sub:streakSpan(r.loseStreak)});
+  if(r.seasonHigh)cards.push({icon:'🗓️',label:'Most Points, One Season',
+    val:fmt1(r.seasonHigh.pts),name:nm(r.seasonHigh.uid),sub:`${r.seasonHigh.year} · weeks 1–14`});
+  if(r.seasonLow)cards.push({icon:'🕳️',label:'Fewest Points, One Season',tone:'bad',
+    val:fmt1(r.seasonLow.pts),name:nm(r.seasonLow.uid),sub:`${r.seasonLow.year} · weeks 1–14`});
+
+  // Titles and berths come from static history, not from matchup data
   const champCount={};
-  years.forEach(yr=>{
+  [2023,2024,2025].forEach(yr=>{
     const uid=SEASON_HISTORY[yr].placements[0];
     champCount[uid]=(champCount[uid]||0)+1;
   });
-  const champEl=document.getElementById('stat-champs');
-  if(champEl){
-    champEl.innerHTML=Object.entries(champCount)
-      .sort((a,b)=>b[1]-a[1])
-      .map(([uid,n])=>`${t(uid).name} (${n})`)
-      .join('<br>');
-  }
+  const champBody=leaderBody(champCount,-1,v=>String(v));
+  if(champBody)cards.push({icon:'🏆',label:'Most Championships',
+    val:champBody.val,name:champBody.name,sub:'2023–2025'});
+  const poBody=leaderBody(computePlayoffAppearances(),-1,v=>String(v));
+  if(poBody)cards.push({icon:'🎟️',label:'Most Playoff Berths',
+    val:poBody.val+'/3',name:poBody.name,list:poBody.list});
 
-  // Highest Career Earnings
-  const topEarner=owners.reduce((best,uid)=>earnings[uid]>earnings[best]?uid:best,owners[0]);
-  const earnValEl=document.getElementById('stat-earn-val');
-  const earnSubEl=document.getElementById('stat-earn-sub');
-  if(earnValEl)earnValEl.textContent='$'+earnings[topEarner];
-  if(earnSubEl)earnSubEl.textContent=t(topEarner).name;
+  el.innerHTML=`<div class="hof-grid">${cards.map(hofCard).join('')}</div>`;
+}
 
-  // Most Consistent Finisher (lowest avg finish — show all tied owners)
-  const minAvgF=Math.min(...owners.map(uid=>avgF[uid]));
-  const tiedCons=owners.filter(uid=>avgF[uid]===minAvgF);
-  const consValEl=document.getElementById('stat-cons-val');
-  const consSubEl=document.getElementById('stat-cons-sub');
-  if(consValEl)consValEl.textContent=tiedCons.map(uid=>t(uid).name).join(' / ');
-  if(consSubEl)consSubEl.textContent='Avg finish: '+minAvgF.toFixed(1);
+// ── HALL OF FAME & SHAME (awards sub-tab) ──
+// Was buildLeaderStats() — the seven pills that used to sit in a strip above
+// the careers table are now the first cards of this grid.
+function buildHallOfFame(){
+  const el=document.getElementById('hof-container');
+  if(!el)return;
+  const at=buildAllTimeStats();
+  const{years,earnings,avgF}=computeCareerLedger();
+  const owners=Object.keys(TEAMS);
+  const played=uid=>at.per[uid]&&at.per[uid].gp>0;
+  const cards=[];
+  const pick=(cfg,body)=>{if(body)cards.push(Object.assign({},cfg,body));};
+  const pending=(cfg,where)=>cards.push(Object.assign({},cfg,{val:'—',name:'',sub:`Visit the ${where} tab to load`}));
 
-  // Worst Average Finish (highest avg finish)
-  const worstFin=owners.reduce((worst,uid)=>avgF[uid]>avgF[worst]?uid:worst,owners[0]);
-  const worstValEl=document.getElementById('stat-worst-val');
-  const worstSubEl=document.getElementById('stat-worst-sub');
-  if(worstValEl)worstValEl.textContent=t(worstFin).name;
-  if(worstSubEl)worstSubEl.textContent='Avg finish: '+avgF[worstFin].toFixed(1);
+  // Past Champions — wide card, one line per season
+  cards.push({icon:'🏆',label:'Past Champions',wide:true,
+    val:`${years.length} SEASONS`,
+    list:[2025,2024,2023].map(yr=>
+      `<span>${yr} · ${t(SEASON_HISTORY[yr].placements[0]).name}</span>`).join('')});
 
-  // Most Career Wins — dynamic from all cached matchup data (H2H + median, regular season only)
-  const h2hAll=buildH2HMap();
-  const medAll=buildMedianMap();
-  const winsMap={};
-  owners.forEach(uid=>{
-    const rid=RMR[uid];
-    let w=0;
-    if(h2hAll[rid])Object.values(h2hAll[rid]).forEach(rec=>{w+=rec.w;});
-    w+=(medAll[uid]||{medW:0}).medW;
-    winsMap[uid]=w;
-  });
-  const winsValEl=document.getElementById('stat-wins-val');
-  const winsSubEl=document.getElementById('stat-wins-sub');
-  const anyWins=owners.some(uid=>winsMap[uid]>0);
-  if(anyWins){
-    const winsLdr=owners.reduce((best,uid)=>winsMap[uid]>winsMap[best]?uid:best,owners[0]);
-    if(winsValEl)winsValEl.textContent=winsMap[winsLdr];
-    if(winsSubEl)winsSubEl.textContent=t(winsLdr).name;
+  pick({icon:'💰',label:'Highest Career Earnings'},
+    leaderBody(earnings,-1,v=>'$'+v));
+
+  if(at.hasData){
+    const winsMap={};owners.forEach(uid=>{winsMap[uid]=at.per[uid].totalW;});
+    pick({icon:'🏅',label:'Most Career Wins',sub:'H2H + median'},
+      leaderBody(winsMap,-1,v=>String(v)));
+    const pctMap={};owners.forEach(uid=>{pctMap[uid]=at.per[uid].winPct;});
+    pick({icon:'⚔️',label:'Best All-Time Win %'},
+      leaderBody(pctMap,-1,v=>(v*100).toFixed(1)+'%',played));
   }else{
-    if(winsValEl)winsValEl.textContent='—';
-    if(winsSubEl)winsSubEl.textContent='Visit Scores tab to load';
+    pending({icon:'🏅',label:'Most Career Wins'},'Scores');
   }
 
-  // Most Draft Picks — 2024+2025 from cached pick data, 2026 from known order + assumed rounds 2-4
-  const pickMap={};
-  owners.forEach(uid=>{pickMap[uid]=0;});
-  let picksLoaded=true;
-  for(const year of[2024,2025]){
-    const picks=loadPerm(`tol_drafts_${year}`);
-    if(!picks){picksLoaded=false;break;}
-    picks.forEach(p=>{
-      const uid=RM[p.roster_id]||RM[String(p.roster_id)];
-      if(uid)pickMap[uid]++;
-    });
-  }
-  if(picksLoaded){
-    // 2026: use actual picks if cached (draft is complete), otherwise estimate
-    const picks2026=loadPerm('tol_drafts_2026');
-    if(picks2026){
-      picks2026.forEach(p=>{
-        const uid=RM[p.roster_id]||RM[String(p.roster_id)];
-        if(uid)pickMap[uid]++;
-      });
-    }else{
-      DRAFT_ORDER_2026.forEach(p=>{if(pickMap[p.uid]!==undefined)pickMap[p.uid]++;});
-      owners.forEach(uid=>{pickMap[uid]+=3;});
-    }
-  }
-  const picksValEl=document.getElementById('stat-picks-val');
-  const picksSubEl=document.getElementById('stat-picks-sub');
-  if(picksLoaded){
-    const picksLdr=owners.reduce((best,uid)=>pickMap[uid]>pickMap[best]?uid:best,owners[0]);
-    if(picksValEl)picksValEl.textContent=pickMap[picksLdr];
-    if(picksSubEl)picksSubEl.textContent=t(picksLdr).name;
+  pick({icon:'🎯',label:'Most Consistent Finisher',sub:'lowest average finish'},
+    leaderBody(avgF,1,v=>v.toFixed(1)));
+  pick({icon:'📉',label:'Worst Average Finish',tone:'bad'},
+    leaderBody(avgF,-1,v=>v.toFixed(1)));
+
+  if(at.hasData){
+    const ppg={};owners.forEach(uid=>{ppg[uid]=at.per[uid].ppg;});
+    pick({icon:'📊',label:'Best Scoring Average',sub:'points per game, all-time'},
+      leaderBody(ppg,-1,fmt1,played));
+    pick({icon:'🥶',label:'Worst Scoring Average',tone:'bad',sub:'points per game, all-time'},
+      leaderBody(ppg,1,fmt1,played));
+
+    const hiWk={},loWk={};
+    owners.forEach(uid=>{hiWk[uid]=at.per[uid].weekHigh;loWk[uid]=at.per[uid].weekLow;});
+    pick({icon:'👑',label:'Most Weekly Crowns',sub:'weeks as the league high scorer'},
+      leaderBody(hiWk,-1,v=>String(v),played));
+    pick({icon:'🥴',label:'Most Weekly Duds',tone:'bad',sub:'weeks as the league low scorer'},
+      leaderBody(loWk,-1,v=>String(v),played));
+
+    const lucky={},unlucky={};
+    owners.forEach(uid=>{lucky[uid]=at.per[uid].luckyW;unlucky[uid]=at.per[uid].unluckyL;});
+    pick({icon:'🍀',label:'Luckiest Manager',sub:'wins scored BELOW the weekly median'},
+      leaderBody(lucky,-1,v=>String(v),played));
+    pick({icon:'🪦',label:'Unluckiest Manager',tone:'bad',sub:'losses scored ABOVE the weekly median'},
+      leaderBody(unlucky,-1,v=>String(v),played));
+
+    const sd={};owners.forEach(uid=>{sd[uid]=at.per[uid].stdev;});
+    pick({icon:'🧱',label:'Mr. Reliable',sub:'smallest week-to-week swing'},
+      leaderBody(sd,1,v=>'±'+fmt1(v),played));
+    pick({icon:'🎢',label:'Boom or Bust',sub:'biggest week-to-week swing'},
+      leaderBody(sd,-1,v=>'±'+fmt1(v),played));
+
+    const paMap={};owners.forEach(uid=>{paMap[uid]=at.per[uid].papg;});
+    pick({icon:'🥊',label:'Punching Bag',tone:'bad',sub:'most points allowed per game'},
+      leaderBody(paMap,-1,fmt1,played));
+    const mov={};owners.forEach(uid=>{mov[uid]=at.per[uid].avgMov;});
+    pick({icon:'🔨',label:'Most Lopsided Wins',sub:'average margin of victory'},
+      leaderBody(mov,-1,v=>'+'+fmt1(v),uid=>at.per[uid].movN>0));
   }else{
-    if(picksValEl)picksValEl.textContent='—';
-    if(picksSubEl)picksSubEl.textContent='Visit Draft tab to load';
+    pending({icon:'📊',label:'Best Scoring Average'},'Scores');
   }
 
-  // Most Trades Completed — from cached transaction data across all seasons (2023–present)
-  const tradeMap={};
-  owners.forEach(uid=>{tradeMap[uid]=0;});
-  let tradesLoaded=true;
-  for(const year of[2023,2024,2025]){
-    const txns=loadPerm(`tol_txn_${year}`);
-    if(!txns){tradesLoaded=false;break;}
-    txns.filter(tx=>tx.type==='trade').forEach(tx=>{
-      (tx.roster_ids||[]).forEach(rid=>{
-        const uid=RM[rid]||RM[String(rid)];
-        if(uid)tradeMap[uid]++;
-      });
-    });
-  }
-  // Include 2026 trades if available (refreshed on each page Refresh)
-  if(tradesLoaded){
-    const txns2026=loadPerm('tol_txn_2026');
-    if(txns2026){
-      txns2026.filter(tx=>tx.type==='trade').forEach(tx=>{
-        (tx.roster_ids||[]).forEach(rid=>{
-          const uid=RM[rid]||RM[String(rid)];
-          if(uid)tradeMap[uid]++;
-        });
-      });
-    }
-  }
-  const tradesValEl=document.getElementById('stat-trades-val');
-  const tradesSubEl=document.getElementById('stat-trades-sub');
-  if(tradesLoaded){
-    const tradesLdr=owners.reduce((best,uid)=>tradeMap[uid]>tradeMap[best]?uid:best,owners[0]);
-    if(tradesValEl)tradesValEl.textContent=tradeMap[tradesLdr];
-    if(tradesSubEl)tradesSubEl.textContent=t(tradesLdr).name;
-  }else{
-    if(tradesValEl)tradesValEl.textContent='—';
-    if(tradesSubEl)tradesSubEl.textContent='Visit Transactions tab to load';
-  }
+  const picksMap=computePickCounts();
+  if(picksMap)pick({icon:'📋',label:'Most Draft Picks'},leaderBody(picksMap,-1,v=>String(v)));
+  else pending({icon:'📋',label:'Most Draft Picks'},'Draft');
+  const tradeMap=computeTradeCounts();
+  if(tradeMap)pick({icon:'🔄',label:'Most Trades Completed'},leaderBody(tradeMap,-1,v=>String(v)));
+  else pending({icon:'🔄',label:'Most Trades Completed'},'Transactions');
+  const addMap=computeAddCounts();
+  if(addMap)pick({icon:'🌊',label:'Waiver Wire Warrior',sub:'waiver + free-agent adds'},
+    leaderBody(addMap,-1,v=>String(v)));
+  else pending({icon:'🌊',label:'Waiver Wire Warrior'},'Transactions');
+
+  el.innerHTML=`<div class="hof-grid">${cards.map(hofCard).join('')}</div>`;
+}
+
+// Sub-tab switcher for the Careers panel. Two self-contained divs, same shape
+// as setRosterView, so either half can be lifted into its own panel later.
+function setCareersView(view,el){
+  document.querySelectorAll('.careers-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  document.getElementById('careers-view-records').style.display=view==='records'?'':'none';
+  document.getElementById('careers-view-hof').style.display=view==='hof'?'':'none';
+  if(view==='hof')buildHallOfFame();
 }
 
 // ── CAREERS TAB ──
@@ -3854,7 +4241,7 @@ function buildSeasonStandingsData(year,maxWeek=14){
   // Compute median W/L from raw weekly data
   Object.entries(raw).forEach(([_wk,weekData])=>{
     if(Number(_wk)>maxWeek)return;
-    if(!weekData||!weekData.length)return;
+    if(!weekWasPlayed(weekData))return;
     const scores=weekData.filter(e=>e.matchup_id&&e.points!=null);
     if(!scores.length)return;
     const vals=scores.map(e=>e.points||0).sort((a,b)=>a-b);
@@ -3877,11 +4264,16 @@ function buildSeasonStandings(container){
   const cur26=document.createElement('div');
   cur26.style.cssText='margin-bottom:36px;';
   const raw2026=loadPerm('tol_matchups_2026');
+  // Capped at REG_WEEKS on purpose. This scan used to run over all 17 weeks and
+  // hand the result straight to buildSeasonStandingsData as maxWeek, so from
+  // Week 15 onward the standings would have quietly absorbed playoff AND
+  // consolation results into the regular-season W/L, PF and PA — and captioned
+  // itself "Through Week 17". Standings are a regular-season object.
   let latestWeek2026=0;
   if(raw2026){
     Object.entries(raw2026).forEach(([wk,data])=>{
-      if(data&&Array.isArray(data)&&data.some(e=>e&&(e.points||0)>0))
-        latestWeek2026=Math.max(latestWeek2026,Number(wk));
+      if(Number(wk)>REG_WEEKS)return;
+      if(weekWasPlayed(data))latestWeek2026=Math.max(latestWeek2026,Number(wk));
     });
   }
   const stats2026=latestWeek2026>0?buildSeasonStandingsData(2026,latestWeek2026):null;
@@ -4018,7 +4410,7 @@ function sortCareerByCol(col){
 function buildCareers(){
   const c=document.getElementById('careers-container');
   c.dataset.loaded='1';
-  buildLeaderStats();
+  buildHallOfFame();
   const years=[2023,2024,2025];
   const owners=Object.keys(TEAMS);
   const earnings={};
@@ -4064,7 +4456,12 @@ function buildCareers(){
   const theadHtml=`<thead id="career-thead"><tr>${careerCols.map(col=>
     `<th data-col="${col.col}" onclick="sortCareerByCol('${col.col}')">${col.label}<span class="sort-arrow">${col.col==='earn'?' ↓':' ↕'}</span></th>`
   ).join('')}</tr></thead>`;
-  c.innerHTML=`<table class="career-tbl">${theadHtml}<tbody id="career-tbody">${renderCareerTbody()}</tbody></table>`;
+  c.innerHTML=`<div class="sec-sub" style="margin-top:0">Career totals \u00b7 regular season only (wks 1\u201314) \u00b7 Click any column to sort</div>`+
+    `<table class="career-tbl">${theadHtml}<tbody id="career-tbody">${renderCareerTbody()}</tbody></table>`+
+    `<div class="sec-title" style="margin-top:34px">ALL-TIME RECORD BOOK</div>`+
+    `<div class="sec-sub">Single-game and single-season extremes · regular season only (wks 1–14) · 2023–present</div>`+
+    `<div id="record-book"></div>`;
+  buildRecordBook();
   buildSeasonStandings(c);
 }
 
@@ -6196,8 +6593,8 @@ async function init(){
   // Keep SDATA in sync with the league's real scoring settings (see
   // applyLeagueScoring). Fire-and-forget — the hardcoded fallback is correct.
   refreshScoringOverlay();
-  // Populate the leaders banner immediately from static + any already-cached data
-  buildLeaderStats();
+  // Populate the Hall of Fame immediately from static + any already-cached data
+  buildHallOfFame();
   // Background: discover past league IDs, then prefetch historical data for banner stats
   findLeagueIds().then(ids=>{
     // Prefetch matchup data for career wins stat
@@ -6207,7 +6604,9 @@ async function init(){
         matchupFetches.push(fetchAllMatchups(ids[year],year).catch(()=>{}));
       }
     });
-    if(matchupFetches.length)Promise.all(matchupFetches).then(()=>buildLeaderStats()).catch(()=>{});
+    // Rebuild BOTH sub-tabs — the record book and career table are built from
+    // this data too, and on a cold browser they render empty until it lands.
+    if(matchupFetches.length)Promise.all(matchupFetches).then(()=>{invalidateAllTimeStats();buildCareers();buildHallOfFame();}).catch(()=>{});
     // Prefetch draft picks for 2024 and 2025 to populate the most draft picks stat
     [2024,2025].forEach(year=>{
       if(ids[year]&&!loadPerm(`tol_drafts_${year}`)){
@@ -6215,7 +6614,7 @@ async function init(){
           if(!drafts||!drafts.length)return;
           const d=drafts.find(x=>x.type==='snake')||drafts[0];
           return api(`/draft/${d.draft_id}/picks`).then(picks=>{
-            if(picks){savePerm(`tol_drafts_${year}`,picks);buildLeaderStats();}
+            if(picks){savePerm(`tol_drafts_${year}`,picks);buildHallOfFame();}
           });
         }).catch(()=>{});
       }
@@ -6223,7 +6622,7 @@ async function init(){
     // Prefetch transactions for 2023–2025 to populate the most trades stat
     [2023,2024,2025].forEach(year=>{
       if(ids[year]&&!loadPerm(`tol_txn_${year}`)){
-        fetchTransactions(ids[year],year).then(()=>buildLeaderStats()).catch(()=>{});
+        fetchTransactions(ids[year],year).then(()=>buildHallOfFame()).catch(()=>{});
       }
     });
     // Prefetch 2026 transactions (cleared on Refresh so count stays current)
