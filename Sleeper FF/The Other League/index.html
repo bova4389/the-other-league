@@ -1682,6 +1682,46 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   .wk-rec { font-size: 8.5px; padding: 2px 4px; margin-right: 5px; }
   .match-med { padding: 5px 11px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RIVALRIES TAB — HEAD-TO-HEAD EXPLORER + NEMESIS BOARD (Phase 2)
+   Everything except the picker grid itself reuses existing classes wholesale
+   — .riv-card / .riv-at-row / .riv-history / .dtbl for the detail card and
+   game log. The grid needed new classes because nothing else on the site is
+   a clickable matchup matrix.
+   ══════════════════════════════════════════════════════════════════════════ */
+.h2h-grid-tbl th, .h2h-grid-tbl td { text-align: center; white-space: nowrap; }
+.h2h-grid-tbl th {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  padding: 6px 7px;
+  border-bottom: 1px solid var(--border);
+}
+.h2h-row-lbl { text-align: left !important; color: var(--text2) !important; }
+.h2h-cell { padding: 3px !important; border-bottom: 1px solid var(--border); }
+.h2h-cell button {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  padding: 5px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  transition: border-color .12s, color .12s;
+}
+.h2h-cell button:hover { border-color: var(--accent); color: var(--accent); }
+.h2h-cell.lead button { color: var(--accent); }
+.h2h-cell.trail button { color: var(--accent3); }
+.h2h-self, .h2h-none { color: var(--muted); font-size: 11px; }
+
+@media(max-width:680px){
+  .h2h-grid-tbl th, .h2h-cell button { font-size: 9px; padding: 4px 5px; }
+}
 </style>
 </head>
 <body class="is-home">
@@ -2076,6 +2116,20 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
       <div class="sec-sub">6 Pairs · Play Twice · $$ Implications · H2H Only (No Median)</div>
       <div class="note"><strong>Rivalry week rules:</strong> Only H2H result counts — no league median win available. Point totals are tiebreaker. Treat these as must-win weeks regardless of season standing.</div>
       <div class="riv-grid" id="rivalry-grid"></div>
+
+      <div style="margin-top:28px;">
+        <div class="sec-row-label">Head-to-Head Explorer</div>
+        <div class="sec-sub">Any Two Managers · All-Time Record · Full Game Log</div>
+        <div class="note">Pick any two managers to see their complete head-to-head history — every regular-season meeting since 2023, not just the six official rivalries above.</div>
+        <div id="h2h-picker-grid"></div>
+        <div id="h2h-detail"></div>
+      </div>
+
+      <div style="margin-top:28px;">
+        <div class="sec-row-label">Nemesis Board</div>
+        <div class="sec-sub">Who Each Manager Simply Cannot Beat (min. 2 meetings)</div>
+        <div id="nemesis-board"></div>
+      </div>
     </div>
 
     <!-- DRAFT -->
@@ -3406,6 +3460,163 @@ function findRivalWeeks(year,ridA,ridB,maxWeek=14){
   return weeks.sort((a,b)=>a-b);
 }
 
+// ── HEAD-TO-HEAD EXPLORER (Phase 2) ──
+// The 6 RIVALS cards above are scoped 2025+ by design (rivalries didn't exist
+// before then). This is a different question — "any two managers, ever" — so
+// it walks every cached season back to 2023, same guards as buildH2HMap
+// (weekWasPlayed, REG_WEEKS-capped) so it can never disagree with the
+// all-time totals shown elsewhere on the site.
+function buildAllTimePairs(){
+  const pairs={};
+  for(const year of[2023,2024,2025,2026]){
+    const data=loadPerm(`tol_matchups_${year}`);
+    if(!data)continue;
+    Object.entries(data).forEach(([wk,weekData])=>{
+      if(Number(wk)>REG_WEEKS)return;
+      if(!weekWasPlayed(weekData))return;
+      const groups={};
+      weekData.forEach(e=>{if(e.matchup_id){(groups[e.matchup_id]=groups[e.matchup_id]||[]).push(e);}});
+      Object.values(groups).forEach(pair=>{
+        if(pair.length!==2)return;
+        const[a,b]=pair;
+        const lo=Math.min(a.roster_id,b.roster_id),hi=Math.max(a.roster_id,b.roster_id);
+        const loE=a.roster_id===lo?a:b,hiE=a.roster_id===hi?a:b;
+        const key=`${lo}|${hi}`;
+        if(!pairs[key])pairs[key]={lo,hi,games:[]};
+        pairs[key].games.push({year:Number(year),week:Number(wk),loPts:loE.points||0,hiPts:hiE.points||0});
+      });
+    });
+  }
+  return pairs;
+}
+
+// Orients one pair's games to ridX's point of view. Returns null if the two
+// have never played a regular-season game against each other — a normal
+// state, not an error: most of the 66 possible pairs have only 1-2 meetings
+// in a 4-season history, and some have none at all.
+function pairView(pairs,ridX,ridY){
+  const lo=Math.min(ridX,ridY),hi=Math.max(ridX,ridY);
+  const p=pairs[`${lo}|${hi}`];
+  if(!p||!p.games.length)return null;
+  const xIsLo=ridX===lo;
+  let w=0,l=0,tie=0,pf=0,pa=0,marginSum=0;
+  const games=p.games.slice().sort((a,b)=>a.year-b.year||a.week-b.week).map(g=>{
+    const xPts=xIsLo?g.loPts:g.hiPts,yPts=xIsLo?g.hiPts:g.loPts;
+    pf+=xPts;pa+=yPts;
+    marginSum+=Math.abs(xPts-yPts);
+    const isTie=xPts===yPts;
+    if(isTie)tie++;else if(xPts>yPts)w++;else l++;
+    return{year:g.year,week:g.week,xPts,yPts,win:xPts>yPts,tie:isTie};
+  });
+  return{w,l,tie,gp:games.length,pf,pa,avgMargin:games.length?marginSum/games.length:0,games};
+}
+
+// Worst-record opponent per manager, gated on a minimum sample so one loss
+// to someone played only once doesn't crown a "nemesis" off a single game.
+function computeNemesisMap(minGames){
+  const h2h=buildH2HMap();
+  const out={};
+  Object.entries(RM).forEach(([ridStr,uid])=>{
+    const opps=h2h[Number(ridStr)]||{};
+    let worst=null;
+    Object.entries(opps).forEach(([oppRidStr,rec])=>{
+      const gp=rec.w+rec.l;
+      if(gp<minGames)return;
+      const winPct=rec.w/gp;
+      if(!worst||winPct<worst.winPct||(winPct===worst.winPct&&rec.l>worst.l)){
+        worst={oppRid:Number(oppRidStr),w:rec.w,l:rec.l,winPct};
+      }
+    });
+    out[uid]=worst;
+  });
+  return out;
+}
+
+let _h2hPairs=null;
+let _h2hSelected=null; // {ridX, ridY} — persists across Rivalries re-renders
+
+function buildH2HPicker(){
+  const wrap=document.getElementById('h2h-picker-grid');
+  if(!wrap)return;
+  _h2hPairs=buildAllTimePairs();
+  const rids=Object.keys(RM).map(Number).sort((a,b)=>a-b);
+  let html='<div style="overflow-x:auto"><table class="dtbl h2h-grid-tbl"><thead><tr><th></th>';
+  rids.forEach(rid=>{html+=`<th>${esc(abbrev(t(RM[rid]).name))}</th>`;});
+  html+='</tr></thead><tbody>';
+  rids.forEach(ridRow=>{
+    html+=`<tr><th class="h2h-row-lbl">${esc(abbrev(t(RM[ridRow]).name))}</th>`;
+    rids.forEach(ridCol=>{
+      if(ridRow===ridCol){html+='<td class="h2h-cell h2h-self">&mdash;</td>';return;}
+      const v=pairView(_h2hPairs,ridRow,ridCol);
+      if(!v){html+='<td class="h2h-cell h2h-none">&middot;</td>';return;}
+      const cls=v.w>v.l?'lead':v.w<v.l?'trail':'even';
+      html+=`<td class="h2h-cell ${cls}"><button type="button" onclick="selectH2HPair(${ridRow},${ridCol})">${v.w}-${v.l}</button></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  wrap.innerHTML=html;
+}
+
+function selectH2HPair(ridX,ridY){
+  _h2hSelected={ridX,ridY};
+  renderH2HDetail();
+}
+
+function renderH2HDetail(){
+  const c=document.getElementById('h2h-detail');
+  if(!c)return;
+  if(!_h2hSelected){
+    c.innerHTML='<div class="note" style="margin-top:12px">Click any cell above to see the full head-to-head history for that matchup.</div>';
+    return;
+  }
+  const{ridX,ridY}=_h2hSelected;
+  const v=pairView(_h2hPairs,ridX,ridY);
+  const nameX=t(RM[ridX]).name,nameY=t(RM[ridY]).name;
+  if(!v){
+    c.innerHTML=`<div class="note" style="margin-top:12px">${esc(nameX)} and ${esc(nameY)} haven't played a regular-season game against each other since 2023.</div>`;
+    return;
+  }
+  const rows=v.games.map(g=>{
+    const winner=g.tie?'Tie':(g.win?nameX:nameY);
+    return`<tr><td>${g.year}</td><td><a href="#" onclick="goToScoresWeek(${g.year},${g.week});return false;" class="riv-wk-link">W${g.week}</a></td>
+      <td>${g.xPts.toFixed(2)} &ndash; ${g.yPts.toFixed(2)}</td><td>${esc(winner)}</td></tr>`;
+  }).join('');
+  c.innerHTML=`
+    <div class="riv-card" style="margin-top:14px;">
+      <div class="riv-names">
+        <div class="rv-nm"><div class="rv-n">${esc(nameX)}</div><div class="rv-t">${esc(t(RM[ridX]).team)}</div></div>
+        <div class="vs-b">VS</div>
+        <div class="rv-nm"><div class="rv-n">${esc(nameY)}</div><div class="rv-t">${esc(t(RM[ridY]).team)}</div></div>
+      </div>
+      <div class="riv-at-row">
+        <div class="riv-at-col"><span class="riv-at-nm">${esc(abbrev(nameX))}</span><span class="riv-at-stat">${v.w}W &middot; ${v.pf.toFixed(1)} pts</span></div>
+        <span class="riv-at-sep">vs</span>
+        <div class="riv-at-col riv-at-col-r"><span class="riv-at-nm">${esc(abbrev(nameY))}</span><span class="riv-at-stat">${v.l}W &middot; ${v.pa.toFixed(1)} pts</span></div>
+      </div>
+      <div class="riv-rec-yr">Avg. margin ${v.avgMargin.toFixed(1)} pts &middot; ${v.gp} all-time meeting${v.gp===1?'':'s'}${v.tie?` &middot; ${v.tie} tie${v.tie===1?'':'s'}`:''}</div>
+      <div class="riv-history">
+        <div class="riv-rec-label">Game Log</div>
+        <div style="overflow-x:auto"><table class="dtbl"><thead><tr><th>Year</th><th>Week</th><th>Score</th><th>Winner</th></tr></thead><tbody>${rows}</tbody></table></div>
+      </div>
+    </div>`;
+}
+
+function buildNemesisBoard(){
+  const c=document.getElementById('nemesis-board');
+  if(!c)return;
+  const map=computeNemesisMap(2);
+  const uids=Object.keys(TEAMS).sort((a,b)=>t(a).name.localeCompare(t(b).name));
+  const rows=uids.map(uid=>{
+    const n=map[uid];
+    const cell=n
+      ?`${esc(t(RM[n.oppRid]).name)} <span class="hof-sub" style="margin-left:6px">${n.w}-${n.l}</span>`
+      :'<span class="hof-sub">Not enough data yet</span>';
+    return`<tr><td>${esc(t(uid).name)}</td><td>${cell}</td></tr>`;
+  }).join('');
+  c.innerHTML=`<div style="overflow-x:auto"><table class="dtbl"><thead><tr><th>Manager</th><th>Nemesis</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 function buildRivalries(){
   const g=document.getElementById('rivalry-grid');
   g.innerHTML='';
@@ -3474,6 +3685,9 @@ function buildRivalries(){
       </div>`:''}
     </div>`;
   });
+  buildH2HPicker();
+  renderH2HDetail();
+  buildNemesisBoard();
 }
 
 // ── FETCH TRANSACTIONS FOR A SEASON ──

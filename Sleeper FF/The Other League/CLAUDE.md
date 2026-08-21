@@ -169,7 +169,10 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `grade-card-{uid}` — per-team raw-metric card, **admin only** (`?admin=1`), rendered by `renderGradeAdminCard`. Still reuses `.r-card`/`.rch`/`.rcb`/`.pg`.
 
 ### Rivalries Panel
-- `rivalry-grid` — rivalry matchup cards
+- `rivalry-grid` — the 6 official rivalry cards
+- `h2h-picker-grid` — Phase 2 clickable 12x12 all-time matchup grid (`buildH2HPicker`)
+- `h2h-detail` — Phase 2 selected-pair detail card + game log (`renderH2HDetail`)
+- `nemesis-board` — Phase 2 per-manager worst-opponent table (`buildNemesisBoard`)
 
 ### Draft Panel
 - `draft-view-past` — visible by default; all years including 2026 render here via `buildDraftHistory()`
@@ -328,9 +331,19 @@ State variables: `currentTxnTeams`, `currentRosterTeams`, `currentDraftTeams` �
 - `buildRosters(rostersData, playersData)` — renders 12 roster cards with position-colored player chips; calls `buildTeamFilterChips` and `applyRosterFilter` after rendering
 
 ### Rivalries
-- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit; always shows a "2026: TBD · W4 W13" placeholder row for each rivalry until live matchup data is available
+- `buildRivalries()` — renders 6 rivalry cards; re-renders on every tab visit; always shows a "2026: TBD · W4 W13" placeholder row for each rivalry until live matchup data is available. Also calls the three Phase 2 builders below, every visit.
 - `buildH2HForYear(year, maxWeek)` — builds H2H map from cached matchup data for a single year (up to `maxWeek`; default 17)
 - `findRivalWeeks(year, ridA, ridB, maxWeek)` — returns sorted list of week numbers where two roster IDs faced each other (default `maxWeek=14`)
+
+### Head-to-Head Explorer + Nemesis Board (Phase 2 — built 2026-08-21)
+Deliberately a **different question** from the 6 `RIVALS` cards above: "any two managers, ever," not just the 6 pairs the league formally calls rivals. So it does **not** inherit the "2025+ only" scoping those cards use (see KEY DESIGN DECISIONS) — it walks every cached season back to 2023, same guards as `buildH2HMap` (`weekWasPlayed`, `REG_WEEKS`-capped), so it can never disagree with the all-time totals shown elsewhere on the site. Verified against synthetic matchup data covering a win, a loss, a tie, an unplayed week (all-zero points) and a week 15 game — the unplayed week and the post-`REG_WEEKS` week are both correctly excluded, and win/loss/tie/margin/chronological-sort all came back exact.
+
+- `buildAllTimePairs()` — one walk over `tol_matchups_{year}` for 2023–2026, grouping every regular-season matchup by roster-id pair (keyed `lo|hi`, lower roster_id first) into a `games[]` array. Not memoised — recomputed on every `buildRivalries()` call, same as `buildH2HMap`; cheap at this data volume (4 seasons × 14 weeks × 6 games).
+- `pairView(pairs, ridX, ridY)` — orients one pair's games to `ridX`'s point of view: `{w, l, tie, gp, pf, pa, avgMargin, games[]}`, sorted chronologically. Returns `null` when the two have never played a regular-season game against each other — a normal state (most of the 66 possible pairs have only 1–2 meetings across 4 seasons, some none at all), not an error condition; callers render a plain sentence for it rather than an empty table.
+- `computeNemesisMap(minGames)` — thin wrapper over `buildH2HMap()`: per manager, the opponent with the worst win% among opponents played at least `minGames` times (Nemesis Board uses 2), tie-broken toward more losses. Gating on a minimum sample means one loss to someone played only once can't crown a "nemesis."
+- `buildH2HPicker()` — renders the 12×12 clickable grid into `#h2h-picker-grid`. Cell color: `.lead`/`.trail`/(default) via `--accent`/`--accent3`, matching the fav/dog-style axis used elsewhere on the site. Clicking a cell calls `selectH2HPair`.
+- `selectH2HPair(ridX, ridY)` / `renderH2HDetail()` — `_h2hSelected` is a module-level var that persists across re-renders (a Rivalries tab revisit doesn't lose the pair you had open). Detail card reuses `.riv-card`/`.riv-at-row`/`.riv-history` wholesale from the existing rivalry cards, plus a `.dtbl` game log table with a `goToScoresWeek` link per game, same pattern as the official rivalry cards' week links.
+- `buildNemesisBoard()` — renders `#nemesis-board` as a 12-row `.dtbl`, one row per manager sorted by name, reusing `.hof-sub` for the record text. "Not enough data yet" for anyone with no opponent meeting the 2-game minimum.
 
 ### Player Stats
 State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `'all'`), `currentStatsWeek` (default `'season'`), `statsShowPass`, `statsShowRush`, `statsShowRec` (all default `true` — control column group visibility), `currentStatsTeams` (Set — roster_ids; `0` = free agents; empty = all teams).
@@ -643,14 +656,17 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 
 ---
 
-### Phase 2 — Head-to-Head Rivalry History
-**Goal:** Expand the existing Rivalries tab with full all-time H2H detail.
-- All-time H2H record between any two managers (clickable matchup grid)
-- Full game log per rivalry (date, scores, winner)
-- Average margin of victory per matchup
-- "Nemesis" stat — who has the worst record against a specific opponent
+### Phase 2 — Head-to-Head Rivalry History — **shipped 2026-08-21**
+**Goal:** Expand the existing Rivalries tab with full all-time H2H detail. See "Head-to-Head Explorer + Nemesis Board" under JAVASCRIPT FUNCTIONS for the full mechanics.
 
-**Data source:** Sleeper matchup API by week — same data used by `buildH2HMap()`. **Complexity: Low-medium.**
+- ✅ All-time H2H record between any two managers (clickable matchup grid) — `buildH2HPicker()`, a 12×12 grid covering all 66 possible pairs, not just the 6 official rivalries
+- ✅ Full game log per rivalry (date, scores, winner) — `renderH2HDetail()`, with a `goToScoresWeek` link per game
+- ✅ Average margin of victory per matchup — `pairView().avgMargin`, shown on the detail card
+- ✅ "Nemesis" stat — `computeNemesisMap()` + `buildNemesisBoard()`, gated on a 2-game minimum sample
+
+**Scoping decision:** unlike the 6 `RIVALS` cards (2025+ only — see KEY DESIGN DECISIONS), this covers every meeting back to 2023. "Any two managers" is a genuinely different, broader question than "the 6 pairs the league calls rivals," so it gets the real history rather than inheriting the rivalry-era cutoff.
+
+**Data source:** the same cached `tol_matchups_{year}` and guards (`weekWasPlayed`, `REG_WEEKS`) as `buildH2HMap()` — no new fetch, so it costs nothing extra to load. **Complexity was Low-medium as scoped**, and stayed there: the whole feature is 214 lines, purely additive, no existing function's behavior changed.
 
 ---
 
