@@ -2182,6 +2182,74 @@ body.pf-locked { overflow: hidden; }
 [data-theme="light"] .pf-award.won { background: rgba(191,140,20,.09); border-color: rgba(191,140,20,.42); }
 [data-theme="light"] .pf-note { background: rgba(191,140,20,.09); border-color: rgba(191,140,20,.34); }
 
+/* ══════════════════════════════════════════════════════════════════
+   NAV CONSOLIDATION — five tabs, header refresh, home rule card
+   ══════════════════════════════════════════════════════════════════ */
+
+/* 2027 rule card on the home panel, rescued from the deleted Rules tab.
+   Echoes .champ-card's centred proportions so the home column still reads
+   as one stack. */
+.home-rule-card {
+  max-width: 560px;
+  margin: 0 auto 26px;
+  padding: 16px 20px;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+.hrc-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--accent3);
+  margin-bottom: 8px;
+}
+.hrc-rule {
+  font-family: 'Saira Condensed', sans-serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(17px, 4.4vw, 23px);
+  letter-spacing: .02em;
+  color: var(--accent);
+  margin-bottom: 7px;
+}
+.hrc-note {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+[data-theme="dark"] .home-rule-card {
+  background: linear-gradient(145deg, #120D26 0%, #0C0920 100%);
+  border-color: #2A1C54;
+}
+[data-theme="dark"] .hrc-rule { text-shadow: 0 0 12px rgba(33,245,228,.45); }
+[data-theme="light"] .home-rule-card { background: var(--card); border-color: var(--border); }
+
+/* Refresh moved out of the nav and into the header beside the theme toggle.
+   It was never a destination, and holding a nav slot for it cost the fifth
+   tab the mobile grid needed. Styled off .toggle-btn, its new neighbour. */
+.hdr-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+.hdr-refresh-btn .hrb-icon { font-size: 13px; line-height: 1; transition: transform .5s; }
+.hdr-refresh-btn:hover .hrb-icon { transform: rotate(180deg); }
+
+/* Five tabs at 20% is exactly one mobile row — the nav no longer wraps.
+   Adding a sixth tab puts the second row back; that is the constraint the
+   merges were done to buy, so weigh it before adding one. */
+@media(max-width:680px){
+  .icon-nav { flex-wrap: nowrap; }
+  .hdr-refresh-btn .hrb-lbl { display: none; }
+}
+
 </style>
 </head>
 <body class="is-home">
@@ -2199,6 +2267,10 @@ body.pf-locked { overflow: hidden; }
   <div class="hdr-right">
     <div class="hdr-top">
       <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="sleeper-link hdr-sleeper-link">Open in Sleeper ↗</a>
+      <div class="toggle-btn hdr-refresh-btn" onclick="refreshData()" id="nav-refresh-btn" title="Refresh data from Sleeper">
+        <span class="hrb-icon">↺</span>
+        <span class="hrb-lbl">Refresh</span>
+      </div>
       <div class="toggle-btn" onclick="toggleTheme()">
         <span id="t-icon">🌙</span>
         <span id="t-lbl">Dark</span>
@@ -2209,43 +2281,23 @@ body.pf-locked { overflow: hidden; }
 <nav class="icon-nav">
   <div class="icon-tab" onclick="showTab('careers',this)" data-tab="careers">
     <span class="itab-icon">📊</span>
-    <span class="itab-label">Careers</span>
+    <span class="itab-label">History</span>
+  </div>
+  <div class="icon-tab" onclick="showTab('rosters',this)" data-tab="rosters">
+    <span class="itab-icon">📋</span>
+    <span class="itab-label">Teams</span>
   </div>
   <div class="icon-tab" onclick="showTab('scores',this)" data-tab="scores">
     <span class="itab-icon">🏈</span>
     <span class="itab-label">Scores</span>
   </div>
-  <div class="icon-tab" onclick="showTab('rivalries',this)" data-tab="rivalries">
-    <span class="itab-icon">⚔️</span>
-    <span class="itab-label">Rivalries</span>
+  <div class="icon-tab" onclick="showTab('draft',this)" data-tab="draft">
+    <span class="itab-icon">🎯</span>
+    <span class="itab-label">Moves</span>
   </div>
   <div class="icon-tab" onclick="showTab('trade',this)" data-tab="trade">
     <span class="itab-icon">⚖️</span>
-    <span class="itab-label">Trade Eval</span>
-  </div>
-  <div class="icon-tab" onclick="showTab('rosters',this)" data-tab="rosters">
-    <span class="itab-icon">📋</span>
-    <span class="itab-label">Rosters</span>
-  </div>
-  <div class="icon-tab" onclick="showTab('draft',this)" data-tab="draft">
-    <span class="itab-icon">🎯</span>
-    <span class="itab-label">Draft</span>
-  </div>
-  <div class="icon-tab" onclick="showTab('stats',this)" data-tab="stats">
-    <span class="itab-icon">📈</span>
-    <span class="itab-label">Stats</span>
-  </div>
-  <div class="icon-tab" onclick="showTab('transactions',this)" data-tab="transactions">
-    <span class="itab-icon">🔄</span>
-    <span class="itab-label">Txns</span>
-  </div>
-  <div class="icon-tab" onclick="showTab('league',this)" data-tab="league">
-    <span class="itab-icon">ℹ️</span>
-    <span class="itab-label">Rules</span>
-  </div>
-  <div class="icon-tab nav-refresh-btn" onclick="refreshData()" id="nav-refresh-btn" title="Refresh Data">
-    <span class="itab-icon">↺</span>
-    <span class="itab-label">Refresh</span>
+    <span class="itab-label">Trade</span>
   </div>
 </nav>
 </div>
@@ -2302,6 +2354,19 @@ body.pf-locked { overflow: hidden; }
           </div>
         </div>
 
+        <!-- Rescued from the deleted Rules panel. Everything else on that
+             panel (format, lineup slots, waivers, the scoring grid) restated
+             what Sleeper already shows, and "Open in Sleeper" is in the
+             header. This card did not: a voted-in future rule change lives
+             nowhere else on the site, and it is live strategy, not
+             reference. Fold in any future voted-in change here. -->
+        <div class="home-section-title">2027 Rule Change</div>
+        <div class="home-rule-card">
+          <div class="hrc-kicker">Already voted in</div>
+          <div class="hrc-rule">1 WRRB_FLEX &rarr; WR/RB/TE FLEX</div>
+          <div class="hrc-note">Elevates TE value on top of the existing TE premium. Stack elite TEs before the market corrects.</div>
+        </div>
+
         <!-- Commissioner & League info -->
         <div class="home-league-meta">
           <div class="hlm-item">Commissioner · <span>Matt Bova</span></div>
@@ -2349,14 +2414,23 @@ body.pf-locked { overflow: hidden; }
     </div>
 
     <!-- ROSTERS -->
+    <!-- TEAMS — three views: Outlook (default) · Rosters · Player Stats.
+         Outlook leads because it is the page the league actually opens this
+         tab for. Title/subtitle are per-view — see ROSTER_VIEW_META in the JS;
+         a fixed "LEAGUE ROSTERS" header would be a lie above the other two.
+         Player Stats moved in here from the old top-level `panel-stats`. -->
     <div class="panel" id="panel-rosters">
-      <div class="sec-title">LEAGUE ROSTERS</div>
-      <div class="sec-sub">Live from Sleeper &middot; Number in parentheses = player age</div>
-      <div class="roster-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
-        <button class="yr-btn active" id="rview-teams-btn" onclick="setRosterView('teams',this)">Team Rosters</button>
-        <button class="yr-btn" id="rview-grades-btn" onclick="setRosterView('grades',this)">Grades &amp; Outlook</button>
+      <div class="sec-title" id="teams-title">ROSTER OUTLOOK</div>
+      <div class="sec-sub" id="teams-sub">Dynasty Grades &middot; Contention Window &middot; Top Assets</div>
+      <div class="roster-view-toggle" id="teams-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
+        <button class="yr-btn active" id="rview-grades-btn" onclick="setRosterView('grades',this)">Outlook</button>
+        <button class="yr-btn" id="rview-teams-btn" onclick="setRosterView('teams',this)">Rosters</button>
+        <button class="yr-btn" id="rview-stats-btn" onclick="setRosterView('stats',this)">Player Stats</button>
       </div>
-      <div id="roster-view-teams">
+      <div id="roster-view-grades">
+        <div id="roster-grades-container"><div class="ld"><div class="spin"></div><div class="lt">Loading dynasty values...</div></div></div>
+      </div>
+      <div id="roster-view-teams" style="display:none">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
           <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Position colors:</span>
           <span class="chip pos-qb"><span class="cp">QB</span>Quarterback</span>
@@ -2367,15 +2441,7 @@ body.pf-locked { overflow: hidden; }
         <div id="roster-team-chips" class="filter-bar"></div>
         <div id="rosters-container"><div class="ld"><div class="spin"></div><div class="lt">Connecting to Sleeper...</div></div></div>
       </div>
-      <div id="roster-view-grades" style="display:none">
-        <div id="roster-grades-container"><div class="ld"><div class="spin"></div><div class="lt">Loading dynasty values...</div></div></div>
-      </div>
-    </div>
-
-    <!-- PLAYER STATS -->
-    <div class="panel" id="panel-stats">
-      <div class="sec-title">PLAYER STATS</div>
-      <div class="sec-sub">NFL Season Stats · Dynasty Roster Players · Raw Stats + Est. Fantasy Pts</div>
+      <div id="roster-view-stats" style="display:none">
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
         <div class="yr-toggle" id="stats-yr-toggle">
           <button class="yr-btn active" onclick="setStatsYear(2026,this)">2026</button>
@@ -2427,116 +2493,21 @@ body.pf-locked { overflow: hidden; }
         <button id="stats-clear-compare" onclick="clearStatsComparison()" style="display:none;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:2px;cursor:pointer;">Clear</button>
       </div>
       <div id="stats-container"><div class="ld"><div class="spin"></div><div class="lt">Loading stats...</div></div></div>
-    </div>
-
-    <!-- RULES (tab label: Rules; ids stay `league`/`panel-league`) -->
-    <!-- ============================================================
-         RULES PAGE — ANNUAL UPDATE CHECKLIST
-         Update these items at the end of each season:
-
-         1. PAYOUTS — NOT HERE ANY MORE. Payout cards moved to the
-            Careers year tabs on 2026-08-21 and now live in the
-            SEASON_PAYOUTS object in JS. Add a new year there, and
-            flip the prior year from "Pending" to "Final" once the
-            payout is settled. The itemised lines must still
-            reconcile to SEASON_HISTORY.payouts, which is what the
-            career-earnings column sums.
-
-         2. RULE UPDATES — Add a new card to the "Rule Updates"
-            info-grid if the league votes in any changes for the
-            upcoming season.
-
-         3. FORMAT & SETTINGS — Update if roster slots, lineup
-            spots, waiver rules, or trade deadline change.
-
-         4. SCORING SETTINGS — Scoring values are dynamic via SDATA
-            in JS. Only update SDATA if scoring rules change.
-
-         NOTE: #score-grid is populated by buildScoring() from
-         SDATA — do NOT hardcode scoring values here.
-    ============================================================ -->
-    <div class="panel" id="panel-league">
-      <div class="sec-title">LEAGUE RULES</div>
-      <div class="sec-sub">The Other League · Dynasty · ~Year 4</div>
-
-      <!-- ROW 2: Rule Updates -->
-      <div class="sec-row-label">Rule Updates</div>
-      <div class="info-grid" style="margin-bottom:24px;">
-        <div class="ic"><div class="ict">2027 Rule Change — Already Voted In</div>
-          <div class="note" style="margin:0;"><strong>1 WRRB_FLEX → WR/RB/TE FLEX</strong><br>Elevates TE value on top of existing TE premium. Stack elite TEs before the market corrects.</div>
-        </div>
-      </div>
-
-      <!-- ROW 3: Format & Settings -->
-      <div class="sec-row-label">Format & Settings</div>
-      <div class="info-grid">
-        <div class="ic"><div class="ict">Format</div>
-          <div class="ir-row"><span class="ik">Type</span><span class="iv">Dynasty</span></div>
-          <div class="ir-row"><span class="ik">Teams</span><span class="iv">12</span></div>
-          <div class="ir-row"><span class="ik">Total Starters</span><span class="iv">11</span></div>
-          <div class="ir-row"><span class="ik">Bench Slots</span><span class="iv">15</span></div>
-          <div class="ir-row"><span class="ik">Taxi Squad</span><span class="iv">3 (vets OK, 2yr max)</span></div>
-          <div class="ir-row"><span class="ik">IR Slots</span><span class="iv">2</span></div>
-        </div>
-        <div class="ic"><div class="ict">Starter Lineup</div>
-          <div class="ir-row"><span class="ik">QB</span><span class="iv">1</span></div>
-          <div class="ir-row"><span class="ik">RB</span><span class="iv">2</span></div>
-          <div class="ir-row"><span class="ik">WR</span><span class="iv">2</span></div>
-          <div class="ir-row"><span class="ik">TE</span><span class="iv">1</span></div>
-          <div class="ir-row"><span class="ik">FLEX (WR/RB)</span><span class="iv">1</span></div>
-          <div class="ir-row"><span class="ik">WRRB FLEX</span><span class="iv">3</span></div>
-          <div class="ir-row"><span class="ik">SUPER FLEX</span><span class="iv">1</span></div>
-        </div>
-        <div class="ic"><div class="ict">Waivers & Transactions</div>
-          <div class="ir-row"><span class="ik">System</span><span class="iv">Daily FAAB</span></div>
-          <div class="ir-row"><span class="ik">Budget</span><span class="iv">$200/season</span></div>
-          <div class="ir-row"><span class="ik">Awarded</span><span class="iv">Next day</span></div>
-          <div class="ir-row"><span class="ik">Sunday</span><span class="iv">Free agent (open)</span></div>
-          <div class="ir-row"><span class="ik">Trade Deadline</span><span class="iv">Week 14</span></div>
-          <div class="ir-row"><span class="ik">Pick Trading</span><span class="iv">Up to 2 yrs out</span></div>
-        </div>
-        <div class="ic"><div class="ict">Playoffs & Scoring</div>
-          <div class="ir-row"><span class="ik">Playoff Teams</span><span class="iv">6</span></div>
-          <div class="ir-row"><span class="ik">Starts</span><span class="iv">Week 15</span></div>
-          <div class="ir-row"><span class="ik">Wins/Week</span><span class="iv">2 (H2H + Median)</span></div>
-          <div class="ir-row"><span class="ik">Rivalry Weeks</span><span class="iv">H2H only (no median)</span></div>
-          <div class="ir-row"><span class="ik">Rival Games</span><span class="iv">2x per season</span></div>
-        </div>
-      </div>
-      <div style="margin-top:28px;">
-        <div class="sec-row-label">Scoring Settings</div>
-        <div class="sec-sub">PPR · TE Premium · Distance Bonuses · Super Flex</div>
-        <div class="note"><strong>Key implications:</strong> Receptions pay by distance rather than a flat point each (0.5&ndash;2.0 per catch), so this rewards volume receivers who also push the ball downfield. TE premium (+0.5/rec) + 2027 TE flex upgrade = stack elite TEs now. Super Flex strongly rewards legitimate QB2 depth. Distance bonuses favor downfield threats and big-play backs over checkdown merchants.</div>
-        <div class="sc-grid" id="score-grid"></div>
       </div>
     </div>
 
-    <!-- RIVALRIES -->
-    <div class="panel" id="panel-rivalries">
-      <div class="sec-title">RIVALRY MATCHUPS</div>
-      <div class="sec-sub">6 Pairs · Play Twice · $$ Implications · H2H Only (No Median)</div>
-      <div class="note"><strong>Rivalry week rules:</strong> Only H2H result counts — no league median win available. Point totals are tiebreaker. Treat these as must-win weeks regardless of season standing.</div>
-      <div class="riv-grid" id="rivalry-grid"></div>
-
-      <div style="margin-top:28px;">
-        <div class="sec-row-label">Head-to-Head Explorer</div>
-        <div class="sec-sub">Any Two Managers · All-Time Record · Full Game Log</div>
-        <div class="note">Pick any two managers to see their complete head-to-head history — every regular-season meeting since 2023, not just the six official rivalries above.</div>
-        <div id="h2h-picker-grid"></div>
-        <div id="h2h-detail"></div>
-      </div>
-
-      <div style="margin-top:28px;">
-        <div class="sec-row-label">Nemesis Board</div>
-        <div class="sec-sub">Who Each Manager Simply Cannot Beat (min. 2 meetings)</div>
-        <div id="nemesis-board"></div>
-      </div>
-    </div>
-
-    <!-- DRAFT -->
+    <!-- MOVES — two views: Draft (default) · Trades & Waivers.
+         Both answer the same question — how players changed hands — and both
+         are year-filtered logs, so they were two tabs doing one job. Ids stay
+         `draft`/`panel-draft`; #transactions is kept alive in TAB_ALIASES. -->
     <div class="panel" id="panel-draft">
-      <div class="sec-title">ROOKIE DRAFT</div>
-      <div class="sec-sub">4 Rounds · Linear Format (2026) · Consolation Pick 1.13</div>
+      <div class="sec-title" id="moves-title">ROOKIE DRAFT</div>
+      <div class="sec-sub" id="moves-sub">4 Rounds &middot; Linear Format (2026) &middot; Consolation Pick 1.13</div>
+      <div class="roster-view-toggle" id="moves-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
+        <button class="yr-btn active" id="mview-draft-btn" onclick="setMovesView('draft',this)">Draft</button>
+        <button class="yr-btn" id="mview-txn-btn" onclick="setMovesView('txn',this)">Trades &amp; Waivers</button>
+      </div>
+      <div id="moves-view-draft">
       <div class="yr-toggle">
         <button class="yr-btn active" onclick="setDraftYear('2026',this)">2026 Results</button>
         <button class="yr-btn" onclick="setDraftYear('2025',this)">2025 Results</button>
@@ -2568,12 +2539,8 @@ body.pf-locked { overflow: hidden; }
         </div>
         <div id="draft-past-board-view" style="display:none"></div>
       </div>
-    </div>
-
-    <!-- TRANSACTIONS -->
-    <div class="panel" id="panel-transactions">
-      <div class="sec-title">TRANSACTION LOG</div>
-      <div class="sec-sub">All Activity · Adds · Drops · Waivers · Trades</div>
+      </div>
+      <div id="moves-view-txn" style="display:none">
       <div class="yr-toggle" id="txn-yr-toggle">
         <button class="yr-btn" onclick="setTxnYear(2026,this)">2026</button>
         <button class="yr-btn active" onclick="setTxnYear(2025,this)">2025</button>
@@ -2593,40 +2560,70 @@ body.pf-locked { overflow: hidden; }
       </div>
       <div id="txn-player-results" style="display:none"></div>
       <div id="txn-container"><div class="ld"><div class="spin"></div><div class="lt">Loading transactions...</div></div></div>
+      </div>
     </div>
 
-    <!-- CAREERS -->
+    <!-- HISTORY (ids stay `careers`/`panel-careers`; see TAB_ALIASES) -->
     <div class="panel" id="panel-careers">
-      <div class="sec-title">LEAGUE HISTORY</div>
-      <div class="sec-sub">2023–2026 · Career Records · All-Time Bests</div>
-      <!-- Sub-tabs. "All Time" holds the career table + record book; each year
-           gets its own view with that season's standings beside its recap.
-           Adding a season = one button + one empty div here, plus the usual
-           SEASON_HISTORY / PLAYOFF_BRACKET_INFO entries and CAREER_YEARS. -->
-      <div class="careers-view-toggle" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;">
+      <div class="sec-title" id="history-title">MANAGERS</div>
+      <div class="sec-sub" id="history-sub">Twelve Managers &middot; Tap Anyone For Their Full Career Profile</div>
+      <!-- Five sub-tabs, and five is the ceiling. The four year buttons that
+           used to sit here became the year selector INSIDE Seasons, because
+           this row grew by one every September and had already crowded out
+           room for Rivalries. Adding a season is now a button in
+           #season-yr-toggle + an empty #careers-view-<year> div inside
+           #careers-view-seasons, plus the usual SEASON_HISTORY /
+           PLAYOFF_BRACKET_INFO entries and CAREER_YEARS. -->
+      <div class="careers-view-toggle" id="history-view-toggle" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;">
         <button class="yr-btn active" id="cview-profiles-btn" onclick="setCareersView('profiles',this)">Managers</button>
+        <button class="yr-btn" id="cview-seasons-btn" onclick="setCareersView('seasons',this)">Seasons</button>
         <button class="yr-btn" id="cview-records-btn" onclick="setCareersView('records',this)">All Time</button>
-        <button class="yr-btn" id="cview-hof-btn" onclick="setCareersView('hof',this)">Hall of Fame &amp; Shame</button>
-        <button class="yr-btn" id="cview-2026-btn" onclick="setCareersView('2026',this)">2026</button>
-        <button class="yr-btn" id="cview-2025-btn" onclick="setCareersView('2025',this)">2025</button>
-        <button class="yr-btn" id="cview-2024-btn" onclick="setCareersView('2024',this)">2024</button>
-        <button class="yr-btn" id="cview-2023-btn" onclick="setCareersView('2023',this)">2023</button>
+        <button class="yr-btn" id="cview-hof-btn" onclick="setCareersView('hof',this)">Hall of Fame</button>
+        <button class="yr-btn" id="cview-rivalries-btn" onclick="setCareersView('rivalries',this)">Rivalries</button>
       </div>
       <div id="careers-view-profiles">
-        <div class="sec-sub" style="margin-top:0">Tap anyone for their full career profile · every manager name on the site opens this</div>
         <div id="profile-grid"></div>
+      </div>
+      <div id="careers-view-seasons" style="display:none">
+        <div class="yr-toggle" id="season-yr-toggle" style="margin-bottom:16px;">
+          <button class="yr-btn active" id="syr-2026-btn" onclick="setSeasonYear(2026,this)">2026</button>
+          <button class="yr-btn" id="syr-2025-btn" onclick="setSeasonYear(2025,this)">2025</button>
+          <button class="yr-btn" id="syr-2024-btn" onclick="setSeasonYear(2024,this)">2024</button>
+          <button class="yr-btn" id="syr-2023-btn" onclick="setSeasonYear(2023,this)">2023</button>
+        </div>
+        <div id="careers-view-2026" style="display:none"></div>
+        <div id="careers-view-2025" style="display:none"></div>
+        <div id="careers-view-2024" style="display:none"></div>
+        <div id="careers-view-2023" style="display:none"></div>
       </div>
       <div id="careers-view-records" style="display:none">
         <div id="careers-container"></div>
       </div>
       <div id="careers-view-hof" style="display:none">
-        <div class="sec-sub" style="margin-top:0">One winner per award · all-time, regular season only (wks 1–14)</div>
         <div id="hof-container"><div class="ld"><div class="spin"></div><div class="lt">Tallying the receipts...</div></div></div>
       </div>
-      <div id="careers-view-2026" style="display:none"></div>
-      <div id="careers-view-2025" style="display:none"></div>
-      <div id="careers-view-2024" style="display:none"></div>
-      <div id="careers-view-2023" style="display:none"></div>
+      <!-- Rivalries — moved here from the old top-level `panel-rivalries`.
+           The rivalry pairs, the H2H explorer and the nemesis board are all
+           head-to-head history; they were the only history living outside
+           this tab. -->
+      <div id="careers-view-rivalries" style="display:none">
+        <div class="note"><strong>Rivalry week rules:</strong> Only H2H result counts — no league median win available. Point totals are tiebreaker. Treat these as must-win weeks regardless of season standing.</div>
+        <div class="riv-grid" id="rivalry-grid"></div>
+
+        <div style="margin-top:28px;">
+          <div class="sec-row-label">Head-to-Head Explorer</div>
+          <div class="sec-sub">Any Two Managers · All-Time Record · Full Game Log</div>
+          <div class="note">Pick any two managers to see their complete head-to-head history — every regular-season meeting since 2023, not just the six official rivalries above.</div>
+          <div id="h2h-picker-grid"></div>
+          <div id="h2h-detail"></div>
+        </div>
+
+        <div style="margin-top:28px;">
+          <div class="sec-row-label">Nemesis Board</div>
+          <div class="sec-sub">Who Each Manager Simply Cannot Beat (min. 2 meetings)</div>
+          <div id="nemesis-board"></div>
+        </div>
+      </div>
     </div>
 
     <!-- TRADE EVALUATOR -->
@@ -2951,26 +2948,7 @@ const SEASON_PAYOUTS = {
   },
 };
 
-const SLABELS = {
-  pass_td:'Pass TD',pass_yd:'Pass Yd (per)',pass_int:'Pass INT',pass_2pt:'Pass 2PT',
-  bonus_pass_yd_400:'Bonus 400+ Pass Yds',pass_td_40p:'Pass TD 40+ yds',
-  rush_td:'Rush TD',rush_yd:'Rush Yd (per)',rush_2pt:'Rush 2PT',
-  rush_40p:'Rush 40+ yd bonus',bonus_rush_yd_200:'Bonus 200+ Rush Yds',
-  rec:'Reception (flat)',rec_td:'Rec TD',rec_yd:'Rec Yd (per)',rec_2pt:'Rec 2PT',
-  bonus_rec_te:'TE Premium (per rec)',rec_0_4:'Rec 0–4 yds',rec_5_9:'Rec 5–9 yds',
-  rec_10_19:'Rec 10–19 yds',rec_20_29:'Rec 20–29 yds',rec_30_39:'Rec 30–39 yds',
-  rec_40p:'Rec 40+ yds',bonus_rec_yd_200:'Bonus 200+ Rec Yds',
-  fum_lost:'Fumble Lost',fum_rec:'Fumble Rec',fum_rec_td:'Fumble Rec TD',
-  sack:'Sack',int:'INT (Def)',def_td:'Def TD',ff:'Forced Fumble',
-  def_st_td:'Def ST TD',def_st_ff:'Def ST FF',def_st_fum_rec:'Def ST Fum Rec',
-  st_td:'ST TD',st_ff:'ST FF',st_fum_rec:'ST Fum Rec',
-  blk_kick:'Blocked Kick',safe:'Safety',kr_yd:'KR Yd (per)',pr_yd:'PR Yd (per)',
-  fgm_0_19:'FG 0–19',fgm_20_29:'FG 20–29',fgm_30_39:'FG 30–39',
-  fgm_40_49:'FG 40–49',fgm_50p:'FG 50+',fgmiss:'FG Miss',xpm:'XP Made',xpmiss:'XP Miss',
-  pts_allow_0:'Pts Allowed 0',pts_allow_1_6:'Pts Allowed 1–6',pts_allow_7_13:'Pts Allowed 7–13',
-  pts_allow_14_20:'Pts Allowed 14–20',pts_allow_21_27:'Pts Allowed 21–27',
-  pts_allow_28_34:'Pts Allowed 28–34',pts_allow_35p:'Pts Allowed 35+',
-};
+
 
 const SDATA = {"sack":1.0,"fgm_40_49":4.0,"bonus_rec_te":0.5,"pass_int":-2.0,"pts_allow_0":10.0,"bonus_pass_yd_400":2.0,"pass_2pt":2.0,"rec_0_4":0.5,"st_td":6.0,"rec_30_39":1.0,"rec_td":6.0,"rec_20_29":1.0,"fgm_30_39":3.0,"xpmiss":-1.0,"rush_td":6.0,"pass_td_40p":2.0,"rec_2pt":2.0,"pass_int_td":-1.0,"st_fum_rec":1.0,"fgmiss":-1.0,"ff":1.0,"rec":0.0,"pts_allow_14_20":1.0,"fgm_0_19":3.0,"int":2.0,"def_st_fum_rec":1.0,"fum_lost":-2.0,"pts_allow_1_6":7.0,"kr_yd":0.04,"rec_5_9":0.75,"fgm_20_29":3.0,"pts_allow_21_27":0.0,"xpm":1.0,"rec_40p":2.0,"rush_2pt":2.0,"fum_rec":2.0,"rec_10_19":1.0,"bonus_rec_yd_200":2.0,"def_st_td":6.0,"fgm_50p":5.0,"def_td":6.0,"bonus_rush_yd_200":2.0,"safe":2.0,"pass_yd":0.04,"blk_kick":2.0,"pass_td":4.0,"rush_yd":0.1,"rush_40p":1.0,"pr_yd":0.04,"fum":0.0,"pts_allow_28_34":-1.0,"pts_allow_35p":-4.0,"fum_rec_td":6.0,"rec_yd":0.1,"def_st_ff":1.0,"pts_allow_7_13":4.0,"st_ff":1.0};
 
@@ -3225,14 +3203,21 @@ async function refreshData(){
   _stats2026Cache=null;_projCache={};_projFilePromise={};_nflStatePromise=null; // re-fetch current season stats+projections
   cachedRosters=null;cachedPlayers=null;cachedLeague=null;window._futurePicksMap=null;
   _rosterReady=new Promise(r=>{_rosterReadyResolve=r;});
+  _gradesBuilt=false;_gradeState=null; // Outlook is built once; this is what makes Refresh rebuild it
+  delete document.getElementById('stats-container').dataset.loaded;
   document.getElementById('cache-dot').className='cache-dot';
   document.getElementById('cache-status-txt').textContent='Refreshing...';
   document.getElementById('refresh-btn').disabled=true;
   document.getElementById('rosters-container').innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Refreshing...</div></div>';
   document.getElementById('scores-container').innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Loading scores...</div></div>';
   delete document.getElementById('scores-container').dataset.loaded;
+  document.getElementById('roster-grades-container').innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Refreshing...</div></div>';
   await init();
   buildScores();
+  // Outlook is the Teams tab's default view, so it is very often what the
+  // user is looking at when they hit Refresh. Rebuild it in place rather than
+  // leaving a spinner until they toggle views.
+  if(document.getElementById('roster-view-grades').style.display!=='none')buildRosterGrades();
 }
 
 // ── SLEEPER API (with CORS fallback chain) ──
@@ -3573,7 +3558,10 @@ function setScoresWeek(week,el){
 
 // Navigate from Rivalry tab week links
 function goToScoresWeek(year,week){
-  showTab('scores',document.querySelector('.tab[onclick*="scores"]'));
+  // `.tab` is another selector left behind by the icon-nav rewrite — it has
+  // always returned null here. Harmless, because showTab falls back to the
+  // right nav element when `el` is falsy, but say what we mean.
+  showTab('scores');
   currentScoresYear=year;
   currentScoresWeek=week;
   // Update year toggle
@@ -4104,22 +4092,6 @@ async function buildRosters(rostersData,playersData){
   }catch(e){
     c.innerHTML=`<div class="err">⚠ Could not connect to Sleeper API.<br><br>${e.message}</div>`;
   }
-}
-
-// ── SCORING ──
-function buildScoring(){
-  const g=document.getElementById('score-grid');
-  const SCORING_EXCLUDE=new Set([
-    'sack','int','def_td','ff','def_st_td','def_st_ff','def_st_fum_rec','blk_kick','safe',
-    'pts_allow_0','pts_allow_1_6','pts_allow_7_13','pts_allow_14_20',
-    'pts_allow_21_27','pts_allow_28_34','pts_allow_35p',
-    'st_td','st_ff','st_fum_rec',
-    'fgm_0_19','fgm_20_29','fgm_30_39','fgm_40_49','fgm_50p','fgmiss','xpm','xpmiss'
-  ]);
-  Object.entries(SDATA).filter(([k,v])=>v!==0&&!SCORING_EXCLUDE.has(k)).forEach(([k,v])=>{
-    const lbl=SLABELS[k]||k.replace(/_/g,' ');
-    g.innerHTML+=`<div class="sci"><span class="sk">${lbl}</span><span class="svv ${v<0?'neg-c':'pos-c'}">${v>0?'+':''}${v}</span></div>`;
-  });
 }
 
 // ── RIVALRIES ──
@@ -5620,23 +5592,78 @@ document.addEventListener('keydown',e=>{
 // buttons and the #careers-view-<year> divs in the panel markup.
 const CAREER_YEARS=[2026,2025,2024,2023];
 
-// Sub-tab switcher for the Careers panel. Self-contained divs, same shape as
-// setRosterView, so any one view could be lifted into its own panel later.
-// Views: 'records' (career table + all-time record book), 'hof', and one per
-// season in CAREER_YEARS. Year views are lazy-built on first switch.
+// Sub-tab switcher for the History panel. Self-contained divs, same shape as
+// setRosterView. Views: 'profiles' (default), 'seasons', 'records' (career
+// table + all-time record book), 'hof', 'rivalries'.
+//
+// The individual years are NOT views here any more — 'seasons' is one view
+// holding all of them behind setSeasonYear(). Each view carries its own title
+// and subtitle, since a fixed "LEAGUE HISTORY" header described none of them
+// in particular.
+const HISTORY_VIEW_META={
+  profiles: {title:'MANAGERS',           sub:'Twelve Managers &middot; Tap Anyone For Their Full Career Profile'},
+  seasons:  {title:'SEASON BY SEASON',   sub:'Standings &middot; Payouts &middot; Recap &mdash; One Year At A Time'},
+  records:  {title:'ALL TIME',           sub:'2023&ndash;2026 &middot; Career Records &middot; All-Time Record Book'},
+  hof:      {title:'HALL OF FAME & SHAME',sub:'One Winner Per Award &middot; All-Time, Regular Season Only (Wks 1&ndash;14)'},
+  rivalries:{title:'RIVALRIES',          sub:'6 Pairs &middot; Play Twice &middot; H2H Only (No Median) &middot; Plus Any-Two-Managers History'},
+};
+
+// Which season the Seasons view is showing. Defaults to the newest.
+let currentSeasonYear=CAREER_YEARS[0];
+
 function setCareersView(view,el){
-  document.querySelectorAll('.careers-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
-  const pv=document.getElementById('careers-view-profiles');
-  if(pv)pv.style.display=view==='profiles'?'':'none';
-  document.getElementById('careers-view-records').style.display=view==='records'?'':'none';
-  document.getElementById('careers-view-hof').style.display=view==='hof'?'':'none';
-  CAREER_YEARS.forEach(y=>{
-    const d=document.getElementById('careers-view-'+y);
-    if(d)d.style.display=view===String(y)?'':'none';
+  // Scoped to #history-view-toggle so the year buttons inside the Seasons
+  // view can never be cleared by a top-level view switch.
+  document.querySelectorAll('#history-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  ['profiles','seasons','records','hof','rivalries'].forEach(v=>{
+    const d=document.getElementById('careers-view-'+v);
+    if(d)d.style.display=view===v?'':'none';
   });
+  const meta=HISTORY_VIEW_META[view];
+  if(meta){
+    document.getElementById('history-title').innerHTML=meta.title;
+    document.getElementById('history-sub').innerHTML=meta.sub;
+  }
   if(view==='profiles')buildProfileGrid();
   else if(view==='hof')buildHallOfFame();
-  else if(view!=='records')buildSeasonYear(Number(view));
+  else if(view==='rivalries')buildRivalries();
+  else if(view==='seasons')setSeasonYear(currentSeasonYear,document.getElementById('syr-'+currentSeasonYear+'-btn'));
+}
+
+// ── MOVES TAB (Draft + Trades & Waivers) ──
+// Same self-contained-divs pattern as setRosterView / setCareersView.
+const MOVES_VIEW_META={
+  draft:{title:'ROOKIE DRAFT',  sub:'4 Rounds &middot; Linear Format (2026) &middot; Consolation Pick 1.13'},
+  txn:  {title:'TRADES & WAIVERS',sub:'All Activity &middot; Adds &middot; Drops &middot; Waivers &middot; Trades'},
+};
+
+function setMovesView(view,el){
+  document.querySelectorAll('#moves-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  document.getElementById('moves-view-draft').style.display=view==='draft'?'':'none';
+  document.getElementById('moves-view-txn').style.display=view==='txn'?'':'none';
+  const meta=MOVES_VIEW_META[view];
+  if(meta){
+    document.getElementById('moves-title').innerHTML=meta.title;
+    document.getElementById('moves-sub').innerHTML=meta.sub;
+  }
+  // Transactions kept its own lazy-load flag when it was a tab; it just moves
+  // from the showTab hook to here.
+  if(view==='txn'&&!document.getElementById('txn-container').dataset.loaded){
+    document.getElementById('txn-container').dataset.loaded='1';
+    buildTransactions('all',2025);
+  }
+}
+
+// Year selector inside the Seasons view. This is what the four top-level year
+// sub-tabs became. Year views stay lazy-built on first open.
+function setSeasonYear(year,el){
+  currentSeasonYear=year;
+  document.querySelectorAll('#season-yr-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  CAREER_YEARS.forEach(y=>{
+    const d=document.getElementById('careers-view-'+y);
+    if(d)d.style.display=y===year?'':'none';
+  });
+  buildSeasonYear(year);
 }
 
 // ── CAREERS TAB ──
@@ -6472,7 +6499,9 @@ function setStatsPos(pos,el){
   buildPlayerStats(currentStatsYear,pos);
 }
 
-function showPlayerStats(playerId,posFilter){
+// Deep link from a roster chip into that player's row on Player Stats, which
+// is now Teams → Player Stats rather than its own tab.
+async function showPlayerStats(playerId,posFilter){
   const validPos=['QB','RB','WR','TE'];
   if(posFilter&&validPos.includes(posFilter)){
     currentStatsPos=posFilter;
@@ -6483,10 +6512,13 @@ function showPlayerStats(playerId,posFilter){
     const sc=document.getElementById('stats-container');
     if(sc)delete sc.dataset.loaded;
   }
-  const tabs=document.querySelectorAll('.tabs .tab');
-  let statsTab;
-  tabs.forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'stats'"))statsTab=t;});
-  if(statsTab)showTab('stats',statsTab);
+  // This used to hunt for '.tabs .tab' — a selector the icon-nav rewrite had
+  // already deleted — so statsTab was always undefined and the navigation
+  // never actually happened; only the scroll below ran, on whatever tab you
+  // were already on. Go to Teams and switch to the Player Stats view.
+  showTab('rosters');
+  // Await the build when it has to run, so the row exists before we scroll.
+  await Promise.resolve(setRosterView('stats',document.getElementById('rview-stats-btn'))).catch(()=>{});
   setTimeout(()=>{
     const row=document.getElementById(`stats-player-${playerId}`);
     if(row){
@@ -6573,14 +6605,14 @@ function showTab(tab,el){
   document.body.classList.toggle('is-home', tab==='home');
   history.replaceState(null,'','#'+tab);
   if(tab==='scores'&&!document.getElementById('scores-container').dataset.loaded)buildScores();
-  if(tab==='transactions'&&!document.getElementById('txn-container').dataset.loaded){document.getElementById('txn-container').dataset.loaded='1';buildTransactions('all',2025);}
   // Managers is the default Careers view, so it has to build on the tab's first
   // paint too — not only when its sub-tab button is clicked. Landing on
   // #careers directly otherwise shows an empty grid.
   if(tab==='careers')buildProfileGrid();
   if(tab==='careers'&&!document.getElementById('careers-container').dataset.loaded)buildCareers();
-  if(tab==='stats'&&!document.getElementById('stats-container').dataset.loaded)buildPlayerStats(currentStatsYear,currentStatsPos);
-  if(tab==='rivalries')buildRivalries();
+  // Teams opens on Outlook. Player Stats has no tab hook any more — it builds
+  // from setRosterView when someone switches to it.
+  if(tab==='rosters'&&document.getElementById('roster-view-grades').style.display!=='none')buildRosterGrades();
   if(tab==='trade'&&!_tradeInit)initTradeEval();
 }
 
@@ -7179,14 +7211,40 @@ function evaluateTrade(){
 //  - OUTLOOK: live roster composition/depth flags, safe to recompute anytime.
 // ══════════════════════════════════════════════════════════
 
-// Sub-tab toggle inside the existing Rosters panel (not a new top-level
-// tab). Kept as two self-contained divs so this can be lifted into its own
-// panel later if the nav gets restructured, without touching the JS below.
+// Sub-tab toggle inside the Teams panel. Three self-contained divs — Outlook
+// (default), Rosters, Player Stats — so any one could still be lifted back
+// into its own panel without touching the JS below.
+//
+// Each view owns its own title and subtitle. Outlook is the default view, so
+// the panel's old fixed "LEAGUE ROSTERS / number in parentheses = player age"
+// header would otherwise sit above a grades page describing nothing on it.
+const ROSTER_VIEW_META={
+  grades:{title:'ROSTER OUTLOOK',sub:'Dynasty Grades &middot; Contention Window &middot; Top Assets'},
+  teams:{title:'LEAGUE ROSTERS',sub:'Live from Sleeper &middot; Number in parentheses = player age'},
+  stats:{title:'PLAYER STATS',sub:'NFL Season Stats &middot; Dynasty Roster Players &middot; Raw Stats + Est. Fantasy Pts'},
+};
+
 function setRosterView(view,el){
-  document.querySelectorAll('.roster-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
-  document.getElementById('roster-view-teams').style.display=view==='teams'?'':'none';
+  // Scoped to #teams-view-toggle ON PURPOSE. renderRosterGrades() emits its
+  // own .roster-view-toggle (the grade-period tabs) inside the Outlook view,
+  // so an unscoped '.roster-view-toggle .yr-btn' clears the active period tab
+  // as a side effect of switching views. That was invisible only because the
+  // Outlook view used to rebuild itself on every switch; with the build-once
+  // guard below it would have become a real bug.
+  document.querySelectorAll('#teams-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
   document.getElementById('roster-view-grades').style.display=view==='grades'?'':'none';
-  if(view==='grades')buildRosterGrades();
+  document.getElementById('roster-view-teams').style.display=view==='teams'?'':'none';
+  document.getElementById('roster-view-stats').style.display=view==='stats'?'':'none';
+  const meta=ROSTER_VIEW_META[view];
+  if(meta){
+    document.getElementById('teams-title').innerHTML=meta.title;
+    document.getElementById('teams-sub').innerHTML=meta.sub;
+  }
+  // Returns the build promise (or undefined) so a caller that needs the view
+  // to be populated before it acts — showPlayerStats scrolling to a row — can
+  // await it instead of guessing at a timeout.
+  if(view==='grades')return buildRosterGrades();
+  if(view==='stats'&&!document.getElementById('stats-container').dataset.loaded)return buildPlayerStats(currentStatsYear,currentStatsPos);
 }
 
 // Aging curves per position — prime window + where decline risk starts.
@@ -7770,6 +7828,8 @@ const GRADE_WRITEUPS={
 
 let _gradeState=null;    // {allTeamsData, snapshots, unmatchedRows, year}
 let _gradePeriodId=null; // currently selected tab
+let _gradesBuilt=false;  // build-once guard — cleared by refreshData()
+let _gradesBuilding=null;// in-flight build, so a fast toggle can't start a second one
 
 // Admin gate for the internal working views (raw per-team metrics, the
 // unmatched-player report, the snapshot exporter). These are diagnostics,
@@ -7855,9 +7915,30 @@ function buildUnmatchedReportHtml(rows){
 }
 
 // ── MAIN BUILD ──
+// Outlook is the Teams tab's default view, so this is now called on every
+// entry to the tab rather than only when someone clicks into it. Two things
+// follow from that: it must not rebuild the whole thing each time (the guards
+// here), and it must not bail while boot is still in flight (the wait in
+// _buildRosterGrades).
 async function buildRosterGrades(){
+  if(_gradesBuilt&&_gradeState){renderRosterGrades();return;}
+  if(_gradesBuilding){await _gradesBuilding;return;}
+  _gradesBuilding=_buildRosterGrades();
+  try{await _gradesBuilding;}finally{_gradesBuilding=null;}
+}
+
+async function _buildRosterGrades(){
   const c=document.getElementById('roster-grades-container');
-  if(!cachedRosters||!cachedPlayers){c.innerHTML='<div class="note">Roster data still loading &mdash; give it a second and reopen this view.</div>';return;}
+  // On a cold phone this fires before init() has populated cachedRosters.
+  // It used to bail with "give it a second and reopen this view" — a dead end
+  // on the page the league opens this tab for. Wait on the same _rosterReady
+  // promise the profile overlay uses, capped so a dead network still ends in
+  // a message rather than a spinner that never resolves.
+  if(!cachedRosters||!cachedPlayers){
+    c.innerHTML='<div class="ld"><div class="spin"></div><div class="lt">Loading dynasty values...</div></div>';
+    await Promise.race([_rosterReady,new Promise(r=>setTimeout(r,8000))]);
+  }
+  if(!cachedRosters||!cachedPlayers){c.innerHTML='<div class="note">Could not reach Sleeper &mdash; tap Refresh up top to try again.</div>';return;}
   if(!_ktcValues&&_ktcSource==='snapshot')await fetchKTCValues().catch(()=>{});
   const year=new Date().getFullYear();
   const picksMap=await buildFuturePicksMap().catch(()=>({}));
@@ -7874,6 +7955,7 @@ async function buildRosterGrades(){
   _gradeState={allTeamsData,snapshots,unmatchedRows,year};
   const tabs=gradeTabs();
   if(!_gradePeriodId||!tabs.some(p=>p.id===_gradePeriodId))_gradePeriodId=tabs[0].id;
+  _gradesBuilt=true;
   renderRosterGrades();
 }
 
@@ -8203,7 +8285,6 @@ async function init(){
 
 // ── BOOT ──
 applyTheme();
-buildScoring();
 buildRivalries();
 init();
 
@@ -8236,9 +8317,47 @@ function startCountdown(){
 startCountdown();
 
 // ── HASH ROUTING ──
-const VALID_TABS=['home','careers','league','rivalries','scores','rosters','stats','draft','transactions','trade'];
+const VALID_TABS=['home','careers','scores','rosters','draft','trade'];
+
+// Retired hashes, kept working. Links to this site get texted around the
+// league and live in people's notes; a hash that used to be a tab must land
+// somewhere real rather than falling through to a blank page. Each alias
+// names the tab its content moved into and, where it became a sub-view, the
+// view to open. showTab() rewrites the URL to the new canonical hash.
+// `open` runs BEFORE showTab, so showTab's "build the default view on entry"
+// hooks see the view we actually want and don't build a page about to be
+// hidden.
+const TAB_ALIASES={
+  // Teams — Player Stats was its own tab until the nav was cut to five.
+  stats:    {tab:'rosters', open:()=>setRosterView('stats',  document.getElementById('rview-stats-btn'))},
+  teams:    {tab:'rosters'},                                   // matches the new label
+  outlook:  {tab:'rosters', open:()=>setRosterView('grades', document.getElementById('rview-grades-btn'))},
+  // History — Rivalries was its own tab; the year hashes never were, but they
+  // read naturally enough that someone will try them.
+  rivalries:{tab:'careers', open:()=>setCareersView('rivalries',document.getElementById('cview-rivalries-btn'))},
+  history:  {tab:'careers'},
+  // Moves — Transactions was its own tab.
+  transactions:{tab:'draft', open:()=>setMovesView('txn',  document.getElementById('mview-txn-btn'))},
+  txns:        {tab:'draft', open:()=>setMovesView('txn',  document.getElementById('mview-txn-btn'))},
+  trades:      {tab:'draft', open:()=>setMovesView('txn',  document.getElementById('mview-txn-btn'))},
+  moves:       {tab:'draft'},
+  // Rules was deleted — its content restated what Sleeper already shows, and
+  // the one card that did not (the 2027 flex change) moved to Home. Send both
+  // hashes there rather than nowhere.
+  league:      {tab:'home'},
+  rules:       {tab:'home'},
+  managers: {tab:'careers', open:()=>setCareersView('profiles', document.getElementById('cview-profiles-btn'))},
+  seasons:  {tab:'careers', open:()=>setCareersView('seasons',  document.getElementById('cview-seasons-btn'))},
+};
+
 function routeFromHash(){
   const hash=window.location.hash.replace('#','');
+  const alias=TAB_ALIASES[hash];
+  if(alias){
+    if(alias.open)alias.open();
+    showTab(alias.tab);
+    return;
+  }
   if(hash&&VALID_TABS.includes(hash)) showTab(hash);
   else if(!window.location.hash) history.replaceState(null,'','#home');
 }

@@ -84,73 +84,153 @@ the-other-league/                      ← outer repo root
 
 ## NAVIGATION STRUCTURE
 
+**Consolidated to five tabs on 2026-08-21**, ahead of sharing the site with the league. It had
+grown to nine tabs plus Refresh, which wrapped to two sticky rows on a phone, and three of the
+labels ("Careers" for a page titled LEAGUE HISTORY, "Txns", three R-words in a row) did not
+survive an outsider reading them. Nothing was deleted except the Rules panel; the rest was
+merged into sub-views using the `setRosterView` self-contained-divs pattern.
+
 ### Sticky Shell
 `<div class="sticky-shell">` uses `position: sticky; top: 0; z-index: 100`. It contains:
-1. `<header>` → logo (home link) + "Open in Sleeper" pill + dark mode toggle
-2. `<nav class="icon-nav">` → 9 icon tabs + 1 refresh button
+1. `<header>` -> logo (home link) + "Open in Sleeper" pill + **Refresh** + dark mode toggle
+2. `<nav class="icon-nav">` -> 5 icon tabs
 
-The header logo (`<div class="hdr-logo-link">`) calls `showTab('home')` on click — it IS the home button.
+The header logo (`<div class="hdr-logo-link">`) calls `showTab('home')` on click - it IS the home button.
+
+**Refresh moved out of the nav and into the header on 2026-08-21** (`.hdr-refresh-btn`, still
+`id="nav-refresh-btn"`, still calls `refreshData()`). It was never a destination, and the slot it
+held is the one the fifth tab needed. Its label hides under 680px; the arrow stays.
 
 ### Icon Nav
-Each tab is `<div class="icon-tab" onclick="showTab('id',this)" data-tab="id">` with an emoji icon and text label. The active tab gets `class="active"` and a teal bottom border.
+Each tab is `<div class="icon-tab" onclick="showTab('id',this)" data-tab="id">` with an emoji icon and text label. The active tab gets `class="active"` and a teal bottom border. Emoji are hidden (`.itab-icon{display:none}`) - the nav is type-only.
 
-The Refresh button at the end is `<div class="icon-tab nav-refresh-btn" onclick="refreshData()">` — styled with a left border separator; it never gets the active class.
-
-**Mobile layout (≤ 680px):** The nav wraps into two rows of 5 using `flex-wrap: wrap` with each tab at `width: 20%`. Row 1: Careers, Scores, Rivalries, Trade Eval, Rosters. Row 2: Draft, Stats, Txns, League, Refresh. Labels use 8px font with tighter letter-spacing on mobile. Desktop remains a single scrollable row with the same left-to-right order.
-
-### URL Hash Routing
-`showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash` and navigates to the matching tab. `hashchange` event is also wired. Valid tab IDs are in `VALID_TABS` array in JS.
-
-### `body.is-home` CSS Class
-`document.body.classList.toggle('is-home', tab==='home')` — set in HTML on `<body class="is-home">` at load, toggled in `showTab()`. CSS rules under `body.is-home` hide the sidebar, cache bar, and utility strips, and give the home panel edge-to-edge layout.
+**Five tabs at `width:20%` is exactly one mobile row, and that is the budget.** A sixth tab puts
+the second row back and undoes the whole consolidation - the merges were done to buy that row.
+Add a sub-view, not a tab. The `@media(max-width:680px)` rule is now `flex-wrap: nowrap`.
+Verified 280-1280px, both themes: zero page overflow on every tab, nav never wraps.
 
 ### Tabs and Panels
 
-Tab order (desktop L→R; mobile row 1 then row 2):
+| # | Tab Label | `showTab` ID | Panel ID | Sub-views |
+|---|-----------|--------------|----------|-----------|
+| <- | (logo click) | `home` | `panel-home` | - |
+| 1 | **History** | `careers` | `panel-careers` | **Managers** (default) - Seasons - All Time - Hall of Fame - Rivalries |
+| 2 | **Teams** | `rosters` | `panel-rosters` | **Outlook** (default) - Rosters - Player Stats |
+| 3 | Scores | `scores` | `panel-scores` | year + week pills (unchanged) |
+| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers |
+| 5 | Trade | `trade` | `panel-trade` | - |
 
-| # | Icon | Tab Label | `showTab` ID | Panel ID | Lazy load? |
-|---|------|-----------|--------------|----------|-----------|
-| ← | (logo click) | Home | `home` | `panel-home` | No — static HTML with countdown JS |
-| 1 | 📊 | Careers | `careers` | `panel-careers` | Yes — `buildCareers()` on first visit |
-| 2 | 🏈 | Scores | `scores` | `panel-scores` | Yes — `buildScores()` on first visit. Year tabs: 2026 (default), 2025, 2024, 2023. W15–W17 marked "PLAYOFFS". W4/W13 pills turn pink for rivalry years. |
-| 3 | ⚔️ | Rivalries | `rivalries` | `panel-rivalries` | Re-renders every visit via `buildRivalries()` |
-| 4 | ⚖️ | Trade Eval | `trade` | `panel-trade` | Yes — `initTradeEval()` on first visit. |
-| 5 | 👥 | Rosters | `rosters` | `panel-rosters` | No — loaded at boot via `init()` |
-| 6 | 🎯 | Draft | `draft` | `panel-draft` | Yes — `buildDraftHistory()` on demand (all years, 2026 included) |
-| 7 | 📈 | Stats | `stats` | `panel-stats` | Yes — `buildPlayerStats()` on first visit |
-| 8 | 📋 | Transactions | `transactions` | `panel-transactions` | Yes — `buildTransactions()` on first visit |
-| 9 | ℹ️ | **Rules** | `league` | `panel-league` | No — static HTML |
-| 10 | ↺ | Refresh | — | — | Calls `refreshData()` directly; not a panel tab |
+**Panel and `showTab` ids were deliberately NOT renamed** - `rosters`, `draft`, `careers` still
+name tabs now labelled Teams, Moves and History. Renaming them would have touched several hundred
+call sites for a cosmetic gain. Read the table above rather than trusting an id to describe its
+tab.
 
-**Tab 9 was labelled "League" until 2026-08-21.** Only the visible label changed — the `showTab` id, the `#league` hash, `VALID_TABS` and `panel-league` are all unchanged, so existing links keep working. The payouts that used to open that panel now live on the Careers year tabs; what is left is rules, format and scoring, which is what "Rules" names.
+**Nav order is Matt's, set 2026-08-21** (History, Teams, Scores, Moves, Trade) - it replaced a
+first pass ordered by expected frequency. Don't "fix" it back toward a usage argument; it is a
+deliberate call. Cheap to change if he asks again - it is the order of five divs in `<nav>`, and
+nothing else reads the order.
 
-**Removed tabs:** "Ask Claude" (`ai` / `panel-ai`) was removed from the UI; the underlying JS and CSS were deleted 2026-08-20 (see Anthropic API section).
+**Merged away 2026-08-21:** `panel-stats` -> Teams / Player Stats. `panel-rivalries` -> History /
+Rivalries. `panel-transactions` -> Moves / Trades & Waivers. The four Careers year sub-tabs ->
+one Seasons view with a year selector (`setSeasonYear`), so that row stops growing every September.
+
+**Deleted 2026-08-21:** `panel-league` (the Rules tab), plus `buildScoring()` and `SLABELS`, whose
+only consumer was its `#score-grid`. Format, lineup slots, waivers and the scoring table all
+restated what Sleeper itself shows, and "Open in Sleeper" is in the header. **`SDATA` and
+`applyLeagueScoring()` stay** - `SDATA` feeds `calcPts()` and therefore every point figure on the
+site; only the display grid went. The one card that existed nowhere else - the voted-in 2027
+`1 WRRB_FLEX -> WR/RB/TE FLEX` change - was moved to the home panel (`.home-rule-card`). Put any
+future voted-in rule change there.
+
+**Removed earlier:** "Ask Claude" (`ai` / `panel-ai`), UI 2026-08-20, JS and CSS same day.
+
+### URL Hash Routing
+`showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash`. `hashchange` is also wired. Valid tab IDs are in `VALID_TABS`.
+
+**`TAB_ALIASES` keeps every retired hash working.** Links to this site get texted around the
+league and saved in people's notes, so a hash that used to be a tab has to land somewhere real.
+Each alias names the tab its content moved into and, where it became a sub-view, an `open()` that
+switches to it - run BEFORE `showTab`, so the "build the default view on entry" hooks do not build
+a page about to be hidden. `showTab` then rewrites the URL to the new canonical hash.
+
+| Retired hash | Lands on |
+|---|---|
+| `#stats` | Teams / Player Stats |
+| `#rivalries` | History / Rivalries |
+| `#transactions`, `#txns`, `#trades` | Moves / Trades & Waivers |
+| `#league`, `#rules` | Home (where the 2027 rule card now lives) |
+| `#teams`, `#outlook`, `#history`, `#managers`, `#seasons`, `#moves` | the natural new names |
+
+**Add an alias whenever a hash stops being a tab.** All 19 hashes were verified to resolve to a
+live panel after the consolidation.
+
+### `body.is-home` CSS Class
+`document.body.classList.toggle('is-home', tab==='home')` - set in HTML on `<body class="is-home">` at load, toggled in `showTab()`. CSS rules under `body.is-home` hide the cache bar and utility strips, and give the home panel edge-to-edge layout.
 
 ### Home Panel (`panel-home`)
-Contains:
-- `TOL Large Logo.png` as hero image with neon glow (`.home-hero-logo`)
-- NFL Season countdown to **Sep 9, 2026 8:20 PM ET** — `startCountdown()` function, IDs: `cd-days`, `cd-hours`, `cd-mins`, `cd-secs`
+- `TOL Large Logo.png` hero with neon glow (`.home-hero-logo`)
+- NFL countdown to **Sep 9, 2026 8:20 PM ET** - `startCountdown()`; IDs `cd-days`/`cd-hours`/`cd-mins`/`cd-secs`
 - 2025 Champion card: Jake Blackwell / "Nacua Matata" / Pick 1.12
-- League meta pills: Commissioner · Matt Bova, Est. · 2023, Dynasty · 12 Teams
+- **2027 Rule Change card** (`.home-rule-card` / `.hrc-kicker` / `.hrc-rule` / `.hrc-note`) - rescued from the deleted Rules panel, 2026-08-21
+- League meta pills: Commissioner - Matt Bova, Est. - 2023, Dynasty - 12 Teams
 
-**Removed from home panel:** Consolation winner card (Nick Merkel), Quick-nav grid (replaced by icon nav)
+**Removed from home panel:** Consolation winner card (Nick Merkel), Quick-nav grid.
 
-### Careers Panel (`panel-careers`)
-Restructured 2026-08-20 (Phase 1) into sub-tabs, widened to **six** on 2026-08-21 (Phase 9) and to
-**seven** the same day (Phase 11 — "Managers", which is now the FIRST tab and the default view), using the same self-contained-divs pattern as `setRosterView`:
-0. `#careers-view-profiles` (**"Managers"**) → `#profile-grid`: the twelve manager cards. **This is
-   the default view now**, not All Time. Built by `buildProfileGrid()`.
-1. Section title "LEAGUE HISTORY" + subtitle
-2. `.careers-view-toggle` — six `.yr-btn` buttons, switched by `setCareersView('records'|'hof'|'2026'|'2025'|'2024'|'2023', el)`
-3. `#careers-view-records` (**"All Time"**) → `#careers-container`: career table, then the **All-Time Record Book** (`#record-book`). Built by `buildCareers()`. **Per-season standings no longer live here** — they moved to the year tabs on 2026-08-21.
-4. `#careers-view-hof` → `#hof-container`: the **Hall of Fame & Shame** award grid. Lazy-built by `buildHallOfFame()` on first switch.
-5. `#careers-view-<year>` — one per season in `CAREER_YEARS`: that year's standings table, that year's **payout card** beside it (below it on a narrow screen), and the **season recap** under both. Lazy-built by `buildSeasonYear(year)`.
+### Teams Panel (`panel-rosters`)
+Three views via `setRosterView('grades'|'teams'|'stats', el)`, each with its own title and
+subtitle from `ROSTER_VIEW_META` - a fixed "LEAGUE ROSTERS" header described none of the other two.
 
-**Adding a season** = one button + one empty `#careers-view-<year>` div in the markup, a new entry at the front of `CAREER_YEARS`, plus the `SEASON_HISTORY` / `PLAYOFF_BRACKET_INFO` entries that a finished season needs anyway. A year with no `SEASON_HISTORY` entry renders as the live season automatically — that is the test for "is this year in the books", since final placements exist nowhere else.
+0. `#roster-view-grades` (**"Outlook"**) - **the default view as of 2026-08-21** (Matt's call: it
+   is the page the league actually opens this tab for). `#roster-grades-container`, Phase 6.
+1. `#roster-view-teams` (**"Rosters"**) - the 12 roster cards, position legend, team chips.
+2. `#roster-view-stats` (**"Player Stats"**) - moved in from the old `panel-stats`, lazy-built.
 
-**The 7-pill `.career-status-bar` is gone.** Those stats were not deleted — they are now the first cards of the Hall of Fame grid, so a superlative lives in exactly one place. The `.s-pill` class is still used by other panels; only this bar's markup and its `stat-*` IDs were removed.
+**Making Outlook the default broke three things that only mattered once it opened on tab entry**,
+all fixed the same day - do not undo them:
+- `buildRosterGrades()` used to bail with *"give it a second and reopen this view"* when
+  `cachedRosters` was still loading. That never fired when you had to click into it; as the default
+  it fires on any cold phone. It now awaits `_rosterReady` (the same race guard used at the profile
+  overlay), capped at 8s, and falls back to a real message rather than a dead end.
+- It rebuilt everything on every switch (KTC fetch + picks map + every snapshot). Guarded now by
+  `_gradesBuilt` / `_gradesBuilding`; `refreshData()` clears the flag and rebuilds in place if the
+  Outlook view is the one on screen.
+- `setRosterView` used an unscoped `.roster-view-toggle .yr-btn` selector, which also matched the
+  grade-period tabs `renderRosterGrades()` emits *inside* the Outlook view - so switching views
+  cleared the active period tab. Invisible only because of the rebuild above. **Both selectors are
+  now scoped to their own toggle id** (`#teams-view-toggle`, `#history-view-toggle`); keep them that way.
+
+`setRosterView` returns the build promise so `showPlayerStats()` can await it before scrolling to a row.
+
+### History Panel (`panel-careers`)
+Five views via `setCareersView('profiles'|'seasons'|'records'|'hof'|'rivalries', el)`, per-view
+titles from `HISTORY_VIEW_META`. **Five is the ceiling** - the row is already at its width.
+
+0. `#careers-view-profiles` (**"Managers"**) -> `#profile-grid`, the default. `buildProfileGrid()`.
+1. `#careers-view-seasons` (**"Seasons"**) -> the year selector `#season-yr-toggle` plus one
+   `#careers-view-<year>` div per season in `CAREER_YEARS`, switched by `setSeasonYear(year, el)`
+   and lazy-built by `buildSeasonYear(year)`. **This replaced four top-level year sub-tabs on
+   2026-08-21** - that row grew by one every September and had crowded out room for Rivalries.
+2. `#careers-view-records` (**"All Time"**) -> `#careers-container`: career table + record book.
+3. `#careers-view-hof` (**"Hall of Fame"**) -> `#hof-container`, lazy-built by `buildHallOfFame()`.
+4. `#careers-view-rivalries` (**"Rivalries"**) -> the 6 rivalry cards, the H2H explorer and the
+   nemesis board, moved from `panel-rivalries`. They were the only head-to-head history living
+   outside this tab. `buildRivalries()` still runs at boot and on every switch to this view.
+
+**Adding a season** = one button in `#season-yr-toggle` + one empty `#careers-view-<year>` div
+inside `#careers-view-seasons`, a new entry at the front of `CAREER_YEARS`, plus the
+`SEASON_HISTORY` / `PLAYOFF_BRACKET_INFO` entries a finished season needs anyway. A year with no
+`SEASON_HISTORY` entry renders as the live season automatically.
+
+**The 7-pill `.career-status-bar` is gone.** Those stats are the first cards of the Hall of Fame grid, so a superlative lives in exactly one place.
+
+### Moves Panel (`panel-draft`)
+Two views via `setMovesView('draft'|'txn', el)`, titles from `MOVES_VIEW_META`. Draft is the
+default. `#moves-view-draft` holds the rookie-draft year toggle, team chips and list/board views;
+`#moves-view-txn` holds the transaction log moved from `panel-transactions`. The transactions
+lazy-load flag moved from the `showTab` hook to `setMovesView`.
 
 ---
+
 
 ## REMOVED / HIDDEN ELEMENTS
 
@@ -178,13 +258,16 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `rosters-container` — roster grid (12 `r-card` divs)
 - `roster-card-{uid}` — individual roster card per team
 - `roster-team-chips` — multi-select team filter chip bar (built by `buildTeamFilterChips`)
-- `roster-view-teams` / `roster-view-grades` — sub-tab views inside the Rosters panel, toggled by `setRosterView('teams'|'grades', el)`. `roster-view-grades` is the Phase 6 "Grades & Outlook" section (see DEVELOPMENT ROADMAP Phase 6). Kept as self-contained divs so they can be lifted into a separate top-level panel later without touching the JS.
-- `roster-grades-container` — Phase 6 output; lazy-built by `buildRosterGrades()` on first click of the "Grades & Outlook" toggle button (`rview-grades-btn`)
+- `teams-title` / `teams-sub` — the panel heading, rewritten per view from `ROSTER_VIEW_META`
+- `teams-view-toggle` — the three view buttons. **Selectors targeting them must be scoped to this id** — see NAVIGATION STRUCTURE / Teams Panel for the bug an unscoped `.roster-view-toggle` selector caused.
+- `roster-view-grades` / `roster-view-teams` / `roster-view-stats` — the three views, toggled by `setRosterView('grades'|'teams'|'stats', el)`. **`grades` ("Outlook") is the default** as of 2026-08-21.
+- `rview-grades-btn` / `rview-teams-btn` / `rview-stats-btn` — the view buttons
+- `roster-grades-container` — Phase 6 output; built by `buildRosterGrades()` on tab entry, guarded by `_gradesBuilt`
 - `grade-period-tabs` — grading-period tab bar; rendered only when more than one period is available to the viewer
 - `gr-row-{uid}` — one team's grade row; gets `.open` when expanded (`toggleGradeRow`)
 - `grade-card-{uid}` — per-team raw-metric card, **admin only** (`?admin=1`), rendered by `renderGradeAdminCard`. Still reuses `.r-card`/`.rch`/`.rcb`/`.pg`.
 
-### Rivalries Panel
+### Rivalries (now History > Rivalries, `#careers-view-rivalries`)
 - `rivalry-grid` — the 6 official rivalry cards
 - `h2h-picker-grid` — Phase 2 clickable 12x12 all-time matchup grid (`buildH2HPicker`)
 - `h2h-detail` — Phase 2 selected-pair detail card + game log (`renderH2HDetail`)
@@ -197,18 +280,23 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `draft-history-container` — inside `draft-view-past`; holds rendered picks
 - `draft-team-chips` — multi-select team filter chip bar above the year toggle
 
-### Player Stats Panel
+### Player Stats (now Teams > Player Stats, `#roster-view-stats`)
 - `stats-yr-toggle`, `stats-pos-filter`, `stats-wk-filter`, `stats-container`
 - `sg-pass`, `sg-rush`, `sg-rec` — stat group toggle buttons (Passing / Rushing / Receiving); toggling rebuilds the table
 - `stats-team-chips` — multi-select team filter chip bar (includes "All Teams" + "Free Agents" + one chip per team); built once by `buildStatsTeamChips()`; filters rows via `applyStatsFilters()` show/hide (no re-fetch)
 
-### Transactions Panel
+### Transactions (now Moves > Trades & Waivers, `#moves-view-txn`)
+- `moves-title` / `moves-sub` — the Moves panel heading, rewritten per view from `MOVES_VIEW_META`
+- `moves-view-draft` / `moves-view-txn`, `mview-draft-btn` / `mview-txn-btn` — the two Moves views and their buttons
 - `txn-container`, `txn-yr-toggle`, `txn-filter-bar`, `txn-player-search`, `txn-player-results`
 - `txn-team-chips` — multi-select team filter chip bar (replaced the old `txn-team-filter` dropdown)
 
-### Careers Panel
-- `careers-view-records` / `careers-view-hof` / `careers-view-<year>` — the six sub-tab views, toggled by `setCareersView(view, el)`
-- `cview-records-btn` / `cview-hof-btn` / `cview-<year>-btn` — the sub-tab buttons
+### History Panel (`panel-careers`)
+- `history-title` / `history-sub` — the panel heading, rewritten per view from `HISTORY_VIEW_META`
+- `history-view-toggle` — the five view buttons; **scope selectors to this id** so the year buttons inside Seasons are never cleared by a view switch
+- `careers-view-profiles` / `-seasons` / `-records` / `-hof` / `-rivalries` — the five views, toggled by `setCareersView(view, el)`
+- `cview-profiles-btn` / `-seasons-btn` / `-records-btn` / `-hof-btn` / `-rivalries-btn` — the view buttons
+- `season-yr-toggle`, `syr-<year>-btn`, `careers-view-<year>` — the year selector and year divs **inside** the Seasons view, switched by `setSeasonYear(year, el)`
 - `careers-container` — career table + record book (**All Time** view)
 - `record-book` — All-Time Record Book card grid, rendered by `buildRecordBook()`
 - `hof-container` — Hall of Fame & Shame card grid, rendered by `buildHallOfFame()`
@@ -276,7 +364,9 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 
 ### Careers
 - `CAREER_YEARS` — `[2026, 2025, 2024, 2023]`, newest first. Must match the buttons and `#careers-view-<year>` divs in the markup.
-- `setCareersView(view, el)` — sub-tab switcher; lazy-calls `buildHallOfFame()` on first switch to the awards view, or `buildSeasonYear(year)` for a year view
+- `setCareersView(view, el)` — History sub-tab switcher (`profiles`/`seasons`/`records`/`hof`/`rivalries`); sets the per-view title from `HISTORY_VIEW_META` and lazy-calls `buildProfileGrid()` / `buildHallOfFame()` / `buildRivalries()` / `setSeasonYear()`
+- `setSeasonYear(year, el)` — year selector inside the Seasons view; what the four top-level year sub-tabs became on 2026-08-21. Shows one `#careers-view-<year>` and lazy-builds it. `currentSeasonYear` holds the selection.
+- `setMovesView(view, el)` — Moves sub-tab switcher (`draft`/`txn`); sets the title from `MOVES_VIEW_META` and carries the transactions lazy-load flag that used to live in the `showTab` hook
 - `buildCareers()` — All Time view: career earnings/placement table, then `buildRecordBook()`, then `rebuildSeasonYears()`
 - `buildSeasonStandings(container)` — **gone (2026-08-21).** It stacked 2026 + 2025 + 2024 + 2023 under the Records view; the per-year pieces are now `seasonStandingsRows()` / `seasonStandingsTable()` / `buildSeasonYear()`.
 - `buildRecordBook()` — 12 record cards: highest/lowest single week, biggest blowout, closest finish, highest/lowest-scoring matchup, longest win/losing streak, most/fewest points in a season, most championships, most playoff berths. **Streaks deliberately run across season boundaries.** Single-season point records only count *complete* 14-week seasons, so a live or half-cached year can't walk away with "fewest points ever".
@@ -491,7 +581,7 @@ State variables: `currentStatsYear` (default 2026), `currentStatsPos` (default `
 ### Roster Grades & Outlook (Phase 6 — built 2026-08-18, shipped league-facing 2026-08-20)
 Lives inside the Rosters panel as a sub-tab (`setRosterView`), not a new top-level tab — see Rosters Panel IDs above. **The league-facing view is a ranked row list with per-team write-ups plus a rubric explainer (`.gr-*` CSS block); the raw per-team metrics live behind `?admin=1`.** See DEVELOPMENT ROADMAP Phase 6 for spec, decisions made, and what's still open.
 
-- `setRosterView(view, el)` — toggles `roster-view-teams` / `roster-view-grades`; lazy-calls `buildRosterGrades()` on first switch to grades
+- `setRosterView(view, el)` — toggles the three Teams views; sets the per-view title from `ROSTER_VIEW_META`, and **returns the build promise** so a caller like `showPlayerStats()` can await a populated view instead of guessing at a timeout
 - `AGE_CURVES` — per-position prime/decline-start/cliff ages (QB/RB/WR/TE only), confirmed by Matt 2026-08-18
 - `ageTimelineScore(pos, age)` — 0–1 "runway" score from a player's age vs. their position's curve; returns `null` for positions with no curve (K/DEF/RDP) — callers must skip nulls, not treat them as 0
 - `resolveRosterPlayerValue(pid)` — like `getDynastyValue()` but returns `{value, matched, reason, position, age, name}` and **never** collapses a no-match to 0. This is the function to use anywhere Phase 6-style "don't silently zero a real player" behavior is needed. **2026-08-20:** gained a third outcome. A name in `_ktcUnresolved` (written by the scraper as `unresolved`, meaning it checked KTC's whole pool and the player genuinely isn't in it) now returns `{value: 0, matched: true, reason: 'ktc-untracked'}` instead of `matched: false`. That is the fix that closed the reconciliation gap: an unmatched starter/bench player is *excluded from his team's roster entirely*, so before this a manager could hide a washed veteran from the Bench Dead Weight count simply by rostering someone KTC had stopped tracking. Untracked veterans now count as the zero-value roster spot they are, and `flagged` is reserved for genuine unknowns.
@@ -778,6 +868,7 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 - **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
 - **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honour it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
   If playoff stats are ever wanted they belong in a **separate** set, and they must be filtered to the *winners* bracket via `PLAYOFF_BRACKET_INFO` — an all-weeks-15-to-17 aggregate is exactly the noise this rule exists to keep out.
+- **The nav is five tabs and that is a budget, not a snapshot.** Five at `width:20%` is exactly one mobile row; a sixth wraps it to two and undoes the 2026-08-21 consolidation. New surfaces become a **sub-view** of an existing tab. Every tab merge since has followed the same self-contained-divs pattern (`setRosterView` / `setCareersView` / `setMovesView`), and every retired hash got a `TAB_ALIASES` entry — do both.
 - **Careers is All Time + Hall of Fame & Shame + one tab per season, and superlatives live in exactly one place.** All Time holds the career table and the All-Time Record Book; Hall of Fame & Shame holds the award grid; each year tab holds that season's standings and recap. The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated. Season standings were stacked under All Time until 2026-08-21; four tables in one scroll was a wall, and none of them had anywhere to put a write-up. **The payout cards moved to the same year tabs on the same day** — a season's money belongs next to that season's table, not on a separate tab, and putting them together is what surfaced the missing $15 (see `SEASON_PAYOUTS`).
 - **The survivor pool is computed from the scoreboard, never hand-recorded.** The rule is
   deterministic and the scores are already on the page, so a hardcoded elimination list could only
@@ -829,7 +920,7 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 ## DEVELOPMENT ROADMAP
 
 ### Phase 1 — All-Time Records & Career Stats — **shipped 2026-08-20**
-**Goal:** all-time per-owner records and superlatives. Built as **two sub-tabs inside Careers**, not a new top-level tab (the nav is already 10 wide) — see "Careers Panel" under NAVIGATION STRUCTURE and "All-Time Stats Engine" under JAVASCRIPT FUNCTIONS.
+**Goal:** all-time per-owner records and superlatives. Built as **two sub-tabs inside Careers**, not a new top-level tab (the nav was already 10 wide; it is 5 now) — see "Careers Panel" under NAVIGATION STRUCTURE and "All-Time Stats Engine" under JAVASCRIPT FUNCTIONS.
 
 - ✅ All-time W/L record per owner — `buildCareers()` career table + per-opponent history in `buildRivalries()`
 - ✅ Most championships, most playoff berths — `buildRecordBook()`; berths derived from `PLAYOFF_BRACKET_INFO`
@@ -1074,7 +1165,7 @@ FUNCTIONS for the mechanics.
 - ✅ `*` on Andrew Bova with the Chris Jacobs footnote
 
 **Placement decision (Matt, 2026-08-21):** a Careers sub-tab rather than an 11th nav tab, because
-every stat on a profile is already a Careers stat and an 11th tab breaks the 5+5 mobile nav grid.
+every stat on a profile is already a Careers stat and an 11th tab breaks the mobile nav grid. (The nav was cut to five on 2026-08-21; the reasoning held and then some.)
 
 **Verified before shipping, mechanically:**
 - Hall of Fame and Record Book output **byte-identical** after refactoring both onto
@@ -1117,3 +1208,6 @@ The June 2026 overhaul completed the core feature set:
 - Do not use DM Mono for main content — it belongs only for intentional code/timestamp contexts
 - Do not add the consolation winner card back to the home panel
 - Do not add the sidebar back without explicit request
+- Do not add a sixth top-level nav tab — see the nav-budget rule under KEY DESIGN DECISIONS. Build it as a sub-view.
+- Do not remove a `TAB_ALIASES` entry. They are the only thing keeping links already texted around the league from landing on a blank page.
+- Do not restore the Rules panel, `buildScoring()` or `SLABELS` — deleted 2026-08-21 as a restatement of what Sleeper shows. `SDATA` is NOT part of that deletion; it feeds `calcPts()` and every point figure on the site.
