@@ -92,10 +92,18 @@ merged into sub-views using the `setRosterView` self-contained-divs pattern.
 
 ### Sticky Shell
 `<div class="sticky-shell">` uses `position: sticky; top: 0; z-index: 100`. It contains:
-1. `<header>` -> logo (home link) + "Open in Sleeper" pill + **Refresh** + dark mode toggle
+1. `<header>` -> banner wordmark (home link) + "Open in Sleeper" pill + **Refresh** + dark mode toggle
 2. `<nav class="icon-nav">` -> 5 icon tabs
 
 The header logo (`<div class="hdr-logo-link">`) calls `showTab('home')` on click - it IS the home button.
+
+**The header is the banner and the controls, nothing else (2026-08-21).** `TOL Banner Logo.jpg`
+replaced the shield, and the `.hdr-identity` block beside it - league name, "Dynasty Football",
+"Established 2023 | NFL Kickoff" - was removed with it (Matt's call): the banner IS the wordmark,
+so the league name was being said twice side by side. `.hdr-identity` / `.hdr-league-name` /
+`.hdr-sub1` / `.hdr-sub2` and their two theme layers are gone; don't reintroduce a text block
+next to a banner that already reads "THE OTHER LEAGUE". The kickoff date still lives on the home
+countdown, which is the only place it was load-bearing.
 
 **Refresh moved out of the nav and into the header on 2026-08-21** (`.hdr-refresh-btn`, still
 `id="nav-refresh-btn"`, still calls `refreshData()`). It was never a destination, and the slot it
@@ -243,6 +251,7 @@ lazy-load flag moved from the `showTab` hook to `setMovesView`.
 ## KEY ELEMENT IDs
 
 ### Header
+- `hdr-logo` - the banner wordmark img; `hdr-logo-link` - its wrapper, the home button
 - `t-icon`, `t-lbl` — theme toggle icon and label
 - `cache-dot` — colored dot (live vs cached) — inside hidden `.cache-bar`
 - `cache-status-txt` — cache status message — inside hidden `.cache-bar`
@@ -833,9 +842,27 @@ Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`
 `shortName(name)` (defined next to `abbrev()`) returns **first-initial + last name** ("Matt Bova" → "M Bova"). Used on every team filter chip (Rosters, Draft, Transactions, Stats, Trade Eval) because many owners share a first name. Use it for any new team-filter UI.
 
 ### Logo Files (wired in)
-- `TOL Large Logo.png` — sticky header (76px tall; 46px mobile) + home hero (max 420px; 260px mobile)
-- `TOL Abbreviated Icon.png` — favicon + iOS add-to-homescreen icon
-- `TOL Small Logo.png` — available if needed
+- **`TOL Banner Logo.jpg`** - the sticky header wordmark (84px tall; 56px mobile). 1998x648, ~3.08:1,
+  500 KB. **It is a JPEG, not a PNG** - it arrived named `.png` and was renamed to match its actual
+  bytes; browsers sniff content type either way, but the wrong extension is a trap for the next
+  person. Being a JPEG it has **no alpha**: the black background is baked into the artwork.
+- `TOL Large Logo.png` - home hero only now (max 420px; 260px mobile). Deliberately still the
+  shield: a wide banner suits a header strip, a square mark suits a centred hero.
+- `TOL Abbreviated Icon.png` - favicon + iOS add-to-homescreen icon
+- `TOL Small Logo.png` - available if needed
+
+**Glow treatment differs by mark shape, and that is the point.** The shield is a transparent PNG,
+so `drop-shadow()` traces its silhouette. The banner is an opaque rectangle, so the same filters
+trace its bounding box and read as a smeared rectangular halo. The `HEADER BANNER` CSS layer
+therefore drops both `drop-shadow()` filters and the `.hdr-logo-link::before` radial glow, and
+gives the banner rounded corners plus a single soft `box-shadow` in each theme. **If a
+transparent-background banner ever replaces this file, revisit that layer** - `drop-shadow` would
+be the right call again.
+
+Banner size was left at 500 KB rather than downscaled: neither Pillow nor Node is installed on
+this machine, and 500 KB is already 3-6x lighter than the three existing logo PNGs (1.5-3 MB
+each). Worth revisiting if image tooling ever lands - it renders at 259px wide, so a 2000px source
+is far more than it needs.
 
 ### PWA / Mobile meta
 ```html
@@ -1207,6 +1234,8 @@ The June 2026 overhaul completed the core feature set:
 - Do not revert the Arcade Neon palette/type (teal #21F5E4 · magenta #FF3DBE · purple #9A55FF on #06060C, Saira Condensed display) — see VISUAL THEME. The redesign lives in appended, banner-commented CSS layers at the end of `<style>`; style by class + variables.
 - Do not use DM Mono for main content — it belongs only for intentional code/timestamp contexts
 - Do not add the consolation winner card back to the home panel
+- Do not put a text block back beside the header banner - it already reads "THE OTHER LEAGUE"
+- Do not apply `drop-shadow()` to `.hdr-logo` while the banner is an opaque JPEG - see Logo Files
 - Do not add the sidebar back without explicit request
 - Do not add a sixth top-level nav tab — see the nav-budget rule under KEY DESIGN DECISIONS. Build it as a sub-view.
 - Do not remove a `TAB_ALIASES` entry. They are the only thing keeping links already texted around the league from landing on a blank page.

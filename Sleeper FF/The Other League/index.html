@@ -524,8 +524,18 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 [data-theme="dark"] .sticky-shell { box-shadow: 0 4px 30px rgba(0,0,0,0.8); }
 
 /* ── HEADER LOGO ── */
-.hdr-logo { height: 76px; width: auto; object-fit: contain; display: block; position: relative; z-index: 1; }
-@media(max-width:680px){ .hdr-logo { height: 52px; } }
+/* Banner wordmark, ~3.1:1. Height drives the size, but max-width is what
+   keeps a narrow phone scaling it down rather than overflowing the header
+   — at 52px tall it wants 161px, and the header still has to hold the
+   Sleeper link, Refresh and the theme toggle beside it. */
+/* Scales with the window rather than sitting at one fixed size, so a wide
+   monitor gets a banner with presence and a laptop doesn't get a bloated
+   sticky bar (Matt, 2026-08-21). At 1427px this lands on the 132px cap
+   (~407px wide). It cannot go edge-to-edge: the artwork is a fixed 3.08:1,
+   so a full-width banner forces a ~445px-tall header on every scroll, and
+   cropping to a thin strip cuts the top off "THE" and the bottom off
+   "LEAGUE". Edge-to-edge needs a new ~10:1 crop of the artwork, not CSS. */
+.hdr-logo { height: clamp(84px, 9vw, 132px); width: auto; max-width: 100%; object-fit: contain; display: block; position: relative; z-index: 1; }
 .hdr-logo-link { position: relative; }
 [data-theme="dark"] .hdr-logo-link::before {
   content: '';
@@ -1048,12 +1058,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .trade-item.is-pick { font-family: 'DM Sans', sans-serif; }
 
 /* ── HEADER IDENTITY ── */
-.hdr-identity { flex: 1; padding-left: 18px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-.hdr-league-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: .06em; line-height: 1; color: var(--text); }
-.hdr-sub1 { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .13em; color: var(--accent); }
-.hdr-sub2 { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
-[data-theme="dark"] .hdr-league-name { color: var(--accent3); text-shadow: 0 0 24px rgba(255,79,216,0.45); }
-@media(max-width:680px){ .hdr-identity { display: none; } }
 
 /* ── SITE FOOTER ── */
 .site-footer { border-top: 1px solid var(--border); background: var(--surface); padding: 14px 28px 18px; text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .05em; }
@@ -1293,11 +1297,6 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
   font-family: 'Saira Condensed', sans-serif;
   font-size: 24px; font-weight: 700; font-style: italic; letter-spacing: .08em;
 }
-.hdr-league-name {
-  font-family: 'Saira Condensed', sans-serif;
-  font-weight: 700; font-style: italic; font-size: 30px; letter-spacing: .06em;
-}
-[data-theme="dark"] .hdr-league-name { color: var(--text); text-shadow: 0 0 20px rgba(33,245,228,0.18); }
 
 .cd-num {
   font-family: 'Saira Condensed', sans-serif;
@@ -2242,12 +2241,52 @@ body.pf-locked { overflow: hidden; }
 .hdr-refresh-btn .hrb-icon { font-size: 13px; line-height: 1; transition: transform .5s; }
 .hdr-refresh-btn:hover .hrb-icon { transform: rotate(180deg); }
 
+/* ── HEADER BANNER (replaced the shield logo 2026-08-21) ──
+   The old .hdr-logo glow was two drop-shadow() filters plus a radial
+   ::before, all tuned for a transparent PNG where the glow traces the
+   artwork's own silhouette. The banner is an OPAQUE JPEG rectangle, so those
+   filters trace its bounding box instead and read as a smeared rectangular
+   halo. Swap them for treatment that suits a rectangle: rounded corners and
+   one soft box-shadow, so it reads as a designed plate rather than a
+   mis-lit cutout. If a transparent-background version of the banner ever
+   replaces this file, revisit — drop-shadow would be right again. */
+.hdr-logo { border-radius: 5px; }
+[data-theme="dark"] .hdr-logo {
+  filter: none;
+  box-shadow: 0 0 20px rgba(33,245,228,.20), 0 2px 14px rgba(0,0,0,.55);
+}
+[data-theme="dark"] .hdr-logo-link::before { content: none; }
+[data-theme="light"] .hdr-logo {
+  filter: none;
+  box-shadow: 0 2px 10px rgba(20,26,40,.18);
+}
+
 /* Five tabs at 20% is exactly one mobile row — the nav no longer wraps.
    Adding a sixth tab puts the second row back; that is the constraint the
    merges were done to buy, so weigh it before adding one. */
+/* ── MOBILE HEADER — one row, always ──
+   The header used to wrap the whole controls group onto a second line under
+   the banner, making the sticky shell 142px on a phone. The three pills
+   already fit each other; what did not fit was banner + controls side by
+   side, so `flex-wrap` broke the line.
+   nowrap forces one row, and the banner absorbs the difference instead: with
+   min-width:0 on its flex item and max-height/max-width caps rather than a
+   fixed height, it renders at its full 56px when there is room and scales
+   itself down proportionally when there is not. That is what keeps this
+   working at 320px and 280px without either wrapping or overflowing.
+   The controls are trimmed to buy the banner room: "Open in" drops off the
+   Sleeper link, and the Refresh and Dark labels give way to their glyphs. */
 @media(max-width:680px){
   .icon-nav { flex-wrap: nowrap; }
+  header { flex-wrap: nowrap; padding: 8px 14px; gap: 8px; }
+  .hdr-logo-link { min-width: 0; flex: 0 1 auto; }
+  .hdr-logo { height: auto; width: auto; max-height: 56px; max-width: 100%; }
+  .hdr-right { flex: 0 0 auto; }
+  .hdr-top { flex-wrap: nowrap; gap: 5px; }
+  .hdr-top .toggle-btn, .hdr-top .sleeper-link { padding: 5px 9px; }
   .hdr-refresh-btn .hrb-lbl { display: none; }
+  .sl-long { display: none; }
+  #t-lbl { display: none; }
 }
 
 </style>
@@ -2256,17 +2295,16 @@ body.pf-locked { overflow: hidden; }
 
 <div class="sticky-shell">
 <header>
+  <!-- The banner is the wordmark, so the .hdr-identity block that used to sit
+       beside it (league name + "Dynasty Football" + the kickoff line) is gone
+       — the name was being said twice, side by side (Matt, 2026-08-21). The
+       kickoff date still lives on the home countdown. -->
   <div class="hdr-logo-link" onclick="showTab('home')">
-    <img src="TOL Large Logo.png" alt="The Other League" class="hdr-logo">
-  </div>
-  <div class="hdr-identity">
-    <div class="hdr-league-name">The Other League</div>
-    <div class="hdr-sub1">Dynasty Football</div>
-    <div class="hdr-sub2">Established 2023 &nbsp;|&nbsp; NFL Kickoff &mdash; September 9, 2026</div>
+    <img src="TOL Banner Logo.jpg" alt="The Other League" class="hdr-logo">
   </div>
   <div class="hdr-right">
     <div class="hdr-top">
-      <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="sleeper-link hdr-sleeper-link">Open in Sleeper ↗</a>
+      <a href="https://sleeper.com/leagues/1316225642072662016" target="_blank" rel="noopener" class="sleeper-link hdr-sleeper-link"><span class="sl-long">Open in </span>Sleeper ↗</a>
       <div class="toggle-btn hdr-refresh-btn" onclick="refreshData()" id="nav-refresh-btn" title="Refresh data from Sleeper">
         <span class="hrb-icon">↺</span>
         <span class="hrb-lbl">Refresh</span>
