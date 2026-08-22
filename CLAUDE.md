@@ -15,6 +15,7 @@ Independent projects live here. Each has its own detailed CLAUDE.md — read it 
 | Family Travel Map | `Travel Map/` | [`Travel Map/CLAUDE.md`](Travel%20Map/CLAUDE.md) |
 | Bova's Picks | `NFL Pickems/` | [`NFL Pickems/CLAUDE.md`](NFL%20Pickems/CLAUDE.md) |
 | Draft Assistant 2026 | `Draft Assistant 2026/` | [`Draft Assistant 2026/README.md`](Draft%20Assistant%202026/README.md) |
+| Kings Justice Pipeline | `Kings Justice/` | [`Kings Justice/README.md`](Kings%20Justice/README.md) |
 
 ## Shared Conventions
 
@@ -159,4 +160,10 @@ one orientation line each; if you need to correct project status, edit the proje
   league, built 2026-08-14 for a draft two days later. Blends three ranking sources, uses
   FantasyPros' per-position tiers, and syncs picks live from the Sleeper API. Deliberately
   applies **no** scoring adjustment — see its README for why. Details in its README.
+- **Kings Justice Pipeline** — Offline Python data pull for the "King's Justice" Sleeper
+  league (a *chopped*/elimination league, separate from The Other League). Not a site and
+  not deployed: it writes JSON/CSV under `Kings Justice/kings_justice_data/` to hand to
+  Claude for analysis. Like `Draft Assistant 2026`'s scripts, this is data prep run by
+  hand and does not make the workspace's no-build-step rule any less true. Lives in the
+  workspace root repo. Details in its README.
 - **Travel Map** — Scaffolding only, no features built yet.

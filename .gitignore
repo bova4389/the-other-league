@@ -14,6 +14,14 @@ __pycache__/
 # Regenerated on demand; never a site asset.
 Sleeper FF/The Other League/scripts/.cache/
 
+# Kings Justice pipeline: raw per-endpoint API responses. Purely a speed cache
+# so weekly re-runs cost a handful of calls instead of hundreds — delete it any
+# time and the next run rebuilds it. The useful output is kings_justice_data/,
+# which IS tracked so the season files can be handed to Claude for analysis.
+Kings Justice/scripts/.cache/
+# The trimmed player dictionary is ~2 MB and regenerates itself weekly.
+Kings Justice/kings_justice_data/players_lookup.json
+
 # Manager-photo working folder: 121 MB of full-res source photos, the input/
 # output copies and the YuNet face-detection model. Only the web-sized JPEGs in
 # `Sleeper FF/The Other League/img/profiles/` are site assets and get committed.
