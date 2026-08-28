@@ -15,6 +15,7 @@ Independent projects live here. Each has its own detailed CLAUDE.md — read it 
 | Family Travel Map | `Travel Map/` | [`Travel Map/CLAUDE.md`](Travel%20Map/CLAUDE.md) |
 | Bova's Picks | `NFL Pickems/` | [`NFL Pickems/CLAUDE.md`](NFL%20Pickems/CLAUDE.md) |
 | Draft Assistant 2026 | `Draft Assistant 2026/` | [`Draft Assistant 2026/README.md`](Draft%20Assistant%202026/README.md) |
+| Kings Justice (data pipeline) | `Kings Justice/` | [`Kings Justice/README.md`](Kings%20Justice/README.md) |
 
 ## Shared Conventions
 
@@ -150,9 +151,9 @@ one orientation line each; if you need to correct project status, edit the proje
 - **Poker** — Personal build, not hosted anywhere; open the HTML directly. V0.1 complete
   (calculator + learn page); V0.2 playable game not started. Own private repo.
 - **Bova's Picks** (folder: `NFL Pickems/` — renamed from "NFL Pickem Analyzer" 2026-08-11, folder
-  kept as-is; repo slug will be `bovas-picks`) — Active. Schedule, Grid, Pick Sheet, Odds and
-  Recommend tabs are functional; Lookback and the Survivor *planning* panel are the two still
-  stubbed. Own repo (`bova4389/bovas-picks`), pushed since
+  kept as-is; repo slug will be `bovas-picks`) — Active. Schedule, Grid, Pick Sheet, Odds,
+  Recommend and Planning tabs are functional; **Lookback is the last stub**, and it is blocked on
+  per-entrant weekly cards rather than unstarted. Own repo (`bova4389/bovas-picks`), pushed since
   2026-08-11 and live on GitHub Pages at https://bova4389.github.io/bovas-picks/. Status detail is
   in its CLAUDE.md.
 - **Draft Assistant 2026** — Single-page fantasy draft board for the "2 Mitchs 1 Cup" Sleeper
@@ -160,3 +161,9 @@ one orientation line each; if you need to correct project status, edit the proje
   FantasyPros' per-position tiers, and syncs picks live from the Sleeper API. Deliberately
   applies **no** scoring adjustment — see its README for why. Details in its README.
 - **Travel Map** — Scaffolding only, no features built yet.
+- **Kings Justice** — Offline Python pipeline + a generated dashboard for "The King's
+  Justice" chopped-elimination Sleeper league (4 seasons, 2023–2026).
+  `pull_league_data.py` pulls to JSON/CSV (re-runnable weekly, caches finished seasons);
+  `build_dashboard.py` folds the analysis into a single self-contained `dashboard.html`,
+  same data-baked-into-one-file pattern as Draft Assistant. Edit
+  `dashboard_template.html`, never `dashboard.html`. Details in its README.
