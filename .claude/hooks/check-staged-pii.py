@@ -56,6 +56,19 @@ ALLOWED_PHONES = {
 def _normalise_phone(p):
     """Strip formatting so 317-440-2782, (317) 440-2782 and 317.440.2782 match."""
     return re.sub(r"\D", "", p).lstrip("1")
+
+
+def _is_real_email(e):
+    """Reject pinned CDN package specs that parse as an address.
+
+    `globe.gl@2.46.2` in a https://unpkg.com/... URL matches EMAIL as
+    local=globe.gl, domain=2, tld=46.2 -- and these projects pin every CDN
+    dependency that way, so version bumps would keep wedging commits. A real
+    TLD always contains a letter and an all-digits one never does, so this
+    drops version specs without loosening detection of actual addresses.
+    """
+    tld = e.rsplit(".", 1)[-1]
+    return any(ch.isalpha() for ch in tld)
 # Extensions worth scanning; anything else is treated as opaque.
 TEXTY = {
     ".csv", ".json", ".txt", ".md", ".html", ".htm", ".js", ".css", ".py",
@@ -106,7 +119,8 @@ def scan_repo(repo):
         blob = git(repo, "show", f":{path}")
         if not blob or len(blob) > MAX_BLOB:
             continue
-        emails = {e for e in EMAIL.findall(blob) if e.lower() not in ALLOWED_EMAILS}
+        emails = {e for e in EMAIL.findall(blob)
+                  if e.lower() not in ALLOWED_EMAILS and _is_real_email(e)}
         allowed_digits = {_normalise_phone(p) for p in ALLOWED_PHONES}
         phones = {p for p in PHONE.findall(blob)
                   if _normalise_phone(p) not in allowed_digits}
