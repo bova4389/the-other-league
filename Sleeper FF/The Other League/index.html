@@ -9708,6 +9708,20 @@ function commishStopTimer(){
   if(_commishTimer){ clearInterval(_commishTimer); _commishTimer = null; }
 }
 
+// A backgrounded tab keeps its intervals alive — Chrome only throttles them, to
+// roughly once a minute and then once an hour — so a Commissioner tab left
+// parked went on re-fetching every data file in the registry for as long as the
+// browser was open. Pause on hide; on return, re-probe immediately rather than
+// showing whatever the numbers had gone stale to while you were away.
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ commishStopTimer(); return; }
+  const panel = document.getElementById('panel-commissioner');
+  if(panel && panel.classList.contains('active') && commishUnlocked()){
+    commishRefresh();
+    commishStartTimer();
+  }
+});
+
 // ── HASH ROUTING ──
 // 'commissioner' is a routable panel with NO .icon-tab — the nav stays at
 // five. showTab's `if(el)` guard already handles a tab with no button.

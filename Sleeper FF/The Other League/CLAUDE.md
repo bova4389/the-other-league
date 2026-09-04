@@ -242,6 +242,13 @@ last-updated time and a health chip.
 - `commishStartTimer()` / `commishStopTimer()` — re-probes every 60s and ticks the "checked Xs ago"
   label every second. **`showTab` stops the timer on leaving any other tab; do not remove that.**
   A leaked interval re-fetches every data file in this list forever in the background.
+- **It also pauses on `visibilitychange` (2026-09-04).** Leaving the site's own tab was already
+  handled; backgrounding the *browser* tab was not. Chrome does not stop a hidden tab's intervals,
+  it only throttles them — to roughly once a minute, then once an hour — so a Commissioner tab left
+  parked went on re-fetching the whole registry for as long as the browser stayed open. That was
+  visible as a wall of `ERR_CONNECTION_REFUSED` from a stale tab after the local server stopped.
+  On return it re-probes **immediately** rather than showing numbers that went stale while away,
+  and it only resumes when the panel is actually the active one and still unlocked.
 
 **Claude Assist — a shell, wired to nothing, on purpose.** Three modes (Team Outlook,
 Start/Sit, Trade Decision) with the data each would read named on its card, plus a live context
