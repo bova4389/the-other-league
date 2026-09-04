@@ -54,6 +54,19 @@ REPL_PATH = os.path.join(TOL_ROOT, 'replacement-levels.json')
 
 SCORED_POSITIONS = ('QB', 'RB', 'WR', 'TE')
 
+# A rookie "got a role" at 6+ scoreable weeks — roughly a third of a season.
+ROLE_MIN_WEEKS = 6
+# A rookie season counts as a "hit" at this PoR. Set where the data separates:
+# the median rookie PoR in rounds 2, 3 and 4 is 0.0, so any real bar splits the
+# genuine contributors from the majority who returned nothing.
+HIT_POR = 50.0
+
+# Pick bands for the draft-capital board. Round 1 is split because the top of it
+# behaves completely differently from the back of it (83% hit rate at 1.01-1.06
+# vs 67% at 1.07-1.12, and a far higher median).
+PICK_BANDS = [('1.01-1.03', 1, 3), ('1.04-1.06', 4, 6), ('1.07-1.12', 7, 12),
+              ('Round 2', 13, 24), ('Round 3', 25, 36), ('Round 4+', 37, 99)]
+
 # Mirrors SDATA in index.html; parity with calcPts() is asserted by
 # build_replacement_levels.py's check. Kept here so this script stands alone.
 SDATA = {
@@ -215,6 +228,7 @@ class Engine:
         self.pos = positions
         self.names = names
         self.years = sorted(int(y) for y in stats if y != 'generated')
+        self._pools = {}
 
     def played_weeks(self, year, week_from):
         """Weeks of `year` at or after week_from that actually have data."""
@@ -222,6 +236,89 @@ class Engine:
         if y not in self.stats:
             return []
         return sorted((int(w) for w in self.stats[y]['weeks'] if int(w) >= week_from))
+
+    def opportunity(self, pid, year):
+        """Was this player actually given a chance in `year`, separate from whether
+        he was any good with it.
+
+        This exists because "rounds 3 and 4 never get a shot" turned out to be true
+        in outcome but wrong in mechanism. Measured across the 2024+2025 classes,
+        only 3/24 and 4/24 late-round picks never recorded a scoreable week, and
+        most had at least one week above replacement — they were on the field. The
+        real gap is VOLUME: round 1 averages 171 touches, rounds 3-4 average 42-46.
+        A manager whose pick landed behind a starter and got 40 touches did not make
+        the same mistake as one whose pick got 200 touches and was bad with them,
+        and a single PoR number cannot tell those apart.
+
+        `touches` is deliberately position-appropriate rather than one formula:
+        attempts for a QB, carries + catches for everyone else. We have no target
+        data, so receptions stand in for opportunity at WR/TE.
+        """
+        pos = self.pos.get(str(pid))
+        if pos not in SCORED_POSITIONS:
+            return None
+        y = str(year)
+        if y not in self.stats:
+            return None
+        dressed = used = startable = 0
+        touches = 0.0
+        ylevels = self.repl.get(y, {})
+        for w, wd in self.stats[y]['weeks'].items():
+            line = wd.get(str(pid))
+            if not line:
+                continue
+            dressed += 1
+            if not [k for k in line if k != 'gp']:
+                continue           # dressed, did nothing scoreable
+            used += 1
+            if pos == 'QB':
+                touches += line.get('pass_att', 0) + line.get('rush_att', 0)
+            else:
+                touches += line.get('rush_att', 0) + line.get('rec', 0)
+            base = (ylevels.get(str(w)) or {}).get(pos)
+            if base is not None and calc_pts(line, pos) > base:
+                startable += 1
+        return {'weeks_dressed': dressed, 'weeks_used': used,
+                'weeks_startable': startable, 'touches': round(touches, 1),
+                'usage_pct': self.usage_percentile(pos, year, touches),
+                'got_role': used >= ROLE_MIN_WEEKS}
+
+    def usage_percentile(self, pos, year, touches):
+        """Where this touch count sits among everyone at the same position that year.
+
+        RAW TOUCHES ARE NOT COMPARABLE ACROSS POSITIONS and reporting them pooled
+        is actively misleading: the 1.01-1.03 band came out at 384 "touches" versus
+        75 for 1.04-1.06, which looked like the top three picks getting five times
+        the opportunity. They were not — the top band happened to hold Caleb
+        Williams, Jayden Daniels and Cameron Ward, and a QB's pass attempts dwarf a
+        running back's carries. A percentile within position is the comparable
+        figure, so use usage_pct for any cross-band claim and keep raw touches only
+        for a single player's own card.
+        """
+        pool = self._usage_pool(pos, year)
+        if not pool:
+            return None
+        below = sum(1 for t in pool if t < touches)
+        return round(below / len(pool), 3)
+
+    def _usage_pool(self, pos, year):
+        key = (pos, year)
+        if key in self._pools:
+            return self._pools[key]
+        y = str(year)
+        agg = {}
+        for wd in self.stats.get(y, {}).get('weeks', {}).values():
+            for pid, line in wd.items():
+                if self.pos.get(str(pid)) != pos:
+                    continue
+                if not [k for k in line if k != 'gp']:
+                    continue
+                if pos == 'QB':
+                    agg[pid] = agg.get(pid, 0) + line.get('pass_att', 0) + line.get('rush_att', 0)
+                else:
+                    agg[pid] = agg.get(pid, 0) + line.get('rush_att', 0) + line.get('rec', 0)
+        self._pools[key] = sorted(agg.values())
+        return self._pools[key]
 
     def por(self, pid, start_year, start_week):
         """Cumulative points over replacement from (start_year, start_week) to now.
@@ -317,8 +414,76 @@ def rookie_pick_rows(drafts, engine, managers):
                 'rookie_por_signed': (r or {}).get('por_signed'),
                 'rookie_weeks': (r or {}).get('weeks'),
                 'scoreable': r is not None,
+                'opportunity': engine.opportunity(pid, season) if pid else None,
             })
     return rows
+
+
+def class_factors(rows, live_season):
+    """season -> how strong that rookie class was, relative to the average class.
+
+    The 2024 class produced 2.39x the total PoR of 2025 (2506 vs 1048), and round 1
+    alone averaged 135.8 against 56.9 — both measured over one rookie season each,
+    so that is genuine class quality and not one class having had longer to
+    accumulate. A pooled expectation curve therefore hands a structural edge to
+    whoever happened to hold picks in the strong year. Scaling each class's
+    expectation by its own output removes that: a manager is measured against the
+    class he actually drafted in.
+    """
+    per = {}
+    for r in rows:
+        if r['season'] >= live_season or r['rookie_por'] is None:
+            continue
+        per.setdefault(r['season'], []).append(r['rookie_por'])
+    if not per:
+        return {}
+    overall = statistics.mean([v for vs in per.values() for v in vs])
+    if overall <= 0:
+        return {s: 1.0 for s in per}
+    return {s: round(statistics.mean(v) / overall, 3) for s, v in per.items()}
+
+
+def build_draft_capital(rows, live_season):
+    """What a pick at each slot band actually buys — opportunity AND production.
+
+    This is the answer to "are late picks bad, or just never used?" Report both
+    sides so the two are never confused again.
+    """
+    out = []
+    for label, lo, hi in PICK_BANDS:
+        v = [r for r in rows
+             if r['season'] < live_season and r['rookie_por'] is not None
+             and lo <= r['pick_no'] <= hi]
+        if not v:
+            continue
+        por = sorted(r['rookie_por'] for r in v)
+        opp = [r['opportunity'] for r in v if r['opportunity']]
+        n = len(v)
+        out.append({
+            'band': label, 'from_pick': lo, 'to_pick': hi, 'n': n,
+            'hits': sum(1 for p in por if p >= HIT_POR),
+            'hit_rate': round(sum(1 for p in por if p >= HIT_POR) / n, 3),
+            'avg_por': round(statistics.mean(por), 1),
+            'median_por': round(statistics.median(por), 1),
+            'best_por': por[-1], 'worst_por': por[0],
+            # usage_pct, not raw touches — see Engine.usage_percentile for why
+            # pooling QB attempts with RB carries made the top band look 5x busier.
+            'avg_usage_pct': round(statistics.mean(
+                [o['usage_pct'] for o in opp if o['usage_pct'] is not None]), 3)
+                if any(o['usage_pct'] is not None for o in opp) else None,
+            'avg_touches': round(statistics.mean([o['touches'] for o in opp]), 0) if opp else None,
+            'avg_weeks_used': round(statistics.mean([o['weeks_used'] for o in opp]), 1) if opp else None,
+            'never_used': sum(1 for o in opp if o['weeks_used'] == 0),
+            'got_role': sum(1 for o in opp if o['got_role']),
+            'got_role_rate': round(sum(1 for o in opp if o['got_role']) / len(opp), 3) if opp else None,
+            # Conditional on actually being used — separates a bad landing spot
+            # from a bad evaluation.
+            'avg_por_given_role': round(statistics.mean(
+                [r['rookie_por'] for r in v
+                 if r['opportunity'] and r['opportunity']['got_role']]), 1)
+                if any(r['opportunity'] and r['opportunity']['got_role'] for r in v) else None,
+        })
+    return out
 
 
 def build_pick_curve(rows, live_season):
@@ -625,6 +790,14 @@ def main():
 
     rookies = rookie_pick_rows(drafts, engine, managers)
     curve = build_pick_curve(rookies, live_season)
+    factors = class_factors(rookies, live_season)
+    print(f'Class strength factors: {factors}')
+    # Each pick carries the expectation it should actually be judged against.
+    for r in rookies:
+        exp = expected_for_pick(curve, r['pick_no'], r['round'])
+        r['expected_por'] = exp
+        f = factors.get(r['season'])
+        r['expected_por_class_adj'] = round(exp * f, 1) if (exp is not None and f) else exp
     print(f"Pick curve: {curve['n']} completed picks from classes {curve.get('classes')}")
 
     trade_rows = build_trades(trades, drafts, engine, managers, curve, live_season)
@@ -647,12 +820,16 @@ def main():
         # display name — see build_manager_index for the two traps.
         'manager_index': build_manager_index(managers),
         'pick_curve': curve,
+        'class_factors': factors,
+        'draft_capital': build_draft_capital(rookies, live_season),
+        'role_min_weeks': ROLE_MIN_WEEKS,
+        'hit_por': HIT_POR,
         'trades': trade_rows,
         'rookie_picks': rookies,
     }
 
     if args.report:
-        report(trade_rows, rookies, curve)
+        report(trade_rows, rookies, curve, out['draft_capital'], factors)
 
     raw = json.dumps(out, separators=(',', ':'))
     if args.dry_run:
@@ -663,7 +840,7 @@ def main():
     return 0
 
 
-def report(trade_rows, rookies, curve):
+def report(trade_rows, rookies, curve, capital=None, factors=None):
     print('\n' + '=' * 72)
     print('DISTRIBUTIONS — used to set the verdict and maturity thresholds')
     print('=' * 72)
@@ -724,6 +901,21 @@ def report(trade_rows, rookies, curve):
     for r in best:
         print(f"   {r['season']} {r['round']}.{r['slot']:<2} {str(r['player'])[:22]:22s} "
               f"{str(r['position']):3s} {r['rookie_por']:7.1f}  ({r['drafted_by']})")
+
+    if factors:
+        print(f'\nClass strength (mean rookie PoR vs the average class): {factors}')
+    if capital:
+        print('\nDRAFT CAPITAL — what a pick at each band actually buys')
+        print(f"  {'band':11s} {'n':>3} {'hit%':>6} {'medPoR':>8} {'usage':>7} "
+              f"{'wksUsed':>8} {'neverUsed':>10} {'gotRole':>8} {'PoR|role':>9}")
+        for b in capital:
+            up = f"{b['avg_usage_pct']*100:.0f}%" if b['avg_usage_pct'] is not None else '-'
+            print(f"  {b['band']:11s} {b['n']:>3} {b['hit_rate']*100:5.0f}% "
+                  f"{b['median_por']:8.1f} {up:>7} {b['avg_weeks_used']:8.1f} "
+                  f"{b['never_used']:>5}/{b['n']:<4} {b['got_role']:>3}/{b['n']:<4} "
+                  f"{str(b['avg_por_given_role']):>9}")
+        print('  usage = percentile among same-position players that season; raw')
+        print('  touches are NOT comparable across positions (QB attempts vs RB carries).')
 
 
 if __name__ == '__main__':

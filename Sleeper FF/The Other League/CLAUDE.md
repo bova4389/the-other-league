@@ -1418,6 +1418,12 @@ Scored off the same PoR engine and the same pick curve.
   made, attributed to the manager at the time of the pick. Show per-class and all-time.
 - **Hot spots** = a round × slot board heat-mapped by average PoR-over-expected, answering
   "where in this draft does value actually hide."
+- **Draft capital board** — what a pick at each band actually buys: hit rate, median
+  PoR, `usage_pct`, and crucially `avg PoR given a role`. See "Draft capital,
+  opportunity and class strength" below; this is a required part of the view, not a
+  nice-to-have. Reporting a late pick's PoR without its opportunity invites the wrong
+  conclusion in both directions.
+- **Show pooled AND class-adjusted** over/under-expectation per manager.
 - **Sample-size honesty is mandatory on this view.** Only 2 classes (98 picks) have played:
   2024 has two seasons, 2025 has one, 2026 has none. With a sample this thin, fit a smooth
   decay curve across all picks rather than using raw per-slot averages — a raw slot average over
@@ -1572,6 +1578,66 @@ fetched by `index.html` yet, and the Tuesday bot does not rebuild it — it shou
 once the season is running, since every trade's PoR moves each week. Add it next to
 the `generate_stats.py --live-only` step, after `stats-history.json` is refreshed
 (it reads that file, so ordering matters).
+
+---
+
+#### Draft capital, opportunity and class strength (2026-09-04)
+
+Matt's question: a pick's production should be read against its draft capital,
+because "rounds 3 and 4 are given 0 chance whereas a top 3 pick might have been an
+easy pick to make." Three things came out of testing that against the data, and all
+three are now in `trade-roi.json`.
+
+**The claim is right in outcome and wrong in mechanism, and the difference matters.**
+Late picks are not benched — only 3/24 round-3 and 4/26 round-4+ picks never recorded
+a scoreable week, and most had at least one week above replacement. What collapses is
+**volume and quality together**:
+
+| Band | n | hit rate | median PoR | usage pct | never used | got a role | avg PoR *given* a role |
+|---|---|---|---|---|---|---|---|
+| 1.01–1.03 | 6 | 83% | 118.8 | 85% | 0/6 | 6/6 | 123.5 |
+| 1.04–1.06 | 6 | 83% | 99.8 | 82% | 0/6 | 6/6 | 108.2 |
+| 1.07–1.12 | 12 | 67% | 72.0 | 61% | 1/12 | 10/12 | 89.8 |
+| Round 2 | 24 | 12% | **0.0** | 46% | 0/24 | 21/24 | 33.8 |
+| Round 3 | 24 | 4% | **0.0** | 34% | 3/24 | 16/24 | 6.9 |
+| Round 4+ | 26 | 12% | **0.0** | 37% | 4/26 | 18/26 | 23.0 |
+
+The **median rookie PoR in rounds 2, 3 and 4 is 0.0** — the typical pick after round 1
+returns nothing at all. But note round 2: 21 of 24 got a real role and it still only
+hit 12% of the time, and the `avg PoR given a role` column keeps falling long after
+the opportunity gap closes. **So opportunity explains part of the cliff, not all of
+it.** Do not let the page claim late picks merely "never got a chance" — they got a
+smaller chance and were worse with it. Both columns are published for that reason.
+
+"Top 3 is an easy pick" holds up (83% hit rate at 1.01–1.06) but is not free: Cameron
+Ward at 1.03 returned 10.2 and Travis Hunter at 1.06 returned 9.9.
+
+**`usage_pct`, not raw touches, for any cross-band claim.** Raw touches first reported
+the 1.01–1.03 band at 384 against 75 for 1.04–1.06, which reads as the top three picks
+getting five times the opportunity. They were not — that band happened to hold Caleb
+Williams, Jayden Daniels and Cameron Ward, and a quarterback's pass attempts dwarf a
+running back's carries. `Engine.usage_percentile()` ranks a player within his own
+position and season; raw `touches` is kept only for a single player's own card.
+
+**Class strength is a real confound and is now adjusted for.** The 2024 class produced
+**2.39x** the total PoR of 2025 (2506 vs 1048); round 1 alone averaged 135.8 against
+56.9. Both are measured over one rookie season each, so that is class quality, not one
+class having had longer to accumulate. `class_factors` (2024: 1.41, 2025: 0.59) scales
+each pick's expectation to the class it was actually made in, published on every row as
+`expected_por_class_adj` beside the pooled `expected_por`.
+
+It changes less than it looks: ranks move by at most one place. The one interpretive
+flip is jhayes3134, −20 pooled to **+24** class-adjusted, i.e. from slightly below
+expectation to slightly above once he stops being charged for drafting in the weak
+year. Keep both numbers on the page — pooled answers "what did you actually get",
+class-adjusted answers "did you draft well for the year you were in".
+
+**Every rookie row now carries `opportunity`**: `weeks_dressed`, `weeks_used`,
+`weeks_startable`, `touches`, `usage_pct`, `got_role` (6+ scoreable weeks). That is what
+separates a bad landing spot from a bad evaluation — a pick that got 40 touches and
+failed is not the same mistake as one that got 200 and failed, and a single PoR number
+cannot tell them apart. Bucky Irving (2024 4.06) is the reference case: expected 2.3,
+actual 176.4, usage percentile 81%, 16 of 16 weeks used.
 
 ---
 
