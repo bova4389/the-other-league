@@ -28,8 +28,12 @@ the-other-league/                      ← outer repo root
     │                                    (untracked); only the web-sized JPEGs are committed.
     ├── ktc-values.json                ← KTC dynasty values (updated weekly by GitHub Action)
     ├── projections-<year>.json        ← all 17 weeks of Sleeper projections, trimmed (updated DAILY by GitHub Action)
-    ├── stats-history.json             ← historical player stats cache
-    ├── generate_stats.py              ← one-off generator for stats-history.json; re-run only if rosters shift a lot
+    ├── stats-history.json             ← historical player stats cache (2023-2025; the live season
+    │                                    is absent until it has played weeks — see generate_stats.py)
+    ├── replacement-levels.json        ← Phase 12 weekly points-over-replacement baselines per position
+    ├── generate_stats.py              ← builds stats-history.json. NOT a one-off any more: the player
+    │                                    universe is every player ever rostered, drafted OR traded here,
+    │                                    so re-run it after trades and after each rookie draft
     ├── roster-grades-<period-id>.json  ← Phase 6 frozen grading period, e.g. roster-grades-2026-preseason.json
     │                                     (exists as of 2026-08-20). One file per grading run; hand-committed from the
     │                                     Export panel in Rosters > Grades & Outlook with ?admin=1 on the URL
@@ -45,6 +49,9 @@ the-other-league/                      ← outer repo root
         ├── fetch_projections.py       ← daily Sleeper projections pull → projections-<year>.json
         ├── build_matchup_facts.py     ← Phase 8 offline fact sheet; writes to a temp dir, never committed
         ├── build_season_facts.py      ← Phase 9 season-level fact sheet; same deal, never committed
+        ├── build_replacement_levels.py ← Phase 12; writes replacement-levels.json (committed)
+        ├── measure_starter_mix.py     ← Phase 12; measures the real positional starter mix that
+        │                                sets REPLACEMENT_RANKS. Prints only, writes nothing
         └── bot_state.json             ← tracks which weeks have been applied
 ```
 
@@ -678,10 +685,35 @@ name anywhere on the site is a link into it** — 936 of them as of build day.
 - `init()` — boot sequence: loads/caches rosters, builds leader stats, prefetches historical data in background
 
 ### Automation (Tuesday Bot)
-Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football) to update `h2h-records.md` with the prior week's H2H results.
+Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football). It now does
+**two** jobs: update `h2h-records.md` with the prior week's H2H results, and extend
+`stats-history.json` with the live season's played weeks (Phase 12).
 
 - **`scripts/tuesday_update.py`** — fetches `state/nfl` to detect current week, fetches matchups from Sleeper API, parses and rewrites `h2h-records.md`. Flags: `--week N`, `--dry-run`, `--force`. Tracks applied weeks in `scripts/bot_state.json`.
-- **`.github/workflows/tuesday-update.yml`** — GitHub Actions cron (Tuesday 1pm UTC); also has manual trigger with week/dry-run/force inputs. Commits `h2h-records.md` + `bot_state.json` if changed.
+- **`generate_stats.py --live-only`** — added to the workflow 2026-09-03. Copies completed seasons
+  through from the existing file and rebuilds only the in-progress one. Runs **after** the H2H
+  commit and is `continue-on-error`, so a stats failure can never cost us an H2H update that
+  already succeeded, and it commits separately.
+- **`.github/workflows/tuesday-update.yml`** — GitHub Actions cron (Tuesday 1pm UTC); also has manual trigger with week/dry-run/force inputs. Commits `h2h-records.md` + `bot_state.json`, then `stats-history.json`, each only if changed.
+
+**This workflow had never run once before 2026-09-03 — the file was not valid YAML.** The commit
+message's `WEEK=$(python -c "` was a *multi-line* command whose body sat at column 0 inside a
+`run: |` block. A block scalar ends at the first line indented less than the block, so YAML parsed
+`import json, os` as a top-level key and rejected the whole file. Nothing failed loudly; the
+workflow simply never appeared as runnable, and the only "H2H records update" string in the git
+log is the commit that created the bot. It went unnoticed because the H2H script is a no-op out of
+season anyway. Confirmed by parsing the committed file: invalid, while the KTC and projections
+workflows parse fine and have many `chore(bot)` commits.
+
+Two rules that follow from it:
+1. **Never paste a multi-line script body into a `run: |` block.** The `WEEK=` extraction is now a
+   single line. Anything longer belongs in a `.py` file called by the step.
+2. **Parse every workflow file after editing it** — `python -c "import yaml,sys; yaml.safe_load(open(f))"`
+   over `.github/workflows/*.yml`. All five parse as of 2026-09-03.
+
+The same step also read `scripts/bot_state.json`, a path that does not exist from the repo root
+(it is `Sleeper FF/The Other League/scripts/bot_state.json`), so every commit message would have
+said "Week ?" even once the file parsed. Fixed at the same time.
 - **`scripts/run_tuesday_update.bat`** — Windows launcher called by Task Scheduler; logs to `scripts/tuesday_update.log`.
 - **`scripts/setup_scheduled_task.ps1`** — one-time setup to register the Windows Task Scheduler task. Task is **dormant until Sep 9, 2026** (`StartBoundary`); fires on next boot if PC was off at 9am.
 - **`.github/workflows/season-reminder.yml`** — GitHub Actions creates a GitHub Issue on Sep 2, 2026 as a reminder to activate the bot; GitHub emails the repo owner automatically.
@@ -700,7 +732,12 @@ Two guardrails: `MAX_DEEP_LOOKUPS` (40) aborts rather than mass-requesting KTC i
 ### Automation (Projections Bot — added 2026-08-20)
 - **`scripts/fetch_projections.py`** — pulls all 17 weeks of `/projections/nfl/regular/{year}/{week}`, keeps only QB/RB/WR/TE with a real projection and only the ~30 keys this league scores, writes `projections-<year>.json`. Flags: `--year N`, `--dry-run`. Aborts rather than overwriting a good file if a pull comes back gutted (<200 players in week 1).
 - **`.github/workflows/update-projections.yml`** — daily cron at 11:00 UTC (7 AM ET); commits the file only when it changed.
-- **Deploy chaining (important):** commits pushed by a job using the default `GITHUB_TOKEN` do **not** fire `push`-triggered workflows — GitHub blocks that to stop workflows recursing. So the projections and KTC bots would commit their data files and the live Pages site would never pick them up. `deploy-pages.yml` therefore also triggers on `workflow_run` for both bot workflows (guarded by a `conclusion == 'success'` check). Don't remove that trigger thinking the `push` one already covers it — this was a latent gap for the KTC bot too.
+- **Deploy chaining (important):** commits pushed by a job using the default `GITHUB_TOKEN` do **not** fire `push`-triggered workflows — GitHub blocks that to stop workflows recursing. So the projections and KTC bots would commit their data files and the live Pages site would never pick them up. `deploy-pages.yml` therefore also triggers on `workflow_run` for all three bot workflows (guarded by a `conclusion == 'success'` check). Don't remove that trigger thinking the `push` one already covers it — this was a latent gap for the KTC bot too.
+  **"Tuesday Weekly H2H Update" joined that list 2026-09-03.** It was legitimately absent before:
+  its only output was `h2h-records.md`, which the site never fetches (0 references in
+  `index.html`). Now that the same workflow commits `stats-history.json`, which *is* fetched at
+  runtime, it has to be chained or the bot would update the file every Tuesday and the live site
+  would never serve it. **Any bot that starts writing a file the site fetches must be added here.**
 - **`update-ktc.yml` runs on cron + dispatch, plus a narrow push trigger on `scripts/fetch_ktc.py` only (fixed 2026-08-20).** It previously used `paths-ignore`, which only skips a push whose files are *all* ignored — so every ordinary code push fired a full KTC scrape. The git log showed it plainly: four consecutive code pushes, four immediate `chore(bot)` commits, each of which also redeployed Pages through the `workflow_run` chain. `update-projections.yml` never had a push trigger and was always correct; this brings KTC in line.
 
 ---
@@ -779,9 +816,17 @@ Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Car
 | `tol_scoring_v1` | permanent (refreshed each boot) | The league's live `scoring_settings`, overlaid onto `SDATA` at parse time |
 | `tol_txn_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All completed transactions |
 | `tol_drafts_{year}` | permanent | All draft picks |
-| `tol_stats_{year}` | permanent | Season stats aggregated from 17 weeks (2023–2025 only) |
-| `tol_stats_wk_{year}_{week}` | permanent | Single-week stats (2023–2025 only) |
+| `tol_stats_v2_{year}` | permanent | Season stats aggregated from 17 weeks (2023–2025 only) |
+| `tol_stats_wk_v2_{year}_{week}` | permanent | Single-week stats (2023–2025 only) |
 | `_stats2026Cache` | session (JS variable, not localStorage) | 2026 actual + projected stats; cleared on Refresh via `refreshData()` |
+
+**The `_v2_` on the two stats keys is load-bearing.** `savePerm`/`loadPerm` carry no version and
+no TTL, so before 2026-09-03 a returning visitor kept serving whatever `stats-history.json`
+looked like on their first ever visit — regenerating the file reached new visitors only. That
+went unnoticed because the file had not changed since May. **Any future change to
+`stats-history.json`'s contents must bump these keys again**, and `purgeLegacyStatsCache()` in
+`init()` sweeps the orphans (it removes any `tol_stats_*` key not carrying the current prefix —
+widen its exclusion list when you bump to v3).
 
 ---
 
@@ -1221,6 +1266,286 @@ The June 2026 overhaul completed the core feature set:
 - Draft ROI view (cross-reference with Phase 3)
 - Trade history log (show past trades and what they were worth at the time)
 - Roster grade context in trade verdict (win-now vs. rebuild framing)
+
+---
+
+### Phase 12 — Trade ROI + Rookie Draft ROI — **step 1 (data layer) shipped 2026-09-03**
+
+**Goal:** Two new sub-views under the Moves panel: **"Who Won That Trade?"** (a scored card per
+trade, every trade in league history) and **"Rookie Draft ROI"** (best-drafter leaderboard +
+a hot-spot board showing which draft slots over-deliver).
+
+Both are sub-views of `panel-draft` (Moves), joining Draft and Trades & Waivers. **Not a new
+top-level tab** — see the nav-budget rule in WHAT NOT TO DO.
+
+---
+
+#### Feasibility — verified against live Sleeper data 2026-09-03
+
+**Pick → player tracing is exact, not fuzzy.** This was the open question and it is closed.
+Each trade's `draft_picks[]` entry carries `roster_id` = the pick's **original** owner (plus
+`previous_owner_id` and `owner_id` for the hop). Each draft object carries `slot_to_roster_id`
+mapping draft slot → original owner. So:
+
+> `(season, round, original_owner_roster_id)` → the unique pick in that season's draft where
+> `round` matches and `slot_to_roster_id[draft_slot] == original_owner` → its `player_id`.
+
+`(round, draft_slot)` was confirmed unique in every draft. Measured result across all 4 seasons:
+
+```
+52 trades   (2023: 10 · 2024: 26 · 2025: 9 · 2026: 7)
+74 traded pick assets
+   58 → resolved to the actual drafted player
+   16 → genuine future picks (2027/2028), priced from KTC
+    0 → unresolved
+```
+
+Do **not** reach for name matching or `pick_no` arithmetic here. `pick_no` is
+`(round-1)*12 + draft_slot`, which is *not* contiguous — each season has a lone round-5
+consolation bonus pick (2024 pick_no 51 · 2025 pick_no 53 · 2026 pick_no 52), so every draft
+has 49 picks with pick numbers running past 48.
+
+**2023 is excluded from rookie ROI because it was not a rookie draft.** It was the 29-round
+startup **auction** (348 picks, `metadata.amount` present). 2024/2025/2026 are 4-round linear
+rookie drafts, 49 picks each. Rookie ROI universe = 147 picks, of which 98 have played a down.
+
+**Roster 11 changed managers.** CCJ managed it 2023–2025; Andrew Bova took it over in 2026.
+Every leaderboard must attribute a move to the **manager at the time of the move**, not the
+current roster owner. All other 11 rosters are continuous across all four seasons.
+
+**League chain** (`previous_league_id`): 2026 `1316225642072662016` · 2025 `1196516179326291968`
+· 2024 `1048702761132478464` · 2023 `959292811319287808`.
+
+**Trades live in `/transactions/{week}` for weeks 1–18.** Week 0 is empty in all four seasons —
+do not bother fetching it. Offseason trades land in week 1 of the upcoming season's league.
+Filter on `type == 'trade'` **and** `status == 'complete'`.
+
+---
+
+#### Known data gaps — fix these BEFORE building either page
+
+**1. `stats-history.json` is structurally incomplete for this feature.**
+`generate_stats.py` seeds its player list from `/league/{lid}/rosters` — i.e. only players
+rostered *at the moment the script ran*. Anyone traded, busted and dropped is missing. Of the
+208 players in the trade + rookie-draft universe, 74 have no 2025 season line, and **14 of
+those have real 2025 stats on Sleeper**. Those 14 are exactly the population these pages exist
+to expose: the busts. Scoring them as 0 would silently flatter whoever traded them away.
+
+The fix: seed the universe from the **union** of (a) every `adds` key in every trade,
+(b) every `player_id` in every draft's picks, and (c) every season's rosters — then fetch. Keep
+the atomic-write discipline (temp file + `os.replace`, never `open(path,'w')` on a 1.2 MB file).
+
+**2. There is no historical KTC and there never will be.** We only ever snapshot *current*
+values, so "what was this worth on trade day" is unrecoverable for past trades. This is why the
+score is performance-based rather than value-delta based. Do not try to reconstruct it.
+
+**3. 2026 has zero games played** (season opens 2026-09-09). All 7 of the 2026 trades score
+0–0 until real weeks land, and `scripts/tuesday_update.py` does **not** currently extend
+`stats-history.json`. Adding 2026 weekly accrual to the Tuesday bot is part of this phase.
+
+---
+
+#### Scoring model — decisions locked 2026-09-03
+
+**Metric: points over replacement (PoR).** Fantasy points via `calcPts()`/`SDATA`, minus what a
+replacement-level player at that position produced over the same span. Raw points were rejected
+because in a superflex league whoever receives the QB always "wins" — a QB-for-RB trade can read
+412 vs 289 on raw points and flip the moment replacement level is applied.
+
+**Replacement ranks are measured, not assumed.** Derived from the actual positional distribution
+of started players across 42 real league-weeks (2023–2025, weeks 1–14, `/matchups/{week}`
+`starters`), against `roster_positions` = 1 QB / 2 RB / 2 WR / 1 TE / 1 FLEX / 3 WRRB_FLEX /
+1 SUPER_FLEX (11 starters, 12 teams):
+
+| Pos | Avg started per league-week | Replacement |
+|-----|-----------------------------|-------------|
+| WR  | 55.6 | **WR57** |
+| RB  | 37.0 | **RB38** |
+| QB  | 22.2 | **QB23** |
+| TE  | 17.0 | **TE18** |
+
+Compute replacement **per position per week**, not per season — that is what absorbs bye weeks
+and injury weeks correctly. Baselines must be computed over the **full NFL player pool** from
+`/stats/nfl/regular/{y}/{w}`, not over `stats-history.json` (which only holds league-relevant
+players and would put replacement level far too high). Bake the result into a small
+`replacement-levels.json` keyed `year → week → position → points`.
+
+**Credit rule (v1): points credit to the trade forever.** All points a player scores after the
+trade date count toward that trade, whether or not the acquirer kept him. This is the pure "who
+got the better asset" reading and the math is unarguable. Two richer rules were considered and
+deferred: *realized value* (stop the clock when the acquirer gives him up — needs week-by-week
+roster reconstruction from the transaction log) and *chaining* (B's return becomes whatever B
+later got for the player, recursively). Chaining is the most interesting version of this page;
+build it as Phase 12b on top of a working v1, not instead of one.
+
+**Window.** Start = trade `created` (ms epoch) mapped to (season, week); offseason trades start
+at week 1 of the coming season. End = today, recomputed on every page load — that is what makes
+the page "continually update" for free, with no stored scores to go stale.
+
+**Score shape: margin + verdict chip.** Each side's PoR total, the margin, and a verdict:
+`DEAD EVEN` / `EDGE` / `CLEAR WIN` / `ROBBERY`. Thresholds should combine an absolute PoR floor
+with a relative gap so a tiny two-bench-player swap can never earn `ROBBERY`. No 0–100 score
+(the normalization would be arbitrary and would move the argument onto the formula) and no
+letter grades (they hide the margin — a blowout and a squeaker both read as A/C).
+
+**Maturity gate.** Cumulative PoR is the honest answer to "who won," but a 2024 trade has two
+seasons of payout and an August 2026 trade has none. Every card carries a maturity meter (weeks
+elapsed + games played by its assets), and a trade under the threshold gets a **TOO EARLY TO
+CALL** stamp *instead of* a verdict — never a verdict computed off three games. Any trade still
+holding an undrafted 2027/2028 pick is automatically unsettled.
+
+**Picks, and the units problem.** KTC values are in the thousands; PoR is in the hundreds. They
+cannot be summed. Resolve it with an **empirical pick curve built from this league's own
+history**: for each rookie draft slot, the average PoR its selection has produced (2024 + 2025
+classes). An unresolved future pick converts to expected PoR through that curve, rendered in a
+visually distinct "projected" treatment so nobody reads it as earned points. Use KTC only to
+*rank* an unresolved pick's likely slot, never as a score term directly. This curve is shared
+with the Rookie Draft ROI view, which keeps the two pages consistent by construction.
+
+**FAAB.** Only 2 of 52 trades moved waiver budget. Display it on the card; do not attempt to
+score it. There is no defensible FAAB→points conversion at this sample size.
+
+---
+
+#### Rookie Draft ROI view
+
+Scored off the same PoR engine and the same pick curve.
+
+- **Best drafter** = Σ (actual PoR − expected PoR for that slot) across every pick a manager
+  made, attributed to the manager at the time of the pick. Show per-class and all-time.
+- **Hot spots** = a round × slot board heat-mapped by average PoR-over-expected, answering
+  "where in this draft does value actually hide."
+- **Sample-size honesty is mandatory on this view.** Only 2 classes (98 picks) have played:
+  2024 has two seasons, 2025 has one, 2026 has none. With a sample this thin, fit a smooth
+  decay curve across all picks rather than using raw per-slot averages — a raw slot average over
+  two observations is noise. Say so on the page; do not present a 2-pick cell as a finding.
+
+---
+
+#### Build order
+
+1. ~~**Data layer.**~~ **Done 2026-09-03.** See "Step 1 as built" below.
+2. **`scripts/build_trade_roi.py` → `trade-roi.json`.** Expands all 52 trades into resolved
+   assets, traces picks to players, computes PoR per asset per trade window, emits the pick
+   curve. Offline, following the existing `fetch_ktc.py` / `build_season_facts.py` pattern —
+   4 seasons × 18 weeks of transactions is far too many calls to make on page load, and the
+   CORS proxy chain is too fragile for it.
+3. **Moves > Who Won That Trade?** Renders from `trade-roi.json`.
+4. **Moves > Rookie Draft ROI** + hot-spot board.
+5. ~~**Tuesday bot extension**~~ **Done 2026-09-03** — pulled forward ahead of items 2-4 because
+   the season opens 2026-09-09. See "Step 5 as built" below.
+
+**Complexity: High.** The data layer is the majority of the work and the only part that is hard
+to get right; both views are rendering once it exists.
+
+---
+
+#### Step 1 as built (2026-09-03)
+
+`stats-history.json` regenerated, `replacement-levels.json` created, both committed.
+
+**Universe widened, verified against the old file.** 2023 346→391 players, 2024 342→423,
+2025 340→441; file 1.21→1.32 MB. **Zero regressions** — every player and every stat value in
+the previous file is present and identical in the new one. 10 players were recovered into 2025
+alone (Sterling Shepard, Khalil Herbert, Isaac Guerendo, Malachi Corley, Cade Stover, Tyler
+Conklin, Jamari Thrash, Mason Rudolph, Jarrett Stidham, Mecole Hardman).
+
+A further 6 traded/drafted players stay absent **and that is correct**: Sleeper returns only
+`gms_active` and `pos_rank_*` for them, with no production of any kind. There is no stat line
+to score, and absence already reads as zero. Do not "fix" this by inventing rows for them.
+
+**`pass_int_td` was added to `STAT_KEYS`.** `calcPts()` has always read it (pick-six thrown,
+−1) but the generator never wrote it, so the site could not score it. Now collected.
+
+**The live season is omitted from the file entirely, on purpose.** `fetchWeekStats()` treats
+the mere *presence* of a week key as data — it does not check whether the object is empty — and
+then `savePerm()`s the result forever. A written-out `"2026":{"weeks":{"1":{}}}` would have
+pinned every player to zero for the whole live season, permanently, per visitor. `generate_stats.py`
+now omits empty weeks and omits a year with no played weeks. Keep it that way.
+
+**Replacement baselines.** `replacement-levels.json` (2.6 KB) holds year → week → position →
+points, from a 5-player band centred on the replacement rank rather than a single rank, because
+one boom game by the exact Nth player would otherwise swing every PoR figure that week. Season
+means came out QB 10.2–11.1 · TE 9.0–9.5 · RB 5.9–6.8 · WR 6.3–6.4 — stable across all three
+seasons, TE above RB/WR as the 0.5/catch TE premium and a 12-team TE pool imply.
+
+Baselines are computed over the **whole NFL pool** from `/stats/nfl/regular/{y}/{w}`, never over
+`stats-history.json` — that file is already filtered to league-relevant players and ranking
+inside it would set replacement far too high.
+
+**Scoring parity is verified, not assumed.** `calc_pts()` in `build_replacement_levels.py` was
+checked field-by-field against `calcPts()` and `SDATA` in `index.html`, *and* against the live
+`scoring_settings` from the league API: 27 keys, zero differences, no field read by one and not
+the other. If you touch either scorer, re-run that check.
+
+**PoR does what it was chosen to do.** 2025 raw-points top 12 contains 5 QBs with Josh Allen
+2nd; the PoR top 12 contains 1 QB with Allen 7th, led by McCaffrey / Nacua / Taylor / Robinson.
+
+**One inherent 0.1 discrepancy, do not chase it.** PoR sums per-week `calcPts` (each rounded to
+1dp, because replacement is weekly), while the Player Stats table rounds the season aggregate
+once. McCaffrey 2025 is 383.5 by the first method and 383.4 by the second. That is rounding, not
+a bug, and the weekly method is the correct one for PoR.
+
+**`measure_starter_mix.py` needs the played-week guard.** Its first run reported 56 league-weeks
+and WR 53.7, because Sleeper serves `starters` for unplayed 2026 weeks that managers have already
+set lineups for — the same "an unplayed week is not an absent week" trap that once booked phantom
+losses into the median math. Gated on `points > 0` it reproduces 42 league-weeks and
+QB 22.2 / RB 37.0 / WR 55.6 / TE 17.0 exactly.
+
+---
+
+#### Step 5 as built (2026-09-03) — live-season accrual
+
+Pulled forward ahead of items 2-4: the season opens 2026-09-09, and until this runs the live
+season stays absent from `stats-history.json` entirely, so every 2026 trade would score 0-0
+no matter what happened on the field.
+
+**`generate_stats.py` gained three things**, all of which exist because it now runs unattended:
+
+- **`--live-only`.** Copies completed seasons through from the existing file and rebuilds only the
+  in-progress one. A weekly full rebuild would re-fetch ~51 weeks that can never change, and would
+  put three years of good data at the mercy of one flaky request every single Tuesday.
+- **`check_no_data_loss()`.** A hard gate before writing: refuses to publish an output that drops a
+  season, drops any week from a season, or loses more than 5% of a season's players. **Tested by
+  simulating a 503 on week 7** — the run aborts with exit code 1 and the file is byte-identical
+  afterwards. `build_season()` also refuses to return a season with any failed week, so a hole can
+  never reach the merge in the first place.
+- **`__file__`-relative paths.** It wrote to a bare `'stats-history.json'`, so it only worked when
+  invoked from the project directory; the workflow runs from the repo root.
+
+**A real bug the safety gate caught on its first live test.** `get_league_chain()` walked the
+chain with a *loop counter* rather than each league's own season, so calling it for any season
+other than 2026 truncated the chain and dropped the 2023 league's rosters from the player
+universe — 2025 rebuilt to 401 players instead of 441. The gate blocked the write and named the
+number. The walk is now keyed and terminated on `info['season']`. **This is the gate justifying
+itself on day one; do not remove it as belt-and-braces.**
+
+**`loadStatsHistory()` gained the hourly cache-buster** (`?_=`+hour) that `loadProjectionsFile`,
+`loadCommentary` and the rest already used. This file changed roughly once a year until now; from
+this week it changes weekly in-season, and a browser-cached copy would hold the live season a week
+behind.
+
+**The workflow itself was broken and had never run** — see Automation (Tuesday Bot) for the full
+finding and the two rules that came out of it. Short version: a multi-line `python -c` at column 0
+inside a `run: |` block made the entire file invalid YAML from the day it was written.
+`deploy-pages.yml` also had to gain the Tuesday workflow in its `workflow_run` chain, because the
+bot now commits a file the site actually fetches.
+
+**Verified end to end:** all five workflow files parse; `--live-only --dry-run` runs correctly from
+the repo root and writes nothing; a simulated live season *with* data (2025) rebuilds to the same
+441 players / 17 weeks with no loss; a simulated API failure aborts and leaves the file untouched;
+the `WEEK=` one-liner resolves `?` on an empty state and `3` on `[1,2,3]`; and in-browser the site
+requests `stats-history.json?_=496799`, renders 441 rows, and logs no new errors.
+
+**Still to check on 2026-09-15** (the first Tuesday with real 2026 data): that the run adds a
+`"2026"` block with week 1 only, that the deploy chain fires, and that the Player Stats tab is
+unaffected — the live season renders through `build2026Stats()` off the live API and never reads
+`stats-history.json`, so it should be untouched either way.
+
+**Unrelated drift noticed while verifying, not acted on:** the Phase 6 console report now says
+*"Unmatched KTC report — 3 player(s) across all 12 rosters"*, where CLAUDE.md records 0 as of
+2026-08-20. Possibly just the local run falling back to the committed `ktc-values.json` after the
+live scrape 403s. Worth a look before the next grading period.
 
 ---
 
