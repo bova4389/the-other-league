@@ -181,9 +181,15 @@ people reuse passwords — not that the panel is protected. Anyone who opens dev
 **Never put a secret behind it.** In particular an Anthropic API key must never be committed;
 see the Claude Assist note below.
 
-- `COMMISH_HASH` — SHA-256 hex of the password. Default password is `tol-commish-2026`.
-  To change it, run the one-liner in the comment above that constant in any browser console and
-  paste the new hex in. Do not send the password through a chat transcript.
+- `COMMISH_HASH` — SHA-256 hex of the password. **The password itself is deliberately not
+  recorded here or anywhere else in the repo** — writing it into a tracked file would publish it
+  and defeat the only thing hashing buys. Matt holds it. To change it, run the one-liner in the
+  comment above that constant in any browser console and paste the new hex in.
+- **A short all-numeric password voids the hash's one benefit.** The digest is public, so it can
+  be brute-forced offline; a 7-digit number is ten million candidates and falls in seconds. That
+  does not weaken the panel (which was never protected anyway) but it does mean the password
+  should be treated as public, and never reused anywhere that matters. If a memorable number is
+  wanted, move the gate to PBKDF2 with a salt and a high iteration count.
 - `commishUnlock()` / `commishLock()` / `commishUnlocked()` — the gate. Unlock is
   **sessionStorage** (`tol_commish_ok`), so closing the browser re-locks.
 - **`isGradesAdmin()` now returns true for an unlocked Commissioner session as well as
