@@ -2441,6 +2441,160 @@ body.pf-locked { overflow: hidden; }
   .de-barcell { display: none; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE COMMISSIONER — admin panel (data monitor + Claude assist)
+   Appended layer, per the redesign convention. Reuses .dtbl/.f-pill/.ld where
+   it can; .cm-* is only what genuinely had no existing surface.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Discreet entry link at the foot of Home ── */
+.home-commish-link {
+  margin-top: 26px; text-align: center;
+}
+.home-commish-link button {
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: .09em; text-transform: uppercase; cursor: pointer;
+  padding: 7px 15px; transition: color .15s, border-color .15s;
+}
+.home-commish-link button:hover { color: var(--accent); border-color: var(--accent); }
+.home-commish-link button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Lock screen ── */
+.cm-lock { max-width: 420px; margin: 46px auto; text-align: center; display: flex; flex-direction: column; gap: 14px; }
+.cm-lock-icon { font-size: 34px; line-height: 1; }
+.cm-lock h3 {
+  font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 26px; margin: 0; letter-spacing: .01em;
+}
+.cm-lock p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.cm-lock-row { display: flex; gap: 8px; }
+.cm-lock input {
+  flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 12px;
+}
+.cm-lock input:focus { outline: none; border-color: var(--accent); }
+.cm-lock button.cm-go {
+  background: var(--accent); border: none; border-radius: 4px; color: #06060C;
+  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px;
+  padding: 10px 20px; cursor: pointer;
+}
+.cm-lock-err { color: var(--accent3); font-size: 12.5px; min-height: 17px; }
+
+/* ── Panel chrome ── */
+.cm-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  padding: 12px 14px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; margin-bottom: 16px;
+}
+.cm-bar .cm-live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent); flex: none;
+}
+.cm-bar .cm-checked { font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--muted); }
+.cm-bar .cm-spacer { flex: 1 1 auto; }
+.cm-btn {
+  background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--text2);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  padding: 6px 13px; cursor: pointer;
+}
+.cm-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cm-btn.danger:hover { border-color: var(--accent3); color: var(--accent3); }
+
+/* ── Summary tiles ── */
+.cm-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.cm-tile {
+  background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--tc, var(--accent));
+  border-radius: 5px; padding: 11px 13px;
+}
+.cm-tile b {
+  display: block; font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 27px; line-height: 1; color: var(--tc, var(--accent)); font-variant-numeric: tabular-nums;
+}
+.cm-tile span { font-size: 11px; color: var(--text2); letter-spacing: .03em; }
+.cm-t-fresh { --tc: var(--accent); }
+.cm-t-aging { --tc: #FFD25A; }
+.cm-t-stale { --tc: var(--accent3); }
+.cm-t-na    { --tc: var(--muted); }
+
+/* ── Group heading inside the table ── */
+.cm-grouprow td {
+  background: rgba(154,85,255,.10); font-family: 'DM Sans', sans-serif; font-weight: 700;
+  font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; color: var(--accent2);
+  padding: 8px 10px !important;
+}
+[data-theme="light"] .cm-grouprow td { background: rgba(122,51,224,.07); }
+
+/* ── Health + mode chips ── */
+.cm-chip {
+  display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px;
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif; white-space: nowrap; border: 1px solid currentColor;
+}
+.cm-h-fresh { color: var(--accent); }
+.cm-h-aging { color: #FFD25A; }
+.cm-h-stale { color: var(--accent3); }
+.cm-h-na    { color: var(--muted); }
+.cm-m-auto   { color: var(--accent);  }
+.cm-m-manual { color: var(--accent3); }
+.cm-m-live   { color: var(--accent2); }
+.cm-m-static { color: var(--muted);   }
+
+/* Gold reads fine on near-black and washes out on white. The site has no
+   documented light-mode gold, so the aging state gets a darker one here
+   rather than borrowing a hue that already means something else. */
+[data-theme="light"] .cm-t-aging { --tc: #8A6300; }
+[data-theme="light"] .cm-h-aging { color: #8A6300; }
+.cm-when { font-family: 'DM Mono', monospace; font-size: 11.5px; white-space: nowrap; }
+.cm-detail { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; line-height: 1.4; }
+.cm-tbl td { vertical-align: top; }
+.cm-tbl td.cm-name { color: var(--text); font-weight: 500; min-width: 178px; }
+
+/* ── Claude assist ── */
+.cm-claude-status {
+  display: flex; align-items: flex-start; gap: 11px; padding: 14px 16px; border-radius: 6px;
+  background: rgba(255,61,190,.07); border: 1px solid var(--accent3); margin-bottom: 18px;
+}
+[data-theme="light"] .cm-claude-status { background: rgba(214,37,143,.06); }
+.cm-claude-status .cs-body { flex: 1; }
+.cm-claude-status h4 {
+  margin: 0 0 4px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent3);
+}
+.cm-claude-status p { margin: 0 0 6px; font-size: 12.5px; color: var(--text2); line-height: 1.55; }
+.cm-claude-status p:last-child { margin-bottom: 0; }
+.cm-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.cm-mode {
+  background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+  padding: 15px 16px; display: flex; flex-direction: column; gap: 7px; opacity: .82;
+}
+.cm-mode h4 {
+  margin: 0; font-family: 'Saira Condensed', sans-serif; font-style: italic;
+  font-weight: 600; font-size: 18px; color: var(--text);
+}
+.cm-mode p { margin: 0; font-size: 12.5px; color: var(--text2); line-height: 1.5; }
+.cm-mode .cm-mode-feeds { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--muted); line-height: 1.6; }
+.cm-mode button {
+  margin-top: 3px; align-self: flex-start; background: none; border: 1px dashed var(--border);
+  border-radius: 4px; color: var(--muted); font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px; padding: 6px 12px; cursor: not-allowed;
+}
+.cm-payload {
+  background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 15px 16px;
+}
+.cm-payload h4 { margin: 0 0 4px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+.cm-payload > p { margin: 0 0 11px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.cm-payload pre {
+  margin: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 12px; overflow-x: auto; font-family: 'DM Mono', monospace; font-size: 11.5px;
+  line-height: 1.6; color: var(--text2); max-height: 300px;
+}
+
+@media (max-width: 680px) {
+  .cm-bar { padding: 10px 11px; }
+  .cm-tiles { grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+}
+
 </style>
 </head>
 <body class="is-home">
@@ -2562,6 +2716,14 @@ body.pf-locked { overflow: hidden; }
           <div class="hlm-item">Commissioner · <span>Matt Bova</span></div>
           <div class="hlm-item">Est. <span>2023</span></div>
           <div class="hlm-item">Dynasty · <span>12 Teams</span></div>
+        </div>
+
+        <!-- Deliberately NOT a sixth nav tab: five at width:20% is exactly one
+             mobile row and that is the budget (see WHAT NOT TO DO). This panel
+             has no .icon-tab at all; showTab's `if(el)` guard already tolerates
+             that. Reachable here and at #commissioner, nowhere else. -->
+        <div class="home-commish-link">
+          <button type="button" onclick="showTab('commissioner')" title="Admin &mdash; password required">&#128274; The Commissioner</button>
         </div>
       </div>
     </div>
@@ -2894,6 +3056,16 @@ body.pf-locked { overflow: hidden; }
           <div id="ktc-table-container" style="overflow-x:auto;max-height:480px;overflow-y:auto;"></div>
         </div>
       </div>
+    </div>
+
+    <!-- THE COMMISSIONER — admin only, no nav tab. See the note on the Home
+         link above for why it is not a sixth tab. Gated by commishUnlock();
+         the gate is a doorknob lock on a public static site, not security —
+         it stores only a SHA-256 digest and the whole page is public source. -->
+    <div class="panel" id="panel-commissioner">
+      <div class="sec-title">THE COMMISSIONER</div>
+      <div class="sec-sub">Data health monitor &middot; League analysis</div>
+      <div id="commish-body"></div>
     </div>
 
   </div>
@@ -7190,6 +7362,9 @@ function showTab(tab,el){
   // from setRosterView when someone switches to it.
   if(tab==='rosters'&&document.getElementById('roster-view-grades').style.display!=='none')buildRosterGrades();
   if(tab==='trade'&&!_tradeInit)initTradeEval();
+  // Build on entry, and stop polling the moment we leave — an interval left
+  // running would keep refetching every data file in the background forever.
+  if(tab==='commissioner'){ buildCommish(); } else if(typeof commishStopTimer==='function'){ commishStopTimer(); }
 }
 
 // ── TRADE EVALUATOR ──
@@ -8418,7 +8593,12 @@ let _gradesBuilding=null;// in-flight build, so a fast toggle can't start a seco
 // (routeFromHash/VALID_TABS), so an "#admin" flag would either be eaten by
 // the router or clobber the current tab on every showTab() call. The query
 // string survives hash navigation untouched.
-function isGradesAdmin(){return new URLSearchParams(location.search).has('admin');}
+// ?admin=1 still works on its own, and an unlocked Commissioner session now
+// grants the same thing — one gate for everything administrative.
+function isGradesAdmin(){
+  if(new URLSearchParams(location.search).has('admin'))return true;
+  try{return sessionStorage.getItem('tol_commish_ok')==='1';}catch(e){return false;}
+}
 
 // Read a committed JSON file the same way ktc-values.json already works
 // (no CORS, no backend). This is a static GitHub Pages site with no write
@@ -8910,8 +9090,440 @@ function startCountdown(){
 }
 startCountdown();
 
+// ══════════════════════════════════════════════════════════════════════════
+// THE COMMISSIONER — data health monitor + league analysis
+// ══════════════════════════════════════════════════════════════════════════
+//
+// WHAT THE GATE IS AND IS NOT. This repo is public and deploys to a public
+// Pages site, so every byte of this file is readable by anyone. Storing only a
+// SHA-256 digest keeps the PASSWORD itself out of public source (which matters
+// if it is reused elsewhere), but it cannot stop anyone who opens devtools.
+// Treat it as a doorknob lock that keeps league mates from wandering in, and
+// never put a secret behind it. An API key in particular must never be
+// committed — see the Claude Assist view.
+//
+// To change the password, run this in any browser console and paste the hex
+// into COMMISH_HASH below:
+//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('your password'))
+//     .then(b => console.log([...new Uint8Array(b)]
+//       .map(x => x.toString(16).padStart(2,'0')).join('')));
+const COMMISH_HASH = '13be6d4d76ac8fa2178c55dad08546c635b8071b75dc2bde5674965d99615500';
+const COMMISH_SESSION_KEY = 'tol_commish_ok';
+
+let _commishTimer = null, _commishCtx = null, _commishView = 'monitor', _commishCheckedAt = 0;
+
+function commishUnlocked(){
+  try{ return sessionStorage.getItem(COMMISH_SESSION_KEY) === '1'; }catch(e){ return false; }
+}
+
+async function commishUnlock(){
+  const input = document.getElementById('cm-pw');
+  const err = document.getElementById('cm-pw-err');
+  const pw = input ? input.value : '';
+  if(!pw){ if(err) err.textContent = 'Enter the password.'; return; }
+  let hex = '';
+  try{
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    if(err) err.textContent = 'This browser cannot hash (needs a secure context).';
+    return;
+  }
+  if(hex !== COMMISH_HASH){
+    if(err) err.textContent = 'Not it.';
+    if(input){ input.value = ''; input.focus(); }
+    return;
+  }
+  try{ sessionStorage.setItem(COMMISH_SESSION_KEY,'1'); }catch(e){}
+  buildCommish();
+}
+
+function commishLock(){
+  try{ sessionStorage.removeItem(COMMISH_SESSION_KEY); }catch(e){}
+  commishStopTimer();
+  buildCommish();
+}
+
+// ── Formatting helpers ─────────────────────────────────────────────────────
+function cmAgo(ts){
+  if(!ts) return '—';
+  const s = Math.max(0, Math.round((Date.now() - ts) / 1000));
+  if(s < 60) return s + 's ago';
+  const m = Math.round(s/60);   if(m < 60) return m + 'm ago';
+  const h = Math.round(m/60);   if(h < 48) return h + 'h ago';
+  return Math.round(h/24) + 'd ago';
+}
+// A bare 'YYYY-MM-DD' parses as UTC midnight; read it as local so a same-day
+// build does not report as several hours old depending on the reader's zone.
+function cmDateTs(s){
+  if(!s) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]).getTime();
+  const t = Date.parse(s);
+  return isNaN(t) ? null : t;
+}
+function cmDays(ts){ return ts ? (Date.now() - ts) / 86400000 : null; }
+
+// Age-based health. warn/stale are in days; a row can override with its own state.
+function cmHealth(ts, warn, stale){
+  const d = cmDays(ts);
+  if(d === null) return 'na';
+  if(d <= warn) return 'fresh';
+  if(d <= stale) return 'aging';
+  return 'stale';
+}
+
+// ── Context: one pass over every source the registry probes ────────────────
+async function commishGather(){
+  // Deliberately Date.now(), not the site's hourly cache-buster. A monitor
+  // that reads an hour-old copy of the file it is monitoring is a liar.
+  const bust = '?_=' + Date.now();
+  const grab = async (f) => {
+    try{ const r = await fetch(f + bust); return r.ok ? await r.json() : null; }
+    catch(e){ return null; }
+  };
+  const [roi, repl, stats, ktc, proj, grades, wrec, mcom, srec] = await Promise.all([
+    grab('trade-roi.json'), grab('replacement-levels.json'), grab('stats-history.json'),
+    grab('ktc-values.json'), grab('projections-2026.json'),
+    grab('roster-grades-2026-preseason.json'),
+    grab('weekly-recaps-2026.json'), grab('matchup-commentary-2026.json'),
+    grab('season-recaps.json')
+  ]);
+  let state = null;
+  try{ state = await getNflState(); }catch(e){}
+  const lp = (k) => { try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } };
+  return {
+    roi, repl, stats, ktc, proj, grades, wrec, mcom, srec, state,
+    matchTs: lp('tol_matchups_ts_2026'),
+    rosterTs: (lp('tol_cache_v2') || {}).ts || null,
+    ktcCacheTs: (lp('tol_ktc_v4') || {}).ts || null,
+    scoring: lp('tol_scoring_v1'),
+    txn: lp('tol_txn_2026'),
+    drafts: lp('tol_drafts_2026'),
+    liveWeek: state && state.season_type === 'regular' ? Number(state.week) : 0
+  };
+}
+
+// Seven rows are all derived from the same cached matchup payload. When it is
+// absent the honest answer is "nothing has loaded it yet", not a bare n/a with
+// a detail line describing machinery the reader cannot see the state of.
+function cmFromMatchups(c, desc){
+  if(!c.matchTs) return {ts:null, s:'na', d:'Not cached in this browser yet — open the Scores tab to load it'};
+  return {ts:c.matchTs, d:desc};
+}
+// Rows with no meaningful timestamp: computed fresh on every page load, so an
+// age is meaningless and "0s ago" would just be restating the clock.
+function cmPerLoad(desc){ return {ts:null, s:'fresh', d:desc}; }
+
+// ── The registry. One row per value the site puts on screen. ───────────────
+// group: live | bot | manual | static     mode: what actually updates it
+const COMMISH_ROWS = [
+  // ── Live from Sleeper ──
+  { g:'live', m:'live', n:'Weekly matchup scores', w:'Scores', c:'Live, 1h cache',
+    p:c=>cmFromMatchups(c,'Live season holds a 1h TTL; finished seasons are permanent') },
+  { g:'live', m:'live', n:'Standings — W-L, PF, PA', w:'History › Seasons', c:'Weekly',
+    p:c=>cmFromMatchups(c,'Computed from cached matchups, capped at week 14') },
+  { g:'live', m:'live', n:'Median-game record', w:'Scores', c:'Weekly',
+    p:c=>cmFromMatchups(c,'Shared weekMedianOf() — cannot disagree with the all-time engine') },
+  { g:'live', m:'live', n:'Survivor pool', w:'Scores', c:'Weekly, wks 1-12',
+    p:c=>cmFromMatchups(c,'Derived from the same payload rendered below it; never recorded') },
+  { g:'live', m:'live', n:'Rosters', w:'Teams › Rosters', c:'6h cache',
+    p:c=>({ts:c.rosterTs, d:'tol_cache_v2, 6h TTL'}) },
+  { g:'live', m:'live', n:'Player database', w:'Everywhere', c:'Per page load',
+    p:c=>cmPerLoad('/players/nfl, ~5MB, refetched on a cold load') },
+  { g:'live', m:'live', n:'2026 player stats', w:'Teams › Player Stats', c:'Per page load',
+    p:c=>cmPerLoad('Live API, in-memory cache only. Does NOT read stats-history.json') },
+  { g:'live', m:'live', n:'Trades & waivers log', w:'Moves › Trades', c:'Until Refresh',
+    p:c=>({ts:null, s:c.txn ? 'aging' : 'na',
+      d:c.txn ? 'Cached with savePerm() and carries NO timestamp — frozen until someone taps Refresh'
+              : 'Not cached in this browser yet; will fetch live'}) },
+  { g:'live', m:'live', n:'Draft picks, all classes', w:'Moves › Draft', c:'Once a year',
+    p:c=>({ts:null, s:'fresh', d:c.drafts ? 'Cached permanently, which is correct — a finished draft cannot change' : 'Not cached yet — open Moves to load; permanent once fetched, which is correct'}) },
+  { g:'live', m:'live', n:'Traded future picks', w:'Trade · Outlook', c:'Per build',
+    p:c=>cmPerLoad('/traded_picks, fetched when the view builds') },
+  { g:'live', m:'live', n:'League scoring settings', w:'Every point figure', c:'Each boot',
+    p:c=>({ts:null, s:c.scoring ? 'fresh' : 'aging',
+      d:c.scoring ? 'Live scoring_settings overlaid onto SDATA at parse time, every boot'
+                  : 'No overlay cached — running on the hardcoded SDATA fallback'}) },
+  { g:'live', m:'live', n:'Current NFL week', w:'Internal routing', c:'Per session',
+    p:c=>({ts:null, s:c.state ? 'fresh' : 'stale',
+      d:c.state ? ('/state/nfl → ' + c.state.season + ' wk ' + c.state.week + ' (' + c.state.season_type + ')')
+                : '/state/nfl unreachable — the site is running blind on dates'}) },
+  { g:'live', m:'live', n:'All-time H2H & rivalries', w:'History › Rivalries', c:'Weekly',
+    p:c=>cmFromMatchups(c,'Recomputed from cached matchups on every visit') },
+  { g:'live', m:'live', n:'Record book & Hall of Fame', w:'History › All Time', c:'Weekly',
+    p:c=>cmFromMatchups(c,'buildAllTimeStats(), memoized and invalidated on new matchup data') },
+  { g:'live', m:'live', n:'Career ledger & profiles', w:'History › Managers', c:'Weekly',
+    p:c=>cmFromMatchups(c,'Same engine as the tables, so a profile cannot disagree with them') },
+
+  // ── Bot-fed committed files ──
+  { g:'bot', m:'auto', n:'KTC dynasty values', w:'Trade · Outlook', c:'Mon 12:00 UTC',
+    p:c=>{ const ts = c.ktc && c.ktc.ts ? c.ktc.ts : null;
+      const n = c.ktc && c.ktc.values ? Object.keys(c.ktc.values).length : 0;
+      const cache = c.ktcCacheTs ? (' · your browser copy ' + cmAgo(c.ktcCacheTs) + ', 72h TTL') : '';
+      return {ts, h:[8,14], d:'update-ktc.yml · ' + n + ' players' + cache}; } },
+  { g:'bot', m:'auto', n:'Weekly projections', w:'Scores · Stats · Outlook', c:'Daily 11:00 UTC',
+    p:c=>({ts:c.proj && c.proj.ts ? c.proj.ts : null, h:[1.6,3.5],
+      d:'update-projections.yml · current week reads live, so the file serves wks 2-17'}) },
+  { g:'bot', m:'auto', n:'Trade ROI scores', w:'Moves › Who Won That Trade?', c:'Tue 13:00 UTC',
+    p:c=>{ const ts = cmDateTs(c.roi && c.roi.generated);
+      const n = c.roi && c.roi.trades ? c.roi.trades.length : 0;
+      return {ts, h:[8,15], d:'tuesday-update.yml · ' + (n || '—') + ' trades scored'}; } },
+  { g:'bot', m:'auto', n:'Draft ROI & best drafter', w:'Moves › Draft ROI', c:'Tue 13:00 UTC',
+    p:c=>{ const ts = cmDateTs(c.roi && c.roi.generated);
+      const n = c.roi && c.roi.rookie_picks ? c.roi.rookie_picks.length : 0;
+      return {ts, h:[8,15], d:'Same file, same run · ' + (n || '—') + ' rookie picks'}; } },
+  { g:'bot', m:'auto', n:'Historical stats, 2023-25', w:'Teams › Player Stats', c:'Tue 13:00 UTC',
+    p:c=>{ const ts = cmDateTs(c.stats && c.stats.generated);
+      const yrs = c.stats ? Object.keys(c.stats).filter(k=>/^\d{4}$/.test(k)).sort().join(', ') : '—';
+      return {ts, h:[8,15], d:'Seasons held: ' + yrs + ' · feeds trade-roi.json, not the live season'}; } },
+  { g:'bot', m:'auto', n:'Replacement-level baselines', w:'Not displayed', c:'Tue 13:00 UTC',
+    p:c=>({ts:cmDateTs(c.repl && c.repl.generated), h:[8,15],
+      d:'Input to the ROI build only; the site never fetches it'}) },
+
+  // ── Hand-written ──
+  { g:'manual', m:'manual', n:'Weekly league recap', w:'Scores (top block)', c:'Every Tuesday',
+    p:c=>{ const wk = c.wrec && c.wrec.weeks ? Object.keys(c.wrec.weeks).map(Number) : [];
+      const last = wk.length ? Math.max.apply(null, wk) : 0;
+      const due = c.liveWeek > 0 ? c.liveWeek - 1 : 0;
+      if(!due) return {ts:null, s:'na', d:'Nothing due yet — the season has not played a week'};
+      return {ts:null, s: last >= due ? 'fresh' : 'stale',
+        d: last >= due ? ('Written through week ' + last)
+                       : ('Week ' + due + ' owed · latest written is ' + (last || 'none'))}; } },
+  { g:'manual', m:'manual', n:'Per-matchup commentary', w:'Scores (per card)', c:'Every Tuesday',
+    p:c=>{ const keys = c.mcom && c.mcom.matchups ? Object.keys(c.mcom.matchups) : [];
+      const due = c.liveWeek > 0 ? c.liveWeek - 1 : 0;
+      if(!due) return {ts:null, s:'na', d:'Nothing due yet — the season has not played a week'};
+      const have = keys.filter(k => Number(String(k).split('|')[0]) === due).length;
+      return {ts:null, s: have >= 6 ? 'fresh' : (have ? 'aging' : 'stale'),
+        d:'Week ' + due + ': ' + have + ' of 6 written · ' + keys.length + ' total this season'}; } },
+  { g:'manual', m:'manual', n:'Season recaps', w:'History › Seasons', c:'Annually',
+    p:c=>{ const yrs = c.srec && c.srec.seasons ? Object.keys(c.srec.seasons).sort() : [];
+      return {ts:null, s: yrs.length >= 3 ? 'fresh' : 'aging',
+        d:'Written: ' + (yrs.join(', ') || 'none') + ' · 2026 owed at season close'}; } },
+  { g:'manual', m:'manual', n:'Roster grades & Outlook', w:'Teams › Outlook', c:'3x a season',
+    p:c=>{ const ts = c.grades && c.grades.generatedAt ? Date.parse(c.grades.generatedAt) : null;
+      return {ts, h:[45,75], d:'Admin snapshot, committed by hand · midseason run due around week 8'}; } },
+
+  // ── Hardcoded in index.html ──
+  { g:'static', m:'static', n:'Kickoff countdown', w:'Home', c:'Annually (Sept)',
+    p:c=>{ const t = new Date('2026-09-09T20:20:00-04:00').getTime();
+      return {ts:null, s: Date.now() < t ? 'fresh' : 'stale',
+        d: Date.now() < t ? 'Counting down to Sep 9, 2026'
+          : 'Target passed — reads "SEASON IS LIVE!" permanently until the date is bumped'}; } },
+  { g:'static', m:'static', n:'Reigning champion card', w:'Home', c:'Annually (Jan)',
+    p:c=>({ts:null, s:'fresh', d:'Static markup — correct until the 2026 season settles'}) },
+  { g:'static', m:'static', n:'League meta pills', w:'Home tagline', c:'Annually',
+    p:c=>({ts:null, s:'fresh', d:'Year 4 · 12 Teams · $1,200 pot'}) },
+  { g:'static', m:'static', n:'Payouts & final placements', w:'History › Seasons', c:'Annually',
+    p:c=>({ts:null, s: (typeof SEASON_PAYOUTS !== 'undefined' && SEASON_PAYOUTS[2026]) ? 'fresh' : 'aging',
+      d:'SEASON_PAYOUTS 2026 structure set; SEASON_HISTORY entry owed at close'}) },
+  { g:'static', m:'static', n:'Playoff bracket labels', w:'Scores, wks 15-17', c:'Annually (Dec)',
+    p:c=>{ const has = typeof PLAYOFF_BRACKET_INFO !== 'undefined' && PLAYOFF_BRACKET_INFO[2026];
+      return {ts:null, s: has ? 'fresh' : 'stale',
+        d: has ? '2026 pairings present' : 'No 2026 entry — needed before week 15'}; } },
+  { g:'static', m:'static', n:'Live-season year branch', w:'Teams › Player Stats', c:'Annually',
+    p:c=>{ const s = c.state ? Number(c.state.season) : 2026;
+      return {ts:null, s: s === 2026 ? 'fresh' : 'stale',
+        d: s === 2026 ? 'buildPlayerStats() branches on year === 2026, matching the live season'
+          : ('Live season is ' + s + ' but the branch still hardcodes 2026')}; } }
+];
+
+const CM_GROUPS = {
+  live:   'Live from Sleeper — self-updating, no bot involved',
+  bot:    'Bot-fed committed files — a scheduled job rewrites these',
+  manual: 'Hand-written — no automation exists',
+  static: 'Hardcoded in index.html — annual manual edit'
+};
+const CM_MODE_LABEL = { auto:'Auto', manual:'Manual', live:'Live API', static:'Static' };
+
+// ── Build / render ─────────────────────────────────────────────────────────
+async function buildCommish(){
+  const host = document.getElementById('commish-body');
+  if(!host) return;
+  if(!commishUnlocked()){
+    commishStopTimer();
+    host.innerHTML = commishLockHtml();
+    const i = document.getElementById('cm-pw');
+    if(i){ i.focus(); i.addEventListener('keydown', e => { if(e.key === 'Enter') commishUnlock(); }); }
+    return;
+  }
+  host.innerHTML = '<div class="ld"><div class="spin"></div><div class="lt">Probing every data source...</div></div>';
+  await commishRefresh();
+  commishStartTimer();
+}
+
+function commishLockHtml(){
+  return '<div class="cm-lock">'
+    + '<div class="cm-lock-icon">&#128274;</div>'
+    + '<h3>The Commissioner</h3>'
+    + '<p>Admin only. This is a doorknob lock on a public site &mdash; it keeps league mates out, '
+    + 'it is not security. Nothing secret lives behind it.</p>'
+    + '<div class="cm-lock-row">'
+    + '<input type="password" id="cm-pw" placeholder="Password" autocomplete="current-password">'
+    + '<button class="cm-go" type="button" onclick="commishUnlock()">Enter</button>'
+    + '</div>'
+    + '<div class="cm-lock-err" id="cm-pw-err"></div>'
+    + '</div>';
+}
+
+async function commishRefresh(){
+  _commishCheckedAt = Date.now();
+  _commishCtx = await commishGather();
+  commishRender();
+}
+
+function commishRender(){
+  const host = document.getElementById('commish-body');
+  if(!host || !commishUnlocked()) return;
+  host.innerHTML = commishBarHtml()
+    + (_commishView === 'monitor' ? commishMonitorHtml() : commishClaudeHtml());
+}
+
+function setCommishView(v){
+  _commishView = v;
+  commishRender();
+}
+
+function commishBarHtml(){
+  const mv = _commishView === 'monitor', cv = !mv;
+  return '<div class="cm-bar">'
+    + '<span class="cm-live-dot"></span>'
+    + '<button class="f-pill' + (mv ? ' active' : '') + '" onclick="setCommishView(\'monitor\')">Data Monitor</button>'
+    + '<button class="f-pill' + (cv ? ' active' : '') + '" onclick="setCommishView(\'claude\')">Claude Assist</button>'
+    + '<span class="cm-spacer"></span>'
+    + '<span class="cm-checked" id="cm-checked">checked ' + cmAgo(_commishCheckedAt) + '</span>'
+    + '<button class="cm-btn" onclick="commishRefresh()">Re-check</button>'
+    + '<button class="cm-btn danger" onclick="commishLock()">Lock</button>'
+    + '</div>';
+}
+
+// Resolve one row to {state, ts, detail}. Row-supplied state always wins over
+// the age calculation — a coverage gap is not an age question.
+function cmResolve(row){
+  let r;
+  try{ r = row.p(_commishCtx || {}) || {}; }
+  catch(e){ return {state:'na', ts:null, detail:'probe failed: ' + e.message}; }
+  const h = r.h || [8,15];
+  const state = r.s || cmHealth(r.ts, h[0], h[1]);
+  return {state, ts:r.ts || null, detail:r.d || ''};
+}
+
+function commishMonitorHtml(){
+  const resolved = COMMISH_ROWS.map(row => ({row, res:cmResolve(row)}));
+  const count = s => resolved.filter(x => x.res.state === s).length;
+  const tiles = '<div class="cm-tiles">'
+    + '<div class="cm-tile cm-t-fresh"><b>' + count('fresh') + '</b><span>Fresh</span></div>'
+    + '<div class="cm-tile cm-t-aging"><b>' + count('aging') + '</b><span>Aging</span></div>'
+    + '<div class="cm-tile cm-t-stale"><b>' + count('stale') + '</b><span>Needs you</span></div>'
+    + '<div class="cm-tile cm-t-na"><b>' + count('na') + '</b><span>Not applicable</span></div>'
+    + '<div class="cm-tile"><b>' + resolved.length + '</b><span>Tracked values</span></div>'
+    + '</div>';
+
+  let rows = '';
+  Object.keys(CM_GROUPS).forEach(g => {
+    const inGroup = resolved.filter(x => x.row.g === g);
+    if(!inGroup.length) return;
+    rows += '<tr class="cm-grouprow"><td colspan="6">' + esc(CM_GROUPS[g])
+         + ' &nbsp;&middot;&nbsp; ' + inGroup.length + '</td></tr>';
+    inGroup.forEach(({row, res}) => {
+      rows += '<tr>'
+        + '<td class="cm-name">' + esc(row.n) + '</td>'
+        + '<td><span class="cm-chip cm-m-' + row.m + '">' + CM_MODE_LABEL[row.m] + '</span></td>'
+        + '<td>' + esc(row.w) + '</td>'
+        + '<td class="cm-when">' + esc(row.c) + '</td>'
+        + '<td class="cm-when">' + (res.ts ? cmAgo(res.ts) : '<span style="color:var(--muted)">no stamp</span>')
+          + (res.detail ? '<span class="cm-detail">' + esc(res.detail) + '</span>' : '') + '</td>'
+        + '<td><span class="cm-chip cm-h-' + res.state + '">'
+          + (res.state === 'na' ? 'n/a' : res.state === 'stale' ? 'needs you' : res.state)
+          + '</span></td>'
+        + '</tr>';
+    });
+  });
+
+  return tiles
+    + '<div class="dtblwrap"><table class="dtbl cm-tbl">'
+    + '<thead><tr><th>Value</th><th>Updated by</th><th>Where</th><th>Expected</th>'
+    + '<th>Last updated</th><th>Health</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+}
+
+// ── Claude Assist — placeholder shell ──────────────────────────────────────
+// Deliberately NOT wired to an API. This is a public static site: an API key
+// pasted into this file would be committed to a public repo and live on the
+// open web. Wiring it means a key held in localStorage on this device only,
+// entered by hand, never committed — decide that before building it out.
+const CM_CLAUDE_MODES = [
+  { t:'Team Outlook',   d:'Read a roster the way the Outlook grade does, but in prose: where the value sits, what the age curve says, and what the next two seasons look like.',
+    f:'rosters · ktc-values.json · projections-2026.json · trade-roi.json' },
+  { t:'Start / Sit',    d:'Weigh two players for a given week against this league\'s own scoring, not generic PPR — distance buckets, the TE premium, and the superflex slot.',
+    f:'projections-2026.json · SDATA · /stats/nfl/regular/2026' },
+  { t:'Trade Decision', d:'Price a proposal on dynasty value and on what comparable trades in this league actually returned, using the scored history rather than a calculator.',
+    f:'ktc-values.json · trade-roi.json · replacement-levels.json' }
+];
+
+function commishClaudeHtml(){
+  const c = _commishCtx || {};
+  const preview = {
+    league: 'The Other League · 12-team dynasty superflex',
+    live_week: c.liveWeek || 'preseason',
+    scoring: 'distance-bucket PPR, TE premium +0.5/rec, rec: 0',
+    rosters_loaded: (typeof cachedRosters !== 'undefined' && cachedRosters) ? cachedRosters.length : 0,
+    ktc_players: c.ktc && c.ktc.values ? Object.keys(c.ktc.values).length : 0,
+    projection_weeks: c.proj && c.proj.weeks ? Object.keys(c.proj.weeks).length : 0,
+    scored_trades: c.roi && c.roi.trades ? c.roi.trades.length : 0,
+    rookie_picks_scored: c.roi && c.roi.rookie_picks ? c.roi.rookie_picks.length : 0
+  };
+  let modes = '';
+  CM_CLAUDE_MODES.forEach(m => {
+    modes += '<div class="cm-mode">'
+      + '<h4>' + esc(m.t) + '</h4>'
+      + '<p>' + esc(m.d) + '</p>'
+      + '<div class="cm-mode-feeds">Feeds: ' + esc(m.f) + '</div>'
+      + '<button type="button" disabled>Not connected</button>'
+      + '</div>';
+  });
+  return '<div class="cm-claude-status">'
+    + '<div class="cs-body">'
+    + '<h4>Not connected &mdash; and there is a decision to make first</h4>'
+    + '<p>This site is static and its repo is public, so an API key written into the page would be '
+    + 'published twice over: on the live site and in GitHub source. The only safe wiring is a key '
+    + 'you paste in once, held in this browser\'s localStorage on this device, never committed.</p>'
+    + '<p>The three modes below are shells. The data they would each read is already on this page &mdash; '
+    + 'that part is done, and the payload preview underneath is live right now.</p>'
+    + '</div></div>'
+    + '<div class="cm-modes">' + modes + '</div>'
+    + '<div class="cm-payload">'
+    + '<h4>Context payload &mdash; live</h4>'
+    + '<p>What this page could hand Claude at this moment, assembled from what the site has already loaded.</p>'
+    + '<pre>' + esc(JSON.stringify(preview, null, 2)) + '</pre>'
+    + '</div>';
+}
+
+// ── Real-time polling ──────────────────────────────────────────────────────
+// Re-probes every 60s while the panel is on screen, and ticks the "checked
+// Xs ago" label every second in between so the page reads as live. Both stop
+// the moment the panel is left — see showTab.
+function commishStartTimer(){
+  commishStopTimer();
+  let n = 0;
+  _commishTimer = setInterval(() => {
+    const panel = document.getElementById('panel-commissioner');
+    if(!panel || !panel.classList.contains('active') || !commishUnlocked()){ commishStopTimer(); return; }
+    n++;
+    const el = document.getElementById('cm-checked');
+    if(el) el.textContent = 'checked ' + cmAgo(_commishCheckedAt);
+    if(n % 60 === 0) commishRefresh();
+  }, 1000);
+}
+function commishStopTimer(){
+  if(_commishTimer){ clearInterval(_commishTimer); _commishTimer = null; }
+}
+
 // ── HASH ROUTING ──
-const VALID_TABS=['home','careers','scores','rosters','draft','trade'];
+// 'commissioner' is a routable panel with NO .icon-tab — the nav stays at
+// five. showTab's `if(el)` guard already handles a tab with no button.
+const VALID_TABS=['home','careers','scores','rosters','draft','trade','commissioner'];
 
 // Retired hashes, kept working. Links to this site get texted around the
 // league and live in people's notes; a hash that used to be a tab must land
@@ -8946,6 +9558,9 @@ const TAB_ALIASES={
   // hashes there rather than nowhere.
   league:      {tab:'home'},
   rules:       {tab:'home'},
+  // The Commissioner — short forms, since the full word is a mouthful to type.
+  commish:  {tab:'commissioner'},
+  admin:    {tab:'commissioner'},
   managers: {tab:'careers', open:()=>setCareersView('profiles', document.getElementById('cview-profiles-btn'))},
   seasons:  {tab:'careers', open:()=>setCareersView('seasons',  document.getElementById('cview-seasons-btn'))},
 };

@@ -162,6 +162,83 @@ future voted-in rule change there.
 
 **Removed earlier:** "Ask Claude" (`ai` / `panel-ai`), UI 2026-08-20, JS and CSS same day.
 
+### The Commissioner (`panel-commissioner`) — admin, no nav tab
+
+**A sixth panel, deliberately not a sixth tab.** The nav budget is five and this does not spend
+it: `panel-commissioner` has no `.icon-tab` at all. `showTab()` already tolerated that — its
+`if(el)` guard means a tab with no button simply activates no button — so routing it cost one
+entry in `VALID_TABS` and nothing else. Verified live: `.icon-tab` count stays 5 and
+`.icon-tab.active` is empty while the panel is open.
+
+**Reached three ways, all discreet:** a small muted `🔒 The Commissioner` button at the foot of
+the Home panel (`.home-commish-link`), and the `#commissioner` / `#commish` / `#admin` hashes.
+There is no link anywhere else, and nothing in the nav or header advertises it.
+
+**The gate is a doorknob lock, not security, and the code says so.** This repo is public and
+deploys to a public Pages site, so every byte of `index.html` is readable by anyone. What the
+hash buys is that the *password itself* never appears in public source — which matters because
+people reuse passwords — not that the panel is protected. Anyone who opens devtools is in.
+**Never put a secret behind it.** In particular an Anthropic API key must never be committed;
+see the Claude Assist note below.
+
+- `COMMISH_HASH` — SHA-256 hex of the password. Default password is `tol-commish-2026`.
+  To change it, run the one-liner in the comment above that constant in any browser console and
+  paste the new hex in. Do not send the password through a chat transcript.
+- `commishUnlock()` / `commishLock()` / `commishUnlocked()` — the gate. Unlock is
+  **sessionStorage** (`tol_commish_ok`), so closing the browser re-locks.
+- **`isGradesAdmin()` now returns true for an unlocked Commissioner session as well as
+  `?admin=1`.** One gate for everything administrative — the roster-grade metric cards, the
+  unmatched-KTC report and the snapshot exporter all light up once you are in. `?admin=1` still
+  works standalone and is unchanged.
+
+**Two views**, switched by `setCommishView('monitor'|'claude')`:
+
+**Data Monitor.** Every value the site displays — 31 of them — in one table, grouped by what
+actually keeps it current: live Sleeper API (15), bot-fed committed file (6), hand-written (4),
+hardcoded in this file (6). Each row carries where it lives, its expected cadence, its real
+last-updated time and a health chip.
+
+- `COMMISH_ROWS` is the registry and **the only place to add a value.** Each row is
+  `{g, m, n, w, c, p}` — group, mode, name, where, cadence, and a `p(ctx)` probe returning
+  `{ts, d, s?, h?}`. A row-supplied `s` (state) always beats the age calculation, because a
+  coverage gap is not an age question.
+- `commishGather()` fetches every data file **with `Date.now()` as the cache-buster, not the
+  site's hourly one**. A monitor that reads an hour-old copy of the file it is monitoring is a
+  liar. This is the one place that deliberately departs from the hourly-buster convention.
+- Timestamps are read from what each file actually carries: `generated` (a bare date) on the
+  three Phase 12 files, `ts` (ms epoch) on `ktc-values.json` and `projections-2026.json`,
+  `generatedAt` (ISO) on the grade snapshot. `cmDateTs()` parses a bare `YYYY-MM-DD` as **local**
+  midnight — parsed as UTC it reports a same-day build as hours old depending on the reader's zone.
+- **The hand-written files have no stamp and are scored on coverage instead**, which is the truer
+  signal: "week 3 recap owed, latest written is week 2" beats any file mtime.
+- **A row with no timestamp renders "no stamp", never a fake age.** The first build showed
+  `_commishCheckedAt` for per-load values, which read as "fetched 0s ago" and was just restating
+  the clock. `cmPerLoad()` exists for that case, and `cmFromMatchups()` for the seven rows derived
+  from cached matchups — when nothing has loaded them it says so and names the tab that will.
+- `commishStartTimer()` / `commishStopTimer()` — re-probes every 60s and ticks the "checked Xs ago"
+  label every second. **`showTab` stops the timer on leaving any other tab; do not remove that.**
+  A leaked interval re-fetches every data file in this list forever in the background.
+
+**Claude Assist — a shell, wired to nothing, on purpose.** Three modes (Team Outlook,
+Start/Sit, Trade Decision) with the data each would read named on its card, plus a live context
+payload preview built from what the page has already loaded. It is not connected because there
+is a decision to make first: **a key written into this file would be published twice over**, on
+the live site and in public GitHub source. The only safe wiring is a key pasted in once and held
+in that browser's localStorage on that device, never committed. Decide that before building it out.
+
+CSS lives in the appended `THE COMMISSIONER` layer (`.cm-*` / `.home-commish-link`), per the
+redesign convention, with its light-mode overrides. **Gold needed one:** `#FFD25A` reads fine on
+near-black and washes out on white, and the site has no documented light-mode gold, so the aging
+state gets `#8A6300` under `[data-theme="light"]` rather than borrowing a hue that already means
+something else.
+
+**Verified in-browser, not assumed:** unlock and re-lock both work and a wrong password sets no
+session; the seven matchup-derived rows flip from n/a to fresh the moment the Scores tab caches
+matchups (which is what proves the probes are live rather than decorative); the poll timer starts
+on entry and is null after leaving; `isGradesAdmin()` follows the session in both directions;
+zero page overflow at 375px with the table scrolling inside its own `.dtblwrap`; light mode
+resolves `#0E9C92` / `#D6258F` / `#8A6300`; no console errors on a clean load.
+
 ### URL Hash Routing
 `showTab(tab, el)` calls `history.replaceState(null,'','#'+tab)`. On boot, `routeFromHash()` reads `location.hash`. `hashchange` is also wired. Valid tab IDs are in `VALID_TABS`.
 
@@ -887,6 +964,7 @@ Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Car
 | `tol_stats_v2_{year}` | permanent | Season stats aggregated from 17 weeks (2023–2025 only) |
 | `tol_stats_wk_v2_{year}_{week}` | permanent | Single-week stats (2023–2025 only) |
 | `_stats2026Cache` | session (JS variable, not localStorage) | 2026 actual + projected stats; cleared on Refresh via `refreshData()` |
+| `tol_commish_ok` | **sessionStorage**, cleared on browser close | The Commissioner unlock flag. Also read by `isGradesAdmin()`. Deliberately session-scoped, not permanent — an admin panel that stays unlocked forever on a shared phone is worse than retyping a password. |
 
 **The `_v2_` on the two stats keys is load-bearing.** `savePerm`/`loadPerm` carry no version and
 no TTL, so before 2026-09-03 a returning visitor kept serving whatever `stats-history.json`
@@ -1860,4 +1938,7 @@ live scrape 403s. Worth a look before the next grading period.
 - Do not add the sidebar back without explicit request
 - Do not add a sixth top-level nav tab — see the nav-budget rule under KEY DESIGN DECISIONS. Build it as a sub-view.
 - Do not remove a `TAB_ALIASES` entry. They are the only thing keeping links already texted around the league from landing on a blank page.
+- Do not put a secret, an API key or anything you would mind the league reading behind the Commissioner gate — it is a doorknob lock on a public site, and the whole file is public source.
+- Do not remove the `commishStopTimer()` call in `showTab` — the monitor's poll would keep re-fetching every data file in the background for the life of the session.
+- Do not give the Commissioner a nav tab. It is a panel with no button precisely so the nav stays at five; see the nav-budget rule.
 - Do not restore the Rules panel, `buildScoring()` or `SLABELS` — deleted 2026-08-21 as a restatement of what Sleeper shows. `SDATA` is NOT part of that deletion; it feeds `calcPts()` and every point figure on the site.
