@@ -116,7 +116,7 @@ PLAYOFF_BRACKET_INFO = {
 
 
 def commented(label):
-    """Does a bracket-labelled game get commentary?
+    """Does a bracket-labeled game get commentary?
 
     Regular-season games always do (label is None). In the brackets, the games
     that mattered are the winners bracket plus the three placement games that

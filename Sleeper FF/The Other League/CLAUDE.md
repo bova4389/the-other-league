@@ -139,7 +139,7 @@ Verified 280-1280px, both themes: zero page overflow on every tab, nav never wra
 | 5 | Trade | `trade` | `panel-trade` | - |
 
 **Panel and `showTab` ids were deliberately NOT renamed** - `rosters`, `draft`, `careers` still
-name tabs now labelled Teams, Moves and History. Renaming them would have touched several hundred
+name tabs now labeled Teams, Moves and History. Renaming them would have touched several hundred
 call sites for a cosmetic gain. Read the table above rather than trusting an id to describe its
 tab.
 
@@ -389,7 +389,7 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 ### All-Time Stats Engine (Phase 1 — built 2026-08-20)
 `buildLeaderStats()` **no longer exists** — it was renamed `buildHallOfFame()`, and the recomputation behind it moved into a shared engine. It used to rebuild the entire H2H and median maps from scratch on every one of its ~6 call sites.
 
-- `buildAllTimeStats()` — **the entry point.** One walk over every cached `tol_matchups_{year}` (2023–2026, regular-season weeks 1–14 only) returning `{hasData, games, seasons, per, rec}`. `per[uid]` carries gp / pf / pa / ppg / papg / scores / stdev / h2hW-L / medW-L / winPct / luckyW / unluckyL / weekHigh / weekLow / avgMov / seasonPF / streaks; `rec` carries the single-game and single-season extremes. Memoised in `_allTimeCache`.
+- `buildAllTimeStats()` — **the entry point.** One walk over every cached `tol_matchups_{year}` (2023–2026, regular-season weeks 1–14 only) returning `{hasData, games, seasons, per, rec}`. `per[uid]` carries gp / pf / pa / ppg / papg / scores / stdev / h2hW-L / medW-L / winPct / luckyW / unluckyL / weekHigh / weekLow / avgMov / seasonPF / streaks; `rec` carries the single-game and single-season extremes. Memoized in `_allTimeCache`.
 - `invalidateAllTimeStats()` — **must be called by anything that writes `tol_matchups_*`.** `fetchAllMatchups()` already does. Without it the cards freeze at whatever was cached on the first pass, because the boot prefetch lands 2023/2024/2025 one season at a time.
 - `weekWasPlayed(weekData)` — **the guard that fixed a real, live bug.** An unplayed Sleeper week returns 12 rows with a real `matchup_id` and `points: 0.0` (verified against the live 2026 payload — all 17 weeks are paired months before kickoff). The median math evaluated `0 > 0` as false for all twelve teams and booked everyone a median **loss** for every unplayed week, so merely opening the Scores tab in the preseason silently added 14 phantom losses per owner per cached future season. Confirmed by loading the pre-change file side by side: Matt Bova's median record read 10-46 (56 games) instead of 10-32 (42), and his career Total W-L read 25-73 instead of 25-59. The guard now sits in `buildAllTimeStats`, `buildMedianMap`, `buildH2HMap`, `buildH2HForYear` and `buildSeasonStandingsData` — **don't drop it from any of them.**
 - **Two week-bound bugs found in the 2026-08-20 regular-season audit** (the Phase 1 code was already correct; these were pre-existing):
@@ -431,7 +431,7 @@ State variables: `currentScoresYear` (default 2026), `currentScoresWeek` (defaul
 ### Matchup Commentary (Phase 8 — built 2026-08-21)
 Hand-written write-ups under each matchup on the Scores tab, collapsed behind a click-to-open strip. See DEVELOPMENT ROADMAP Phase 8 for scope and the writing rules.
 
-- `loadCommentary(year)` — fetches `matchup-commentary-<year>.json` (same no-CORS + hourly cache-buster pattern as `loadProjectionsFile`), memoised per year in `_commentaryPromise`. Returns `null` for any year with no file, which is the normal case for 2023/2024/2026 — a missing file must never break the scoreboard.
+- `loadCommentary(year)` — fetches `matchup-commentary-<year>.json` (same no-CORS + hourly cache-buster pattern as `loadProjectionsFile`), memoized per year in `_commentaryPromise`. Returns `null` for any year with no file, which is the normal case for 2023/2024/2026 — a missing file must never break the scoreboard.
 - `renderCommentaryBlock(commentary, week, matchupId)` — returns `''` when there's no entry for `week|matchup_id`, so consolation games and unwritten seasons render **no toggle at all**. An empty toggle is worse than none.
 - `toggleMatchupCommentary(key, el)` — pure show/hide on `#mc-body-<week>-<matchupId>`, plus `.open` on the strip (rotates the chevron). No re-render, no refetch.
 - **The collapsed strip reads "Matchup Recap"** (Matt, 2026-08-21), not the headline. It used to preview the headline, which gave the punchline away before the click.
@@ -441,7 +441,7 @@ Hand-written write-ups under each matchup on the Scores tab, collapsed behind a 
 ### Season Recaps (Phase 9 — built 2026-08-21)
 The prose beside each Careers year tab. See DEVELOPMENT ROADMAP Phase 9 for scope and the writing rules.
 
-- `loadSeasonRecaps()` — fetches `season-recaps.json` (same no-CORS + hourly cache-buster pattern as `loadCommentary`), memoised in `_recapsPromise`. **One file for every season**, unlike matchup commentary's per-year files — there are only ~350 words a year, so a fetch per tab click would be silly.
+- `loadSeasonRecaps()` — fetches `season-recaps.json` (same no-CORS + hourly cache-buster pattern as `loadCommentary`), memoized in `_recapsPromise`. **One file for every season**, unlike matchup commentary's per-year files — there are only ~350 words a year, so a fetch per tab click would be silly.
 - `renderSeasonRecap(year)` — fills `#season-recap-<year>`. **Re-queries the element after the await** — `buildSeasonYear` can re-render the view out from under an in-flight fetch. A missing file, or a year with no entry, renders a one-line note and never breaks the standings table beside it.
 - Shape per year: `{headline, facts: [{k, v}], paragraphs: []}`. `facts` are the season-at-a-glance chips (champion, runner-up, reg-season #1, top score, the 1.13); `paragraphs` is the write-up.
 - CSS in the appended `CAREERS TAB — SEASON YEAR TABS` layer (`.season-split` / `.ss-*` / `.sr-*` / `.pay-*`). **`.season-split` is a wrapping flexbox on purpose** — the table hugs its content, the payout card takes the rest, and when there is no longer 300px left for it it drops underneath on its own. No breakpoint decides that, so it behaves inside a narrow *container*, not just a narrow viewport.
@@ -476,7 +476,7 @@ elimination list; that is the one thing this design exists to prevent.
   including unplayed ones: a manager opening Week 6 in September should still be told the pool
   exists and who is in it. Five states — not played / eliminated + who's left / crowned /
   settled (week 12) / no elimination.
-- `loadWeeklyRecaps(year)` — fetches `weekly-recaps-<year>.json`, memoised per year in
+- `loadWeeklyRecaps(year)` — fetches `weekly-recaps-<year>.json`, memoized per year in
   `_weeklyRecapsPromise`. Same no-CORS + hourly cache-buster pattern as `loadCommentary()`.
 - `renderWeekTopBlock(recaps, sv, week)` — the top block. **Either half can be missing.** With no
   write-up but a live pool it emits `.wr-bare` — the tracker alone, card chrome collapsed, rather
@@ -551,7 +551,7 @@ State variables: `currentTxnTeams`, `currentRosterTeams`, `currentDraftTeams` �
 ### Head-to-Head Explorer + Nemesis Board (Phase 2 — built 2026-08-21)
 Deliberately a **different question** from the 6 `RIVALS` cards above: "any two managers, ever," not just the 6 pairs the league formally calls rivals. So it does **not** inherit the "2025+ only" scoping those cards use (see KEY DESIGN DECISIONS) — it walks every cached season back to 2023, same guards as `buildH2HMap` (`weekWasPlayed`, `REG_WEEKS`-capped), so it can never disagree with the all-time totals shown elsewhere on the site. Verified against synthetic matchup data covering a win, a loss, a tie, an unplayed week (all-zero points) and a week 15 game — the unplayed week and the post-`REG_WEEKS` week are both correctly excluded, and win/loss/tie/margin/chronological-sort all came back exact.
 
-- `buildAllTimePairs()` — one walk over `tol_matchups_{year}` for 2023–2026, grouping every regular-season matchup by roster-id pair (keyed `lo|hi`, lower roster_id first) into a `games[]` array. Not memoised — recomputed on every `buildRivalries()` call, same as `buildH2HMap`; cheap at this data volume (4 seasons × 14 weeks × 6 games).
+- `buildAllTimePairs()` — one walk over `tol_matchups_{year}` for 2023–2026, grouping every regular-season matchup by roster-id pair (keyed `lo|hi`, lower roster_id first) into a `games[]` array. Not memoized — recomputed on every `buildRivalries()` call, same as `buildH2HMap`; cheap at this data volume (4 seasons × 14 weeks × 6 games).
 - `pairView(pairs, ridX, ridY)` — orients one pair's games to `ridX`'s point of view: `{w, l, tie, gp, pf, pa, avgMargin, games[]}`, sorted chronologically. Returns `null` when the two have never played a regular-season game against each other — a normal state (most of the 66 possible pairs have only 1–2 meetings across 4 seasons, some none at all), not an error condition; callers render a plain sentence for it rather than an empty table.
 - `computeNemesisMap(minGames)` — thin wrapper over `buildH2HMap()`: per manager, the opponent with the worst win% among opponents played at least `minGames` times (Nemesis Board uses 2), tie-broken toward more losses. Gating on a minimum sample means one loss to someone played only once can't crown a "nemesis."
 - `buildH2HPicker()` — renders the 12×12 clickable grid into `#h2h-picker-grid`. Cell color: `.lead`/`.trail`/(default) via `--accent`/`--accent3`, matching the fav/dog-style axis used elsewhere on the site. Clicking a cell calls `selectH2HPair`.
@@ -682,7 +682,7 @@ name anywhere on the site is a link into it** — 936 of them as of build day.
 - `ownerLink(uid,text)` / `ridLink(rid,text)` — **the only sanctioned way to render a manager's
   name.** A `<button>` with its styling stripped back to `inherit`, so it drops into a table cell,
   a card header or a sentence without moving anything. **No underline** (Matt, 2026-08-21) — names
-  inherit their surrounding colour and reveal themselves on hover; `:focus-visible` still draws a
+  inherit their surrounding color and reveal themselves on hover; `:focus-visible` still draws a
   ring so keyboard users keep an affordance. `ridLink` exists because most render sites carry a
   roster_id, not a uid. An unknown uid falls through to plain escaped text, which is what
   makes the Stats table's free-agent rows (rid 0) safe.
@@ -881,7 +881,7 @@ Aesthetic: late-90s NFL Blitz / arcade-neon sports broadcast — glossy electric
 
 **HOW THE REDESIGN IS STRUCTURED — read this before editing styles:**
 - The redesign is a stack of **appended CSS layers at the very END of `<style>`**, each opened by a banner comment: `ARCADE NEON REDESIGN`, then one block per tab (`CAREERS TAB — Arcade Neon polish`, `SCORES TAB…`, `RIVALRIES…`, `TRADE EVALUATOR…`, `DRAFT · STATS · TRANSACTIONS · LEAGUE…`, `HOME TAB…`, `LIGHT MODE…`), then the Phase 6 `.gr-*` block and the Phase 1 `CAREERS TAB · RECORD BOOK + HALL OF FAME & SHAME` block. They cascade over the original CSS above them — do not delete them.
-- The Phase 1 layer styles `.hof-card` as an extension of the existing `.fun-card` (which had been defined but unused), with `.shame` recolouring to `--accent3`. Verified at 280 / 375 / 1280px in both themes: 1 / 2 / 5 columns, zero page or card overflow, and no hardcoded hex — light mode picks up `#0E9C92` / `#D6258F` automatically.
+- The Phase 1 layer styles `.hof-card` as an extension of the existing `.fun-card` (which had been defined but unused), with `.shame` recoloring to `--accent3`. Verified at 280 / 375 / 1280px in both themes: 1 / 2 / 5 columns, zero page or card overflow, and no hardcoded hex — light mode picks up `#0E9C92` / `#D6258F` automatically.
 - Styling is **by class name and CSS variable**, never by editing individual elements. New content rendered by the existing JS inherits the look automatically **as long as it reuses the existing class names**.
 - **To keep the design when adding things:** (1) reuse existing classes (`.r-card`, `.chip`, `.cp`, `.f-pill`, `.match-card`, `.dtbl`/`.career-tbl`, `.s-pill`, `.ic`, `.note`, …); (2) use the palette **variables**, never hardcode hex; (3) put any NEW css at the very bottom; (4) keep the banner-commented blocks.
 
@@ -944,7 +944,7 @@ for a manager who has left the league and is no longer in `TEAMS`.
   bytes; browsers sniff content type either way, but the wrong extension is a trap for the next
   person. Being a JPEG it has **no alpha**: the black background is baked into the artwork.
 - `TOL Large Logo.png` - home hero only now (max 420px; 260px mobile). Deliberately still the
-  shield: a wide banner suits a header strip, a square mark suits a centred hero.
+  shield: a wide banner suits a header strip, a square mark suits a centered hero.
 - `TOL Abbreviated Icon.png` - favicon + iOS add-to-homescreen icon
 - `TOL Small Logo.png` - available if needed
 
@@ -990,7 +990,7 @@ is far more than it needs.
 - **2026 draft is linear, not snake** — rounds 2–4 follow the same order as round 1
 - **Sidebar is gone entirely** — removed 2026-08-20, markup and JS and CSS. Do not add it back without explicit request.
 - **Cache bar is permanently hidden** — hidden via inline `style="display:none"` on the div. The underlying elements still exist and `refreshData()` / `setCacheBar()` still work correctly — do not remove the DOM elements.
-- **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honour it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
+- **Every aggregate stat is regular season only — weeks 1–14.** Confirmed by Matt 2026-08-20 and it is a data-quality rule, not a presentation preference: weeks 15–17 are the playoff *and* consolation brackets, and roughly half those games are consolation matchups with nothing at stake, where managers routinely leave a stale or empty lineup. Averaging those in makes a manager look worse (or a blowout look bigger) for a game nobody was trying to win. `REG_WEEKS = 14` is the single constant; `buildAllTimeStats`, `buildH2HMap`, `buildMedianMap`, `buildH2HForYear` (default), `buildSeasonStandingsData` (default) and the live-standings week scan all honor it. **Any new code that walks `tol_matchups_*` must cap at `REG_WEEKS`.** The Scores tab is the deliberate exception — it is a browsable scoreboard, not an aggregate, and should keep showing W15–W17.
   If playoff stats are ever wanted they belong in a **separate** set, and they must be filtered to the *winners* bracket via `PLAYOFF_BRACKET_INFO` — an all-weeks-15-to-17 aggregate is exactly the noise this rule exists to keep out.
 - **The nav is five tabs and that is a budget, not a snapshot.** Five at `width:20%` is exactly one mobile row; a sixth wraps it to two and undoes the 2026-08-21 consolidation. New surfaces become a **sub-view** of an existing tab. Every tab merge since has followed the same self-contained-divs pattern (`setRosterView` / `setCareersView` / `setMovesView`), and every retired hash got a `TAB_ALIASES` entry — do both.
 - **Careers is All Time + Hall of Fame & Shame + one tab per season, and superlatives live in exactly one place.** All Time holds the career table and the All-Time Record Book; Hall of Fame & Shame holds the award grid; each year tab holds that season's standings and recap. The old `.career-status-bar` pill strip is gone; its 7 stats are cards in the grid now. Don't reintroduce a second surface for "league leader"-type stats — that split is exactly what this consolidated. Season standings were stacked under All Time until 2026-08-21; four tables in one scroll was a wall, and none of them had anywhere to put a write-up. **The payout cards moved to the same year tabs on the same day** — a season's money belongs next to that season's table, not on a separate tab, and putting them together is what surfaced the missing $15 (see `SEASON_PAYOUTS`).
@@ -1207,7 +1207,7 @@ is far more than it needs.
 
 **Second pass, same day (Matt's follow-ups):**
 - ✅ **Payouts moved from the League panel to the Careers year tabs**, beside the standings, with the recap dropped underneath. The hardcoded four-card `info-grid` became the `SEASON_PAYOUTS` data object rendered by `payoutCardHtml()`; 2026 carries the existing "Pending" placeholder (pot $1,200, everything else TBD) unchanged.
-- ✅ **Tab 9 relabelled "League" → "Rules".** Label only — ids, hash and `VALID_TABS` untouched. What's left on that panel is rule updates, format and scoring, which is what the name now says.
+- ✅ **Tab 9 relabeled "League" → "Rules".** Label only — ids, hash and `VALID_TABS` untouched. What's left on that panel is rule updates, format and scoring, which is what the name now says.
 - ✅ **Sort defaults confirmed, not changed:** year tables lead with Place ascending, the All Time career table with Career Earnings descending. Both were already correct.
 - 🐛 **Found by putting the two payout records side by side: `SEASON_HISTORY[2024]` was missing Duane Gillenwater's $15** (Best QB, Lamar Jackson). The itemised card had it, this object didn't, so his career earnings read $200 instead of $215 and the 2024 card summed to $1,185 against a $1,200 pot. Fixed. This is exactly the class of error the move was always going to surface — the two numbers now render six inches apart.
 - ✅ **2025's $25 gap was closed in a parallel session** (commit 128dd39) while this work was in flight: the money was held back for the championship trophy, so it belongs in Jake Blackwell's 1st-place total. Merged in here — see `SEASON_PAYOUTS` for the reconciled state of all three seasons.
@@ -1519,7 +1519,7 @@ pinned every player to zero for the whole live season, permanently, per visitor.
 now omits empty weeks and omits a year with no played weeks. Keep it that way.
 
 **Replacement baselines.** `replacement-levels.json` (2.6 KB) holds year → week → position →
-points, from a 5-player band centred on the replacement rank rather than a single rank, because
+points, from a 5-player band centered on the replacement rank rather than a single rank, because
 one boom game by the exact Nth player would otherwise swing every PoR figure that week. Season
 means came out QB 10.2–11.1 · TE 9.0–9.5 · RB 5.9–6.8 · WR 6.3–6.4 — stable across all three
 seasons, TE above RB/WR as the 0.5/catch TE premium and a 12-team TE pool imply.
@@ -1709,11 +1709,11 @@ measures a manager against the year he actually drafted in; "Raw" measures what 
 both are honest — which is why neither is hidden. Switching them reproduces the rank shuffle the
 builder predicted (Bogardus and Merkel swap 3rd/4th; Hayes moves from -20 raw to +24 adjusted).
 
-**A specificity bug worth remembering.** `.de-pos` / `.de-neg` set the colour on the vs-expected
+**A specificity bug worth remembering.** `.de-pos` / `.de-neg` set the color on the vs-expected
 column, but `.de-tbl td` is (0,1,1) against a bare class's (0,1,0), so the entire column rendered
-in body colour in both themes — the one column a reader scans for a sign. Fixed by qualifying as
+in body color in both themes — the one column a reader scans for a sign. Fixed by qualifying as
 `.de-tbl td.de-pos`. It was invisible in a screenshot and only turned up in `getComputedStyle`;
-**check computed colour, not the picture, when a themed value looks flat.**
+**check computed color, not the picture, when a themed value looks flat.**
 
 **Verified:** all 12 drafter rows match the builder's own numbers exactly, real names resolved
 through `TEAMS` with `ownerLink()` throughout, zero console errors on a clean tab, tables scroll
@@ -1732,7 +1732,7 @@ number; forcing an explicit `resize_window` size is the reliable fix.
 Third sub-view of Moves (`#moves-view-roi`), lazy-loaded, rendering entirely from the
 committed `trade-roi.json`. No live API calls and no KTC on this view at all.
 
-**Functions:** `loadTradeROI()` (hourly cache-buster, memoised in `_tradeROIPromise`),
+**Functions:** `loadTradeROI()` (hourly cache-buster, memoized in `_tradeROIPromise`),
 `buildTradeROI()`, `renderROICards()`, `roiCardHtml()`, `roiAssetHtml()`, `roiManager()`,
 `roiSummaryHtml()`, `toggleROIHow()`, `setROIFilter()`, `buildROITeamChips()`,
 `toggleROITeam()`. CSS lives in the appended `MOVES TAB — WHO WON THAT TRADE?` layer

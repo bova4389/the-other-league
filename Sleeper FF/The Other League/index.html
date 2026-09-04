@@ -169,7 +169,7 @@ header{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;align
 /* min(320px,100%) not a bare 320px: below a 320px container the track stays
    320 wide and every card overflows the page, which forced a horizontal scroll
    to reach the grade badge sitting at the right edge of .rch. The min() only
-   changes behaviour when the container is narrower than the track. */
+   changes behavior when the container is narrower than the track. */
 .roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px;}
 .r-card{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);transition:border-color .2s;}
 .r-card:hover{border-color:var(--accent);}
@@ -1397,7 +1397,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 .gr-team { font-family: 'Saira Condensed', sans-serif; font-size: clamp(15px, 3.6vw, 17px); font-weight: 600; letter-spacing: .02em; line-height: 1.15; color: var(--text); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gr-owner { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 
-/* Grade chip. Colour bands are deliberately coarse (A / B / C / D-F) so the
+/* Grade chip. Color bands are deliberately coarse (A / B / C / D-F) so the
    list reads at a glance without implying more precision than the rubric has. */
 /* Never shrinks, never wraps, never leaves the viewport: the whole point of
    the row is that you can read the grade without scrolling anywhere. Sized in
@@ -1448,7 +1448,7 @@ body.is-home #panel-home { padding: 0 20px 40px; max-width: 960px; margin: 0 aut
 /* Appended layer per the redesign convention. Both grids — the Record Book on
    the Records sub-tab and the award cards on the Hall of Fame & Shame sub-tab —
    render the same `.hof-card`, which extends the existing `.fun-card` rather
-   than inventing a new surface. `.shame` recolours to magenta; nothing here
+   than inventing a new surface. `.shame` recolors to magenta; nothing here
    hardcodes a hex. */
 
 .hof-grid {
@@ -2186,7 +2186,7 @@ body.pf-locked { overflow: hidden; }
    ══════════════════════════════════════════════════════════════════ */
 
 /* 2027 rule card on the home panel, rescued from the deleted Rules tab.
-   Echoes .champ-card's centred proportions so the home column still reads
+   Echoes .champ-card's centered proportions so the home column still reads
    as one stack. */
 .home-rule-card {
   max-width: 560px;
@@ -2230,7 +2230,7 @@ body.pf-locked { overflow: hidden; }
 
 /* Refresh moved out of the nav and into the header beside the theme toggle.
    It was never a destination, and holding a nav slot for it cost the fifth
-   tab the mobile grid needed. Styled off .toggle-btn, its new neighbour. */
+   tab the mobile grid needed. Styled off .toggle-btn, its new neighbor. */
 .hdr-refresh-btn {
   display: inline-flex;
   align-items: center;
@@ -2403,7 +2403,7 @@ body.pf-locked { overflow: hidden; }
   padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .de-tbl .num, .de-grid .num { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; }
 /* Qualified with the td, otherwise `.de-tbl td` (0,1,1) outranks a bare `.de-pos`
-   (0,1,0) and the whole vs-expected column renders in body colour — which is the
+   (0,1,0) and the whole vs-expected column renders in body color — which is the
    one column the reader is scanning for a sign. */
 .de-tbl td.de-mut, .de-mut { color: var(--muted); }
 .de-tbl td.de-pos, .de-pos { color: var(--accent); }
@@ -5053,7 +5053,7 @@ function setDraftYear(year,el){
 // background prefetch resolves, and the old buildLeaderStats() rebuilt the
 // whole H2H and median maps from scratch on every one of those passes.
 //
-// Result is memoised in `_allTimeCache`. fetchAllMatchups() calls
+// Result is memoized in `_allTimeCache`. fetchAllMatchups() calls
 // invalidateAllTimeStats() after every write, which is the ONLY thing keeping
 // the cards from freezing at whatever was cached on the first pass — the boot
 // prefetch lands 2023/2024/2025 one season at a time.

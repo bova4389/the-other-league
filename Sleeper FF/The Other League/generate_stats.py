@@ -18,7 +18,7 @@ Until 2026-09-03 this seeded its player list from `/league/{lid}/rosters` alone 
 i.e. only players rostered at the moment it happened to run. Anyone who was traded,
 busted and got dropped simply vanished, and any feature that scored a player's
 production read those players as zero rather than as missing. That silently
-flattered whoever traded a bust away, which is exactly backwards for the Phase 12
+flattered whoever traded a bust away, which is exactly backward for the Phase 12
 trade-ROI work. The universe is now the union of:
 
   (a) every player in every trade, in every season

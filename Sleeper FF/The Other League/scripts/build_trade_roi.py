@@ -548,7 +548,7 @@ def build_pick_curve(rows, live_season):
     if not by_pick:
         return {'by_pick': {}, 'by_round': {}, 'n': 0}
 
-    # Smooth with a centred window over pick order, then enforce monotonicity so
+    # Smooth with a centered window over pick order, then enforce monotonicity so
     # a noisy pair at pick 9 can't make pick 9 "worth more" than pick 3.
     picks = sorted(by_pick)
     smoothed = {}

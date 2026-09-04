@@ -48,7 +48,7 @@ MAX_WEEK = 17
 REPLACEMENT_RANKS = {'QB': 23, 'RB': 38, 'WR': 57, 'TE': 18}
 
 # A single rank is a noisy weekly baseline — one boom game by the exact Nth player
-# swings every PoR figure that week. Average a small band centred on N instead.
+# swings every PoR figure that week. Average a small band centered on N instead.
 WINDOW = 5
 
 POSITIONS = ('QB', 'RB', 'WR', 'TE')
