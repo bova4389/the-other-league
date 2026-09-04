@@ -2376,6 +2376,71 @@ body.pf-locked { overflow: hidden; }
   .roi-total { font-size: 18px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOVES TAB — DRAFT ROI (Phase 12 item 4)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.de-block { background: var(--card); border: 1px solid var(--border); border-radius: 3px;
+  padding: 14px 16px; margin-bottom: 14px; }
+.de-h { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 20px; letter-spacing: .5px; color: var(--accent); text-transform: uppercase;
+  margin-bottom: 4px; }
+.de-sub { font-family: 'DM Sans', sans-serif; font-size: 11.5px; line-height: 1.55;
+  color: var(--muted); margin-bottom: 12px; }
+.de-sub b { color: var(--text2); }
+.de-basis { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.de-note { font-family: 'DM Sans', sans-serif; font-size: 11.5px; line-height: 1.55;
+  color: var(--muted); margin-top: 10px; border-top: 1px solid var(--border); padding-top: 9px; }
+.de-note b { color: var(--text2); }
+.de-caveat .de-h { color: var(--accent3); }
+
+/* Wide tables scroll inside their own box so the page never moves sideways. */
+.dtblwrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.de-tbl, .de-grid { width: 100%; border-collapse: collapse; }
+.de-tbl th, .de-grid th { font-family: 'DM Sans', sans-serif; font-size: 9.5px; font-weight: 600;
+  letter-spacing: .5px; text-transform: uppercase; color: var(--accent3); text-align: left;
+  padding: 5px 8px; white-space: nowrap; border-bottom: 1px solid var(--border); }
+.de-tbl td, .de-grid td { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text2);
+  padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.de-tbl .num, .de-grid .num { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; }
+/* Qualified with the td, otherwise `.de-tbl td` (0,1,1) outranks a bare `.de-pos`
+   (0,1,0) and the whole vs-expected column renders in body colour — which is the
+   one column the reader is scanning for a sign. */
+.de-tbl td.de-mut, .de-mut { color: var(--muted); }
+.de-tbl td.de-pos, .de-pos { color: var(--accent); }
+.de-tbl td.de-neg, .de-neg { color: var(--accent3); }
+.de-band { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); }
+
+.de-barcell { width: 84px; padding-right: 10px !important; }
+.de-bar { display: block; height: 6px; border-radius: 1px; }
+.de-bar.pos { background: var(--accent); }
+.de-bar.neg { background: var(--accent3); }
+
+.de-cell { min-width: 40px; text-align: center !important; color: var(--text) !important;
+  border: 1px solid var(--border); cursor: default; }
+
+.de-two { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(300px,100%), 1fr)); }
+.de-pick { display: grid; grid-template-columns: 58px 1fr auto; gap: 4px 10px;
+  align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.de-pick:last-child { border-bottom: none; }
+.de-pk { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.de-pn { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); }
+.de-pv { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 16px; text-align: right; }
+.de-pw { grid-column: 2 / -1; font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--muted); }
+
+[data-theme="dark"] .de-h { text-shadow: 0 0 12px rgba(33,245,228,.3); }
+[data-theme="dark"] .de-caveat .de-h { text-shadow: 0 0 12px rgba(255,61,190,.3); }
+/* The heatmap paints teal/magenta at low alpha over the card, which reads on the
+   near-black dark ground but washes out on white — deepen it in light mode. */
+[data-theme="light"] .de-cell { color: var(--text) !important; font-weight: 600; }
+
+@media (max-width: 680px) {
+  .de-block { padding: 12px 13px; }
+  .de-h { font-size: 18px; }
+  .de-tbl td, .de-grid td { font-size: 11px; padding: 5px 6px; }
+  .de-barcell { display: none; }
+}
+
 </style>
 </head>
 <body class="is-home">
@@ -2632,6 +2697,7 @@ body.pf-locked { overflow: hidden; }
         <button class="yr-btn active" id="mview-draft-btn" onclick="setMovesView('draft',this)">Draft</button>
         <button class="yr-btn" id="mview-txn-btn" onclick="setMovesView('txn',this)">Trades &amp; Waivers</button>
         <button class="yr-btn" id="mview-roi-btn" onclick="setMovesView('roi',this)">Who Won That Trade?</button>
+        <button class="yr-btn" id="mview-drafteval-btn" onclick="setMovesView('drafteval',this)">Draft ROI</button>
       </div>
       <div id="moves-view-draft">
       <div class="yr-toggle">
@@ -2698,6 +2764,12 @@ body.pf-locked { overflow: hidden; }
         </div>
         <div class="roi-team-chips" id="roi-team-chips"></div>
         <div id="roi-container"><div class="ld"><div class="spin"></div><div class="lt">Loading trade history...</div></div></div>
+      </div>
+      <!-- Phase 12 item 4. Same trade-roi.json, different question: not "who won
+           this trade" but "what is a pick at this slot actually worth, and who
+           beats it". See buildDraftEval(). -->
+      <div id="moves-view-drafteval" style="display:none">
+        <div id="drafteval-container"><div class="ld"><div class="spin"></div><div class="lt">Loading draft history...</div></div></div>
       </div>
     </div>
 
@@ -5774,6 +5846,7 @@ const MOVES_VIEW_META={
   draft:{title:'ROOKIE DRAFT',  sub:'4 Rounds &middot; Linear Format (2026) &middot; Consolation Pick 1.13'},
   txn:  {title:'TRADES & WAIVERS',sub:'All Activity &middot; Adds &middot; Drops &middot; Waivers &middot; Trades'},
   roi:  {title:'WHO WON THAT TRADE?',sub:'Every Trade Since 2023 &middot; Scored On What The Players Actually Did'},
+  drafteval:{title:'DRAFT ROI',sub:'What Each Pick Is Really Worth &middot; And Who Beats It'},
 };
 
 function setMovesView(view,el){
@@ -5781,9 +5854,14 @@ function setMovesView(view,el){
   document.getElementById('moves-view-draft').style.display=view==='draft'?'':'none';
   document.getElementById('moves-view-txn').style.display=view==='txn'?'':'none';
   document.getElementById('moves-view-roi').style.display=view==='roi'?'':'none';
+  document.getElementById('moves-view-drafteval').style.display=view==='drafteval'?'':'none';
   if(view==='roi'&&!document.getElementById('roi-container').dataset.loaded){
     document.getElementById('roi-container').dataset.loaded='1';
     buildTradeROI();
+  }
+  if(view==='drafteval'&&!document.getElementById('drafteval-container').dataset.loaded){
+    document.getElementById('drafteval-container').dataset.loaded='1';
+    buildDraftEval();
   }
   const meta=MOVES_VIEW_META[view];
   if(meta){
@@ -5969,6 +6047,167 @@ function toggleROIHow(el){
   const open=b.style.display!=='none';
   b.style.display=open?'none':'';
   el.classList.toggle('open',!open);
+}
+
+// ── DRAFT ROI (Phase 12 item 4) ──────────────────────────────────────────────
+// Same trade-roi.json as Who Won That Trade?, different question: what a pick at
+// each slot is actually worth, and who beats it. Rookie-year PoR is the basis
+// throughout, so a 2024 pick cannot out-rank a 2025 pick purely on having had an
+// extra season to accumulate.
+let _deExpected='adj';   // 'adj' = class-adjusted expectation, 'pooled' = raw curve
+
+function dePlayedPicks(){
+  return _tradeROI.rookie_picks.filter(r=>r.season<_tradeROI.live_season&&r.rookie_por!=null);
+}
+
+function deExpectedFor(r){
+  return (_deExpected==='adj'?r.expected_por_class_adj:r.expected_por)||0;
+}
+
+function setDraftEvalBasis(b,el){
+  _deExpected=b;
+  document.querySelectorAll('#de-basis .f-pill').forEach(x=>x.classList.toggle('active',x===el));
+  renderDraftEval();
+}
+
+function deDrafterRows(){
+  const idx=_tradeROI.manager_index||{},agg={};
+  dePlayedPicks().forEach(r=>{
+    // Aggregate on user_id. Roster 9 is one human under two display names
+    // (Mblack2889 -> MJBlack) and keying on the name ranks him twice.
+    const u=r.drafted_by_uid;if(!u)return;
+    const a=agg[u]||(agg[u]={uid:u,n:0,act:0,exp:0,hits:0,roles:0});
+    a.n++;a.act+=r.rookie_por;a.exp+=deExpectedFor(r);
+    if(r.rookie_por>=_tradeROI.hit_por)a.hits++;
+    if(r.opportunity&&r.opportunity.got_role)a.roles++;
+  });
+  return Object.values(agg).map(a=>Object.assign(a,{
+    over:a.act-a.exp,
+    name:(TEAMS[a.uid]?t(a.uid).name:((idx[a.uid]&&idx[a.uid].name)||'Unknown'))
+  })).sort((x,y)=>y.over-x.over);
+}
+
+function deDrafterTableHtml(){
+  const rows=deDrafterRows();
+  const max=Math.max(...rows.map(r=>Math.abs(r.over)),1);
+  return`<div class="de-block"><div class="de-h">Best Drafter</div>`
+    +`<div class="de-sub">Rookie-year points over replacement, minus what that pick slot was worth. `
+    +`Positive means the pick beat its price.</div>`
+    +`<div class="de-basis" id="de-basis">`
+    +`<button class="f-pill${_deExpected==='adj'?' active':''}" onclick="setDraftEvalBasis('adj',this)">Adjusted for class strength</button>`
+    +`<button class="f-pill${_deExpected==='pooled'?' active':''}" onclick="setDraftEvalBasis('pooled',this)">Raw</button>`
+    +`</div>`
+    +`<div class="dtblwrap"><table class="dtbl de-tbl"><thead><tr>`
+    +`<th>Manager</th><th class="num">Picks</th><th class="num">Hits</th><th class="num">Got a role</th>`
+    +`<th class="num">Produced</th><th class="num">Expected</th><th class="num">Vs expected</th><th></th>`
+    +`</tr></thead><tbody>`
+    +rows.map(r=>{
+      const pct=Math.round(Math.abs(r.over)/max*100);
+      return`<tr><td>${ownerLink(r.uid,r.name)}</td>`
+        +`<td class="num">${r.n}</td><td class="num">${r.hits}</td><td class="num">${r.roles}</td>`
+        +`<td class="num">${Math.round(r.act)}</td><td class="num de-mut">${Math.round(r.exp)}</td>`
+        +`<td class="num ${r.over>=0?'de-pos':'de-neg'}">${r.over>=0?'+':''}${Math.round(r.over)}</td>`
+        +`<td class="de-barcell"><span class="de-bar ${r.over>=0?'pos':'neg'}" style="width:${pct}%"></span></td></tr>`;
+    }).join('')
+    +`</tbody></table></div></div>`;
+}
+
+function deCapitalHtml(){
+  const bands=_tradeROI.draft_capital||[];
+  return`<div class="de-block"><div class="de-h">What A Pick Is Actually Worth</div>`
+    +`<div class="de-sub">Every rookie pick from the completed classes, grouped by where it was made. `
+    +`<b>Opportunity</b> is where that player ranked for usage among everyone at his position that season, `
+    +`so a quarterback's attempts are not being compared to a running back's carries.</div>`
+    +`<div class="dtblwrap"><table class="dtbl de-tbl"><thead><tr>`
+    +`<th>Pick</th><th class="num">n</th><th class="num">Hit rate</th><th class="num">Median</th>`
+    +`<th class="num">Opportunity</th><th class="num">Never used</th><th class="num">Got a role</th>`
+    +`<th class="num">If given a role</th></tr></thead><tbody>`
+    +bands.map(b=>`<tr><td class="de-band">${esc(b.band)}</td>`
+      +`<td class="num">${b.n}</td>`
+      +`<td class="num">${Math.round(b.hit_rate*100)}%</td>`
+      +`<td class="num">${b.median_por==null?'&mdash;':Math.round(b.median_por)}</td>`
+      +`<td class="num">${b.avg_usage_pct==null?'&mdash;':Math.round(b.avg_usage_pct*100)+'%'}</td>`
+      +`<td class="num de-mut">${b.never_used}/${b.n}</td>`
+      +`<td class="num de-mut">${b.got_role}/${b.n}</td>`
+      +`<td class="num">${b.avg_por_given_role==null?'&mdash;':Math.round(b.avg_por_given_role)}</td></tr>`).join('')
+    +`</tbody></table></div>`
+    +`<div class="de-note">The median rookie season in rounds 2, 3 and 4 is <b>zero</b>. But look at the `
+    +`last two columns before writing late picks off as never getting a chance &mdash; most of them do get `
+    +`used, and they are still worth far less when they do. Both things are true.</div></div>`;
+}
+
+function deHotspotHtml(){
+  const picks=dePlayedPicks();
+  const bySlot={};
+  picks.forEach(r=>{
+    const k=r.round+'|'+r.slot;
+    (bySlot[k]||(bySlot[k]={n:0,sum:0,rows:[]})).n++;
+    bySlot[k].sum+=r.rookie_por-deExpectedFor(r);
+    bySlot[k].rows.push(r);
+  });
+  const vals=Object.values(bySlot).map(v=>v.sum/v.n);
+  const mx=Math.max(...vals.map(Math.abs),1);
+  const rounds=[...new Set(picks.map(r=>r.round))].sort((a,b)=>a-b);
+  const slots=[...new Set(picks.map(r=>r.slot))].sort((a,b)=>a-b);
+  let html=`<div class="de-block"><div class="de-h">Where The Value Hides</div>`
+    +`<div class="de-sub">Average points above or below what the slot was worth. `
+    +`Teal beat the price, magenta missed it. Only ${picks.length} picks have played, `
+    +`so read a single cell as a story, not a finding.</div>`
+    +`<div class="dtblwrap"><table class="dtbl de-grid"><thead><tr><th>Rd</th>`
+    +slots.map(s=>`<th class="num">${s}</th>`).join('')+`</tr></thead><tbody>`;
+  rounds.forEach(rd=>{
+    html+=`<tr><td class="de-band">R${rd}</td>`;
+    slots.forEach(s=>{
+      const c=bySlot[rd+'|'+s];
+      if(!c){html+=`<td class="num de-cell"></td>`;return;}
+      const avg=c.sum/c.n,a=Math.min(Math.abs(avg)/mx,1)*0.75;
+      const col=avg>=0?`rgba(33,245,228,${a.toFixed(2)})`:`rgba(255,61,190,${a.toFixed(2)})`;
+      const who=c.rows.map(r=>`${r.season} ${r.player||'?'} ${Math.round(r.rookie_por)}`).join(' | ');
+      html+=`<td class="num de-cell" style="background:${col}" title="${esc(who)}">${avg>=0?'+':''}${Math.round(avg)}</td>`;
+    });
+    html+=`</tr>`;
+  });
+  return html+`</tbody></table></div></div>`;
+}
+
+function deBestWorstHtml(){
+  const picks=dePlayedPicks().slice();
+  const over=picks.map(r=>Object.assign({over:r.rookie_por-deExpectedFor(r)},r));
+  const best=over.slice().sort((a,b)=>b.over-a.over).slice(0,5);
+  const worst=over.slice().sort((a,b)=>a.over-b.over).slice(0,5);
+  const row=r=>`<div class="de-pick"><span class="de-pk">${r.season} ${r.round}.${String(r.slot).padStart(2,'0')}</span>`
+    +`<span class="de-pn">${esc(r.player||'?')}<span class="ra-pos">${esc(r.position||'')}</span></span>`
+    +`<span class="de-pv ${r.over>=0?'de-pos':'de-neg'}">${r.over>=0?'+':''}${Math.round(r.over)}</span>`
+    +`<span class="de-pw">${ownerLink(r.drafted_by_uid,TEAMS[r.drafted_by_uid]?t(r.drafted_by_uid).name:(r.drafted_by||'?'))}</span></div>`;
+  return`<div class="de-two">`
+    +`<div class="de-block"><div class="de-h">Steals</div><div class="de-sub">Most points above what the pick cost.</div>${best.map(row).join('')}</div>`
+    +`<div class="de-block"><div class="de-h">Reaches</div><div class="de-sub">Furthest below it.</div>${worst.map(row).join('')}</div>`
+    +`</div>`;
+}
+
+function renderDraftEval(){
+  const c=document.getElementById('drafteval-container');
+  if(!c||!_tradeROI)return;
+  const cf=_tradeROI.class_factors||{};
+  const classes=Object.keys(cf).sort();
+  c.innerHTML=deDrafterTableHtml()+deCapitalHtml()+deHotspotHtml()+deBestWorstHtml()
+    +`<div class="de-block de-caveat"><div class="de-h">Read this with the sample size in mind</div>`
+    +`<div class="de-sub">Only ${dePlayedPicks().length} picks have played a down, across `
+    +`${classes.length} classes (${classes.map(esc).join(' and ')}). The 2023 startup was an auction, not a `
+    +`rookie draft, so it is excluded entirely. And the classes were not equal: `
+    +classes.map(y=>`<b>${esc(y)}</b> produced ${cf[y]}&times; an average class`).join(', ')
+    +`. <b>Adjusted for class strength</b> measures each manager against the year he actually drafted in; `
+    +`<b>Raw</b> measures what he got. Both are honest, they answer different questions.</div></div>`;
+}
+
+async function buildDraftEval(){
+  const c=document.getElementById('drafteval-container');
+  _tradeROI=await loadTradeROI();
+  if(!_tradeROI||!_tradeROI.rookie_picks){
+    c.innerHTML='<div class="note">Draft history is not available right now.</div>';
+    return;
+  }
+  renderDraftEval();
 }
 
 async function buildTradeROI(){
@@ -8700,6 +8939,8 @@ const TAB_ALIASES={
   // the league and land on the view rather than the Moves default.
   whowon:      {tab:'draft', open:()=>setMovesView('roi',  document.getElementById('mview-roi-btn'))},
   traderoi:    {tab:'draft', open:()=>setMovesView('roi',  document.getElementById('mview-roi-btn'))},
+  draftroi:    {tab:'draft', open:()=>setMovesView('drafteval', document.getElementById('mview-drafteval-btn'))},
+  bestdrafter: {tab:'draft', open:()=>setMovesView('drafteval', document.getElementById('mview-drafteval-btn'))},
   // Rules was deleted — its content restated what Sleeper already shows, and
   // the one card that did not (the 2027 flex change) moved to Home. Send both
   // hashes there rather than nowhere.

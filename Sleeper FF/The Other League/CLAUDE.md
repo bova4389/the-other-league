@@ -135,7 +135,7 @@ Verified 280-1280px, both themes: zero page overflow on every tab, nav never wra
 | 1 | **History** | `careers` | `panel-careers` | **Managers** (default) - Seasons - All Time - Hall of Fame - Rivalries |
 | 2 | **Teams** | `rosters` | `panel-rosters` | **Outlook** (default) - Rosters - Player Stats |
 | 3 | Scores | `scores` | `panel-scores` | year + week pills (unchanged) |
-| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers - Who Won That Trade? |
+| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers - Who Won That Trade? - Draft ROI |
 | 5 | Trade | `trade` | `panel-trade` | - |
 
 **Panel and `showTab` ids were deliberately NOT renamed** - `rosters`, `draft`, `careers` still
@@ -242,13 +242,17 @@ inside `#careers-view-seasons`, a new entry at the front of `CAREER_YEARS`, plus
 **The 7-pill `.career-status-bar` is gone.** Those stats are the first cards of the Hall of Fame grid, so a superlative lives in exactly one place.
 
 ### Moves Panel (`panel-draft`)
-Three views via `setMovesView('draft'|'txn'|'roi', el)`, titles from `MOVES_VIEW_META`. Draft is
+Four views via `setMovesView('draft'|'txn'|'roi'|'drafteval', el)`, titles from `MOVES_VIEW_META`. Draft is
 the default. `#moves-view-draft` holds the rookie-draft year toggle, team chips and list/board
 views; `#moves-view-txn` holds the transaction log moved from `panel-transactions`;
 `#moves-view-roi` is **Who Won That Trade?** (Phase 12), added 2026-09-04. Both `txn` and `roi`
 lazy-load on first switch via their container's `dataset.loaded` flag, set in `setMovesView`.
 
-`#whowon` and `#traderoi` are `TAB_ALIASES` deep links into the ROI view — not retired hashes,
+`#moves-view-drafteval` is **Draft ROI** (Phase 12 item 4), added 2026-09-04 — same
+`trade-roi.json`, different question. Four sub-views is within budget; History runs five.
+
+`#whowon`/`#traderoi` (trade view) and `#draftroi`/`#bestdrafter` (Draft ROI) are `TAB_ALIASES`
+deep links — not retired hashes,
 but so the page can be texted round the league and land on itself rather than the Moves default.
 
 ---
@@ -314,6 +318,11 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `roi-team-chips` — manager multi-select, keyed on **user_id** (`toggleROITeam`)
 - `roi-container` — the card grid, rendered by `renderROICards()`
 - `roi-how` — the collapsible "How is this scored?" explainer (`toggleROIHow`)
+
+### Draft ROI (Moves > `#moves-view-drafteval`, Phase 12 item 4)
+- `mview-drafteval-btn` — the fourth Moves view button
+- `drafteval-container` — everything, rendered in one pass by `renderDraftEval()`
+- `de-basis` — the class-adjusted / raw expectation toggle (`setDraftEvalBasis`)
 
 ### Transactions (now Moves > Trades & Waivers, `#moves-view-txn`)
 - `moves-title` / `moves-sub` — the Moves panel heading, rewritten per view from `MOVES_VIEW_META`
@@ -1477,7 +1486,7 @@ Scored off the same PoR engine and the same pick curve.
 2. ~~**`scripts/build_trade_roi.py` → `trade-roi.json`.**~~ **Done 2026-09-04.**
    See "Step 2 as built" below.
 3. ~~**Moves > Who Won That Trade?**~~ **Done 2026-09-04.** See "Step 3 as built" below.
-4. **Moves > Rookie Draft ROI** + hot-spot board.
+4. ~~**Moves > Rookie Draft ROI** + hot-spot board.~~ **Done 2026-09-04.** See "Step 4 as built".
 5. ~~**Tuesday bot extension**~~ **Done 2026-09-03** — pulled forward ahead of items 2-4 because
    the season opens 2026-09-09. See "Step 5 as built" below.
 
@@ -1676,6 +1685,45 @@ separates a bad landing spot from a bad evaluation — a pick that got 40 touche
 failed is not the same mistake as one that got 200 and failed, and a single PoR number
 cannot tell them apart. Bucky Irving (2024 4.06) is the reference case: expected 2.3,
 actual 176.4, usage percentile 81%, 16 of 16 weeks used.
+
+---
+
+#### Step 4 as built (2026-09-04) — the Draft ROI view
+
+Fourth sub-view of Moves (`#moves-view-drafteval`, label **Draft ROI**), lazy-loaded, off the
+same `trade-roi.json`. Deep links: `#draftroi`, `#bestdrafter`. Four Moves sub-views is within
+budget — History runs five, and five is the ceiling.
+
+**Functions:** `buildDraftEval()`, `renderDraftEval()`, `deDrafterRows()`, `deDrafterTableHtml()`,
+`deCapitalHtml()`, `deHotspotHtml()`, `deBestWorstHtml()`, `dePlayedPicks()`, `deExpectedFor()`,
+`setDraftEvalBasis()`. CSS in the appended `MOVES TAB — DRAFT ROI` layer (`.de-*`).
+
+**Five blocks:** Best Drafter (ranked by actual minus expected, with a magnitude bar), What A
+Pick Is Actually Worth (the `draft_capital` bands), Where The Value Hides (a round x slot heatmap,
+teal above the slot's price and magenta below, each cell titled with the actual players), Steals
+and Reaches (top and bottom five picks against expectation), and a sample-size caveat block.
+
+**The basis toggle is the point of the view, not a setting.** "Adjusted for class strength"
+measures a manager against the year he actually drafted in; "Raw" measures what he got. The
+2024 class produced 2.39x the 2025 class, so the two answer genuinely different questions and
+both are honest — which is why neither is hidden. Switching them reproduces the rank shuffle the
+builder predicted (Bogardus and Merkel swap 3rd/4th; Hayes moves from -20 raw to +24 adjusted).
+
+**A specificity bug worth remembering.** `.de-pos` / `.de-neg` set the colour on the vs-expected
+column, but `.de-tbl td` is (0,1,1) against a bare class's (0,1,0), so the entire column rendered
+in body colour in both themes — the one column a reader scans for a sign. Fixed by qualifying as
+`.de-tbl td.de-pos`. It was invisible in a screenshot and only turned up in `getComputedStyle`;
+**check computed colour, not the picture, when a themed value looks flat.**
+
+**Verified:** all 12 drafter rows match the builder's own numbers exactly, real names resolved
+through `TEAMS` with `ownerLink()` throughout, zero console errors on a clean tab, tables scroll
+inside their own `.dtblwrap` at 375px with zero page overflow, and both themes correct
+(dark `#21F5E4`/`#FF3DBE`, light `#0E9C92`/`#D6258F`).
+
+**A measurement trap, not a layout bug.** An overflow check reported 184px on a tab whose
+`clientWidth` was **0** — the Browser pane had backgrounded the tab, so nothing was laid out and
+every element "overflowed". Always assert the viewport is non-zero before trusting an overflow
+number; forcing an explicit `resize_window` size is the reliable fix.
 
 ---
 
