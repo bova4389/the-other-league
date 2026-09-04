@@ -62,17 +62,39 @@ jobs:
           if git diff --staged --quiet; then
             echo "✓ No changes — h2h-records.md is already up to date."
           else
-            WEEK=$(python -c "
-import json, os
-f = 'scripts/bot_state.json'
-if os.path.exists(f):
-    d = json.load(open(f))
-    weeks = d.get('applied_weeks', [])
-    print(max(weeks) if weeks else '?')
-else:
-    print('?')
-")
+            # Kept to ONE line on purpose. This was a multi-line `python -c "` whose
+            # body sat at column 0 inside this `run: |` block — which dedents out of
+            # the YAML block scalar and made the whole workflow file unparseable, so
+            # this bot never ran once between its 2026-06 commit and 2026-09-03. Any
+            # line here must stay indented to the block; do not paste a script body in.
+            # The path is also repo-root-relative (it read 'scripts/bot_state.json').
+            WEEK=$(python -c "import json,os; f='Sleeper FF/The Other League/scripts/bot_state.json'; d=json.load(open(f)) if os.path.exists(f) else {}; w=d.get('applied_weeks',[]); print(max(w) if w else '?')")
             git commit -m "chore(bot): H2H records update — 2026 Week ${WEEK} [automated]"
             git push
             echo "✓ Pushed H2H records update for Week ${WEEK}."
+          fi
+
+      # Phase 12 needs per-week stat lines for the LIVE season to score trades and
+      # rookie picks. --live-only copies completed seasons through from the existing
+      # file and rebuilds only the current one, so a flaky week can never silently
+      # delete 2024 data; the script aborts and writes nothing rather than publishing
+      # a season with a hole in it. Runs AFTER the H2H commit on purpose — a stats
+      # failure must not cost us the H2H update that already succeeded.
+      - name: Update stats-history.json (live season)
+        id: stats
+        continue-on-error: true
+        run: python "Sleeper FF/The Other League/generate_stats.py" --live-only
+
+      - name: Commit and push stats-history.json
+        if: steps.stats.outcome == 'success'
+        run: |
+          git config user.name "tuesday-bot"
+          git config user.email "tuesday-bot@the-other-league"
+          git add "Sleeper FF/The Other League/stats-history.json"
+          if git diff --staged --quiet; then
+            echo "✓ No changes — stats-history.json is already up to date."
+          else
+            git commit -m "chore(bot): stats-history update [automated]"
+            git push
+            echo "✓ Pushed stats-history update."
           fi

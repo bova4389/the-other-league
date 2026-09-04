@@ -10,8 +10,13 @@ on:
   # KTC and projections bots would commit their data files and the live site
   # would never pick them up. Chaining off workflow_run is what actually
   # publishes them. Don't remove this thinking `push` already covers it.
+  # "Tuesday Weekly H2H Update" was added 2026-09-03. It used to be safe to leave
+  # off this list because its only output, h2h-records.md, is never fetched by the
+  # site (0 references in index.html). It now also commits stats-history.json,
+  # which IS fetched at runtime — so without this entry the bot would update the
+  # stats file every Tuesday and the live site would never serve it.
   workflow_run:
-    workflows: ["Daily Projections Update", "Weekly KTC Values Update"]
+    workflows: ["Daily Projections Update", "Weekly KTC Values Update", "Tuesday Weekly H2H Update"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
