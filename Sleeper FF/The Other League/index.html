@@ -2443,6 +2443,55 @@ body.pf-locked { overflow: hidden; }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   DRAFT ROI — expandable per-manager pick list (2026-09-04)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.de-tbl th.de-twcol, .de-tbl td.de-twcol { width: 26px; padding-right: 0; }
+.de-tw {
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  font-size: 11px; line-height: 1; padding: 3px 4px; border-radius: 3px;
+  transition: transform .14s, color .14s; display: inline-block;
+}
+.de-tw:hover { color: var(--accent); }
+.de-tw.open { transform: rotate(90deg); color: var(--accent); }
+.de-tw:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .de-tw { transition: none; } }
+.de-detailrow > td { padding: 0 !important; background: rgba(154,85,255,.06); }
+[data-theme="light"] .de-detailrow > td { background: rgba(122,51,224,.045); }
+.de-picks { padding: 10px 12px 12px 34px; }
+.de-picktbl { font-size: 12px; margin: 0; }
+.de-picktbl th { font-size: 9.5px; letter-spacing: .09em; }
+.de-picktbl td { padding: 6px 9px; }
+.de-picktbl td.de-pk { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.de-hit, .de-bust {
+  font-size: 8.5px; font-weight: 700; letter-spacing: .07em; padding: 1px 4px;
+  border-radius: 2px; margin-left: 4px; vertical-align: middle;
+}
+.de-hit { color: var(--accent); border: 1px solid var(--accent); }
+.de-bust { color: var(--accent3); border: 1px solid var(--accent3); }
+@media (max-width: 680px) { .de-picks { padding-left: 12px; } }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHO WON THAT TRADE? — multi-select filters (2026-09-04)
+   The verdict chips became buttons when they became a filter axis. Selected
+   state is a filled chip; a chip with nothing behind it dims rather than
+   disappearing, so the row does not reflow as you filter.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.roi-sum-pill {
+  cursor: pointer; font: inherit; border: 1px solid currentColor;
+  background: none; transition: background-color .12s, opacity .12s;
+}
+.roi-sum-pill:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+.roi-sum-pill.on { background: color-mix(in srgb, currentColor 26%, transparent); font-weight: 700; }
+.roi-sum-pill.empty { opacity: .35; }
+.roi-sum-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.roi-clear {
+  margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 11.5px;
+  padding: 4px 11px; cursor: pointer;
+}
+.roi-clear:hover { color: var(--accent3); border-color: var(--accent3); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
    THE COMMISSIONER — admin panel (data monitor + Claude assist)
    Appended layer, per the redesign convention. Reuses .dtbl/.f-pill/.ld where
    it can; .cm-* is only what genuinely had no existing surface.
@@ -2858,7 +2907,6 @@ body.pf-locked { overflow: hidden; }
       <div class="roster-view-toggle" id="moves-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
         <button class="yr-btn active" id="mview-draft-btn" onclick="setMovesView('draft',this)">Draft</button>
         <button class="yr-btn" id="mview-txn-btn" onclick="setMovesView('txn',this)">Trades &amp; Waivers</button>
-        <button class="yr-btn" id="mview-roi-btn" onclick="setMovesView('roi',this)">Who Won That Trade?</button>
         <button class="yr-btn" id="mview-drafteval-btn" onclick="setMovesView('drafteval',this)">Draft ROI</button>
       </div>
       <div id="moves-view-draft">
@@ -2914,18 +2962,6 @@ body.pf-locked { overflow: hidden; }
       </div>
       <div id="txn-player-results" style="display:none"></div>
       <div id="txn-container"><div class="ld"><div class="spin"></div><div class="lt">Loading transactions...</div></div></div>
-      </div>
-      <!-- Phase 12. Renders entirely from the committed trade-roi.json; no live
-           API calls, no KTC. See buildTradeROI(). -->
-      <div id="moves-view-roi" style="display:none">
-        <div class="roi-filter-bar" id="roi-filter-bar">
-          <button class="f-pill active" onclick="setROIFilter('all',this)">All Trades</button>
-          <button class="f-pill" onclick="setROIFilter('graded',this)">Graded</button>
-          <button class="f-pill" onclick="setROIFilter('pending',this)">Too Early</button>
-          <button class="f-pill" onclick="setROIFilter('lopsided',this)">Lopsided</button>
-        </div>
-        <div class="roi-team-chips" id="roi-team-chips"></div>
-        <div id="roi-container"><div class="ld"><div class="spin"></div><div class="lt">Loading trade history...</div></div></div>
       </div>
       <!-- Phase 12 item 4. Same trade-roi.json, different question: not "who won
            this trade" but "what is a pick at this slot actually worth, and who
@@ -3000,8 +3036,20 @@ body.pf-locked { overflow: hidden; }
 
     <!-- TRADE EVALUATOR -->
     <div class="panel" id="panel-trade">
-      <div class="sec-title">⚖ TRADE EVALUATOR</div>
-      <div class="sec-sub">KTC Dynasty Values — Superflex · PPR · TE Premium (+0.5)</div>
+      <div class="sec-title" id="trade-title">⚖ TRADE EVALUATOR</div>
+      <div class="sec-sub" id="trade-sub">KTC Dynasty Values — Superflex · PPR · TE Premium (+0.5)</div>
+
+      <!-- Two views. "Who Won That Trade?" moved here from Moves on 2026-09-04:
+           both halves of this tab are about trades, and Moves was carrying four
+           sub-views while Trade carried none. Selectors MUST stay scoped to
+           #trade-view-toggle — an unscoped `.yr-btn` also matches the KTC table
+           and draft toggles, which is the bug the Teams panel already hit. -->
+      <div class="roster-view-toggle" id="trade-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
+        <button class="yr-btn active" id="tview-eval-btn" onclick="setTradeView('eval',this)">Evaluator</button>
+        <button class="yr-btn" id="tview-roi-btn" onclick="setTradeView('roi',this)">Who Won That Trade?</button>
+      </div>
+
+      <div id="trade-view-eval">
 
       <!-- KTC status + pick slider — compact single row -->
       <div class="ktc-top-row">
@@ -3055,6 +3103,23 @@ body.pf-locked { overflow: hidden; }
           <div id="ktc-team-chips" class="filter-bar" style="margin-bottom:14px;"></div>
           <div id="ktc-table-container" style="overflow-x:auto;max-height:480px;overflow-y:auto;"></div>
         </div>
+      </div>
+      </div>
+
+      <!-- Phase 12. Renders entirely from the committed trade-roi.json; no live
+           API calls, no KTC. See buildTradeROI(). Filters are multi-select: the
+           status row and the verdict row are two independent sets, AND-ed
+           together, OR-ed within themselves. -->
+      <div id="trade-view-roi" style="display:none">
+        <div id="roi-summary-host"></div>
+        <div class="roi-filter-bar" id="roi-filter-bar">
+          <button class="f-pill active" id="roif-all" onclick="setROIFilter('all',this)">All Trades</button>
+          <button class="f-pill" id="roif-graded" onclick="setROIFilter('graded',this)">Graded</button>
+          <button class="f-pill" id="roif-lopsided" onclick="setROIFilter('lopsided',this)">Lopsided</button>
+          <button class="f-pill" id="roif-pending" onclick="setROIFilter('pending',this)">Too Early</button>
+        </div>
+        <div class="roi-team-chips" id="roi-team-chips"></div>
+        <div id="roi-container"><div class="ld"><div class="spin"></div><div class="lt">Loading trade history...</div></div></div>
       </div>
     </div>
 
@@ -6017,7 +6082,6 @@ function setCareersView(view,el){
 const MOVES_VIEW_META={
   draft:{title:'ROOKIE DRAFT',  sub:'4 Rounds &middot; Linear Format (2026) &middot; Consolation Pick 1.13'},
   txn:  {title:'TRADES & WAIVERS',sub:'All Activity &middot; Adds &middot; Drops &middot; Waivers &middot; Trades'},
-  roi:  {title:'WHO WON THAT TRADE?',sub:'Every Trade Since 2023 &middot; Scored On What The Players Actually Did'},
   drafteval:{title:'DRAFT ROI',sub:'What Each Pick Is Really Worth &middot; And Who Beats It'},
 };
 
@@ -6025,12 +6089,7 @@ function setMovesView(view,el){
   document.querySelectorAll('#moves-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
   document.getElementById('moves-view-draft').style.display=view==='draft'?'':'none';
   document.getElementById('moves-view-txn').style.display=view==='txn'?'':'none';
-  document.getElementById('moves-view-roi').style.display=view==='roi'?'':'none';
   document.getElementById('moves-view-drafteval').style.display=view==='drafteval'?'':'none';
-  if(view==='roi'&&!document.getElementById('roi-container').dataset.loaded){
-    document.getElementById('roi-container').dataset.loaded='1';
-    buildTradeROI();
-  }
   if(view==='drafteval'&&!document.getElementById('drafteval-container').dataset.loaded){
     document.getElementById('drafteval-container').dataset.loaded='1';
     buildDraftEval();
@@ -6053,7 +6112,11 @@ function setMovesView(view,el){
 // scripts/build_trade_roi.py. No live API calls and no KTC: four seasons of
 // transactions plus four drafts is far too much to pull on page load.
 let _tradeROI=null,_tradeROIPromise=null;
-let _roiFilter='all',_roiTeams=new Set();
+// Three independent filter axes, AND-ed with each other and OR-ed within
+// themselves: status (graded / lopsided / too early), verdict chip, and manager.
+// Empty status set means "all". Multi-select throughout — "graded + lopsided"
+// was the case that motivated it.
+let _roiStatus=new Set(),_roiVerdicts=new Set(),_roiTeams=new Set();
 
 async function loadTradeROI(){
   if(_tradeROIPromise)return _tradeROIPromise;
@@ -6137,21 +6200,52 @@ function roiCardHtml(t,i){
     +`<div class="roi-meta">${meta}</div></div>`;
 }
 
+function roiMatchesStatus(t){
+  if(!_roiStatus.size)return true;
+  const v=(t.grade||{}).verdict;
+  // OR within the axis, so "Graded + Lopsided" reads as the union. Lopsided is
+  // a subset of graded, so that pair resolves to graded — which is exactly the
+  // "everything except Too Early" view it was asked for.
+  if(_roiStatus.has('graded')&&v)return true;
+  if(_roiStatus.has('pending')&&!v)return true;
+  if(_roiStatus.has('lopsided')&&(v==='ROBBERY'||v==='CLEAR WIN'))return true;
+  return false;
+}
+function roiMatchesTeams(t){
+  return !_roiTeams.size||t.sides.some(s=>_roiTeams.has(s.manager_uid));
+}
+function roiMatchesVerdict(t){
+  return !_roiVerdicts.size||_roiVerdicts.has((t.grade||{}).verdict);
+}
 function roiPassesFilter(t){
-  const g=t.grade||{};
-  if(_roiFilter==='graded'&&!g.verdict)return false;
-  if(_roiFilter==='pending'&&g.verdict)return false;
-  if(_roiFilter==='lopsided'&&!(g.verdict==='ROBBERY'||g.verdict==='CLEAR WIN'))return false;
-  if(_roiTeams.size){
-    if(!t.sides.some(s=>_roiTeams.has(s.manager_uid)))return false;
-  }
-  return true;
+  return roiMatchesStatus(t)&&roiMatchesTeams(t)&&roiMatchesVerdict(t);
+}
+// The set the verdict chips count against: everything EXCEPT the verdict axis
+// itself. Counting post-verdict would zero every chip you have not selected and
+// leave you no way to see what else is there.
+function roiVerdictScope(){
+  return _tradeROI.trades.filter(t=>roiMatchesStatus(t)&&roiMatchesTeams(t));
 }
 
-function setROIFilter(f,el){
-  _roiFilter=f;
-  document.querySelectorAll('#roi-filter-bar .f-pill').forEach(b=>b.classList.toggle('active',b===el));
+function setROIFilter(f){
+  if(f==='all')_roiStatus.clear();
+  else _roiStatus.has(f)?_roiStatus.delete(f):_roiStatus.add(f);
+  syncROIFilterBar();
   renderROICards();
+}
+function clearROIFilters(){
+  _roiStatus.clear();_roiVerdicts.clear();_roiTeams.clear();
+  syncROIFilterBar();syncTeamChips('roi-team-chips',_roiTeams);
+  renderROICards();
+}
+function toggleROIVerdict(v){
+  _roiVerdicts.has(v)?_roiVerdicts.delete(v):_roiVerdicts.add(v);
+  renderROICards();
+}
+function syncROIFilterBar(){
+  const on=id=>{const b=document.getElementById(id);if(b)b.classList.toggle('active',
+    id==='roif-all'?_roiStatus.size===0:_roiStatus.has(id.replace('roif-','')));};
+  ['roif-all','roif-graded','roif-lopsided','roif-pending'].forEach(on);
 }
 
 function toggleROITeam(uid,el){
@@ -6188,20 +6282,41 @@ function renderROICards(){
   if(!c||!_tradeROI)return;
   const rows=_tradeROI.trades.filter(roiPassesFilter)
     .slice().sort((a,b)=>b.created-a.created);
-  if(!rows.length){c.innerHTML='<div class="note">No trades match these filters.</div>';return;}
-  c.innerHTML=`<div class="roi-grid">${rows.map(roiCardHtml).join('')}</div>`;
+  // The summary stays above the filter bar where it has always been, but its
+  // counts now describe the current selection, so it redraws with the cards.
+  const host=document.getElementById('roi-summary-host');
+  if(host)host.innerHTML=roiSummaryHtml(rows);
+  c.innerHTML=rows.length
+    ?`<div class="roi-grid">${rows.map(roiCardHtml).join('')}</div>`
+    :'<div class="note">No trades match these filters.</div>';
 }
 
-function roiSummaryHtml(){
-  const ts=_tradeROI.trades,th=_tradeROI.thresholds||{};
-  const counts={};let graded=0;
-  ts.forEach(t=>{const g=t.grade||{};if(g.verdict){graded++;counts[g.verdict]=(counts[g.verdict]||0)+1;}});
+// `rows` is the currently filtered set, so every figure here describes what is
+// actually on screen. Filter to one manager and the headline becomes that
+// manager's trade record rather than the league's.
+function roiSummaryHtml(rows){
+  const all=_tradeROI.trades,th=_tradeROI.thresholds||{};
+  rows=rows||all;
+  const graded=rows.filter(t=>(t.grade||{}).verdict).length;
+  const filtered=rows.length!==all.length;
+  // Verdict chips count against everything EXCEPT the verdict axis, so
+  // selecting ROBBERY does not zero out the chips you might want next.
+  const scope=roiVerdictScope(),counts={};
+  scope.forEach(t=>{const v=(t.grade||{}).verdict;if(v)counts[v]=(counts[v]||0)+1;});
   const order=['ROBBERY','CLEAR WIN','EDGE','DEAD EVEN'];
-  const pills=order.filter(v=>counts[v]).map(v=>
-    `<span class="roi-sum-pill ${ROI_VERDICT_CLASS[v]}">${counts[v]} ${esc(v)}</span>`).join('');
+  const pills=order.map(v=>{
+    const n=counts[v]||0,on=_roiVerdicts.has(v);
+    return`<button type="button" class="roi-sum-pill ${ROI_VERDICT_CLASS[v]}${on?' on':''}${n?'':' empty'}"`
+      +` aria-pressed="${on}" onclick="toggleROIVerdict('${v}')">${n} ${esc(v)}</button>`;
+  }).join('');
+  const headline=filtered
+    ? `${rows.length} of ${all.length} trades`
+    : `${all.length} trades since 2023`;
+  const clear=(_roiVerdicts.size||_roiStatus.size||_roiTeams.size)
+    ? `<button type="button" class="roi-clear" onclick="clearROIFilters()">Clear filters</button>` : '';
   return`<div class="roi-summary">`
-    +`<div class="roi-sum-top"><span class="roi-sum-n">${ts.length} trades since 2023</span>`
-    +`<span class="roi-sum-sub">${graded} scored &middot; ${ts.length-graded} still open</span></div>`
+    +`<div class="roi-sum-top"><span class="roi-sum-n">${headline}</span>`
+    +`<span class="roi-sum-sub">${graded} scored &middot; ${rows.length-graded} still open</span>${clear}</div>`
     +`<div class="roi-sum-pills">${pills}</div>`
     +`<button type="button" class="roi-how-btn" onclick="toggleROIHow(this)">How is this scored? <span class="roi-chev">&#9662;</span></button>`
     +`<div class="roi-how" id="roi-how" style="display:none">`
@@ -6232,6 +6347,43 @@ function dePlayedPicks(){
   return _tradeROI.rookie_picks.filter(r=>r.season<_tradeROI.live_season&&r.rookie_por!=null);
 }
 
+// Which managers are expanded. Default is none — twelve open lists would bury
+// the ranking the table exists to show.
+const _deOpen=new Set();
+function toggleDrafterPicks(uid){
+  _deOpen.has(uid)?_deOpen.delete(uid):_deOpen.add(uid);
+  renderDraftEval();
+}
+
+// One manager's picks, newest class first then by pick number, each showing what
+// it produced against what its slot was priced at — the per-pick version of the
+// row's Vs expected total.
+function dePickListHtml(row){
+  const picks=(row.picks||[]).slice().sort((a,b)=>
+    (b.season-a.season)||(a.pick_no-b.pick_no));
+  if(!picks.length)return`<div class="de-note">No completed picks yet.</div>`;
+  const hit=_tradeROI.hit_por;
+  return`<div class="de-picks">`
+    +`<table class="dtbl de-picktbl"><thead><tr>`
+    +`<th>Pick</th><th>Player</th><th>Pos</th><th class="num">Produced</th>`
+    +`<th class="num">Expected</th><th class="num">Vs expected</th><th class="num">Used</th>`
+    +`</tr></thead><tbody>`
+    +picks.map(p=>{
+      const exp=deExpectedFor(p),over=p.rookie_por-exp;
+      const op=p.opportunity||{};
+      const tag=p.rookie_por>=hit?`<span class="de-hit">HIT</span>`
+        :(p.rookie_por_signed!=null&&p.rookie_por_signed<-25?`<span class="de-bust">BUST</span>`:'');
+      return`<tr><td class="de-pk">${p.season} ${p.round}.${String(p.slot).padStart(2,'0')}</td>`
+        +`<td>${esc(p.player||'—')} ${tag}</td>`
+        +`<td><span class="cp pos-${esc(p.position||'')}">${esc(p.position||'—')}</span></td>`
+        +`<td class="num">${Math.round(p.rookie_por)}</td>`
+        +`<td class="num de-mut">${Math.round(exp)}</td>`
+        +`<td class="num ${over>=0?'de-pos':'de-neg'}">${over>=0?'+':''}${Math.round(over)}</td>`
+        +`<td class="num de-mut">${op.weeks_used!=null?op.weeks_used+'w':'—'}</td></tr>`;
+    }).join('')
+    +`</tbody></table></div>`;
+}
+
 function deExpectedFor(r){
   return (_deExpected==='adj'?r.expected_por_class_adj:r.expected_por)||0;
 }
@@ -6248,8 +6400,12 @@ function deDrafterRows(){
     // Aggregate on user_id. Roster 9 is one human under two display names
     // (Mblack2889 -> MJBlack) and keying on the name ranks him twice.
     const u=r.drafted_by_uid;if(!u)return;
-    const a=agg[u]||(agg[u]={uid:u,n:0,act:0,exp:0,hits:0,roles:0});
+    const a=agg[u]||(agg[u]={uid:u,n:0,act:0,exp:0,hits:0,roles:0,picks:[]});
     a.n++;a.act+=r.rookie_por;a.exp+=deExpectedFor(r);
+    // Keep the underlying picks on the row. The expanded detail is then the
+    // same numbers the total was summed from, rather than a second lookup that
+    // could disagree with it.
+    a.picks.push(r);
     if(r.rookie_por>=_tradeROI.hit_por)a.hits++;
     if(r.opportunity&&r.opportunity.got_role)a.roles++;
   });
@@ -6270,16 +6426,22 @@ function deDrafterTableHtml(){
     +`<button class="f-pill${_deExpected==='pooled'?' active':''}" onclick="setDraftEvalBasis('pooled',this)">Raw</button>`
     +`</div>`
     +`<div class="dtblwrap"><table class="dtbl de-tbl"><thead><tr>`
+    +`<th class="de-twcol"></th>`
     +`<th>Manager</th><th class="num">Picks</th><th class="num">Hits</th><th class="num">Got a role</th>`
     +`<th class="num">Produced</th><th class="num">Expected</th><th class="num">Vs expected</th><th></th>`
     +`</tr></thead><tbody>`
     +rows.map(r=>{
       const pct=Math.round(Math.abs(r.over)/max*100);
-      return`<tr><td>${ownerLink(r.uid,r.name)}</td>`
+      const open=_deOpen.has(r.uid);
+      return`<tr class="de-drow">`
+        +`<td class="de-twcol"><button type="button" class="de-tw${open?' open':''}" aria-expanded="${open}"`
+        +` title="Show every pick" onclick="toggleDrafterPicks('${esc(r.uid)}')">&#9656;</button></td>`
+        +`<td>${ownerLink(r.uid,r.name)}</td>`
         +`<td class="num">${r.n}</td><td class="num">${r.hits}</td><td class="num">${r.roles}</td>`
         +`<td class="num">${Math.round(r.act)}</td><td class="num de-mut">${Math.round(r.exp)}</td>`
         +`<td class="num ${r.over>=0?'de-pos':'de-neg'}">${r.over>=0?'+':''}${Math.round(r.over)}</td>`
-        +`<td class="de-barcell"><span class="de-bar ${r.over>=0?'pos':'neg'}" style="width:${pct}%"></span></td></tr>`;
+        +`<td class="de-barcell"><span class="de-bar ${r.over>=0?'pos':'neg'}" style="width:${pct}%"></span></td></tr>`
+        +`<tr class="de-detailrow"${open?'':' style="display:none"'}><td colspan="9">${dePickListHtml(r)}</td></tr>`;
     }).join('')
     +`</tbody></table></div></div>`;
 }
@@ -6390,11 +6552,8 @@ async function buildTradeROI(){
     return;
   }
   buildROITeamChips();
-  const bar=document.getElementById('roi-filter-bar');
-  if(bar&&!bar.dataset.summed){
-    bar.dataset.summed='1';
-    bar.insertAdjacentHTML('beforebegin',roiSummaryHtml());
-  }
+  // The summary used to be injected once, above the bar. It now redraws with
+  // the cards from #roi-summary-host, because its counts follow the selection.
   renderROICards();
 }
 
@@ -7361,10 +7520,39 @@ function showTab(tab,el){
   // Teams opens on Outlook. Player Stats has no tab hook any more — it builds
   // from setRosterView when someone switches to it.
   if(tab==='rosters'&&document.getElementById('roster-view-grades').style.display!=='none')buildRosterGrades();
-  if(tab==='trade'&&!_tradeInit)initTradeEval();
+  if(tab==='trade'&&_tradeView==='eval'&&!_tradeInit)initTradeEval();
   // Build on entry, and stop polling the moment we leave — an interval left
   // running would keep refetching every data file in the background forever.
   if(tab==='commissioner'){ buildCommish(); } else if(typeof commishStopTimer==='function'){ commishStopTimer(); }
+}
+
+// ── TRADE PANEL VIEWS ──
+// Who Won That Trade? moved here from Moves on 2026-09-04. Same
+// self-contained-divs pattern as setRosterView/setCareersView/setMovesView, and
+// the selector is scoped to #trade-view-toggle for the reason spelled out in the
+// markup comment above it.
+const TRADE_VIEW_META={
+  eval:{title:'&#9878; TRADE EVALUATOR',sub:'KTC Dynasty Values &mdash; Superflex &middot; PPR &middot; TE Premium (+0.5)'},
+  roi: {title:'WHO WON THAT TRADE?',sub:'Every Trade Since 2023 &middot; Scored On What The Players Actually Did'}
+};
+let _tradeView='eval';
+function setTradeView(view,el){
+  _tradeView=view;
+  document.querySelectorAll('#trade-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
+  document.getElementById('trade-view-eval').style.display=view==='eval'?'':'none';
+  document.getElementById('trade-view-roi').style.display=view==='roi'?'':'none';
+  const meta=TRADE_VIEW_META[view];
+  if(meta){
+    document.getElementById('trade-title').innerHTML=meta.title;
+    document.getElementById('trade-sub').innerHTML=meta.sub;
+  }
+  // Each view pays for its own data. Deep-linking to #whowon should not fetch
+  // KTC, and opening the evaluator should not fetch trade-roi.json.
+  if(view==='eval'&&!_tradeInit)initTradeEval();
+  if(view==='roi'&&!document.getElementById('roi-container').dataset.loaded){
+    document.getElementById('roi-container').dataset.loaded='1';
+    buildTradeROI();
+  }
 }
 
 // ── TRADE EVALUATOR ──
@@ -9549,8 +9737,10 @@ const TAB_ALIASES={
   moves:       {tab:'draft'},
   // Not retired hashes — deep links, so "who won that trade" can be texted round
   // the league and land on the view rather than the Moves default.
-  whowon:      {tab:'draft', open:()=>setMovesView('roi',  document.getElementById('mview-roi-btn'))},
-  traderoi:    {tab:'draft', open:()=>setMovesView('roi',  document.getElementById('mview-roi-btn'))},
+  // Moved from Moves to Trade on 2026-09-04. These two hashes have been texted
+  // round the league, so they follow the view rather than breaking.
+  whowon:      {tab:'trade', open:()=>setTradeView('roi', document.getElementById('tview-roi-btn'))},
+  traderoi:    {tab:'trade', open:()=>setTradeView('roi', document.getElementById('tview-roi-btn'))},
   draftroi:    {tab:'draft', open:()=>setMovesView('drafteval', document.getElementById('mview-drafteval-btn'))},
   bestdrafter: {tab:'draft', open:()=>setMovesView('drafteval', document.getElementById('mview-drafteval-btn'))},
   // Rules was deleted — its content restated what Sleeper already shows, and

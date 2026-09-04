@@ -135,8 +135,8 @@ Verified 280-1280px, both themes: zero page overflow on every tab, nav never wra
 | 1 | **History** | `careers` | `panel-careers` | **Managers** (default) - Seasons - All Time - Hall of Fame - Rivalries |
 | 2 | **Teams** | `rosters` | `panel-rosters` | **Outlook** (default) - Rosters - Player Stats |
 | 3 | Scores | `scores` | `panel-scores` | year + week pills (unchanged) |
-| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers - Who Won That Trade? - Draft ROI |
-| 5 | Trade | `trade` | `panel-trade` | - |
+| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers - Draft ROI |
+| 5 | Trade | `trade` | `panel-trade` | **Evaluator** (default) - Who Won That Trade? |
 
 **Panel and `showTab` ids were deliberately NOT renamed** - `rosters`, `draft`, `careers` still
 name tabs now labeled Teams, Moves and History. Renaming them would have touched several hundred
@@ -161,6 +161,24 @@ site; only the display grid went. The one card that existed nowhere else - the v
 future voted-in rule change there.
 
 **Removed earlier:** "Ask Claude" (`ai` / `panel-ai`), UI 2026-08-20, JS and CSS same day.
+
+### Trade Panel (`panel-trade`)
+
+Two views via `setTradeView('eval'|'roi', el)`, titles from `TRADE_VIEW_META`, same
+self-contained-divs pattern as the other panels. **Scope selectors to `#trade-view-toggle`** —
+an unscoped `.yr-btn` also matches the KTC table and draft toggles, which is the bug the Teams
+panel already hit once.
+
+0. `#trade-view-eval` (**"Evaluator"**) — the default; everything the tab used to be.
+1. `#trade-view-roi` (**"Who Won That Trade?"**) — moved here from Moves 2026-09-04.
+
+**Each view pays for its own data.** `setTradeView` lazy-inits the evaluator (KTC fetch) only when
+the eval view opens, and `buildTradeROI()` only when the ROI view opens; `showTab` now gates its
+`initTradeEval()` call on `_tradeView==='eval'`. Deep-linking `#whowon` therefore renders 52 cards
+with **zero** KTC traffic — verified, `_tradeInit` is still false on that path.
+
+`#whowon` / `#traderoi` were repointed at the Trade tab in the same change. **They were not
+removed** — those hashes have been texted round the league; see the `TAB_ALIASES` rule.
 
 ### The Commissioner (`panel-commissioner`) — admin, no nav tab
 
@@ -332,7 +350,12 @@ views; `#moves-view-txn` holds the transaction log moved from `panel-transaction
 lazy-load on first switch via their container's `dataset.loaded` flag, set in `setMovesView`.
 
 `#moves-view-drafteval` is **Draft ROI** (Phase 12 item 4), added 2026-09-04 — same
-`trade-roi.json`, different question. Four sub-views is within budget; History runs five.
+`trade-roi.json`, different question.
+
+**Who Won That Trade? moved OUT of Moves to the Trade panel on 2026-09-04** (Matt's call). Both
+halves of the Trade tab are now about trades, Moves is back to three sub-views, and the two
+`trade-roi.json` views ended up on different tabs — which is fine, because they answer different
+questions and Draft ROI is a *draft* record, which is what Moves is for.
 
 `#whowon`/`#traderoi` (trade view) and `#draftroi`/`#bestdrafter` (Draft ROI) are `TAB_ALIASES`
 deep links — not retired hashes,
@@ -1803,7 +1826,19 @@ budget — History runs five, and five is the ceiling.
 
 **Functions:** `buildDraftEval()`, `renderDraftEval()`, `deDrafterRows()`, `deDrafterTableHtml()`,
 `deCapitalHtml()`, `deHotspotHtml()`, `deBestWorstHtml()`, `dePlayedPicks()`, `deExpectedFor()`,
-`setDraftEvalBasis()`. CSS in the appended `MOVES TAB — DRAFT ROI` layer (`.de-*`).
+`setDraftEvalBasis()`, `dePickListHtml()`, `toggleDrafterPicks()`. CSS in the appended
+`MOVES TAB — DRAFT ROI` layer (`.de-*`) plus the 2026-09-04 twistie layer.
+
+**Every Best Drafter row expands to the picks behind it (2026-09-04).** A twistie left of the
+manager name reveals that manager's individual picks — pick, player, position, produced, expected,
+vs expected, weeks used — newest class first then by pick number, with HIT and BUST tags.
+`_deOpen` holds which rows are expanded; **default is none**, because twelve open lists bury the
+ranking the table exists to show.
+
+**The detail is summed from the same rows as the total, not looked up again.** `deDrafterRows()`
+now keeps each pick on `row.picks`, so the expansion cannot drift from the row above it. Verified
+mechanically: all 12 managers reconcile exactly (actual, expected and vs-expected) under **both**
+expectation bases, and the per-manager pick counts total 98, the full played-pick universe.
 
 **Five blocks:** Best Drafter (ranked by actual minus expected, with a magnitude bar), What A
 Pick Is Actually Worth (the `draft_capital` bands), Where The Value Hides (a round x slot heatmap,
@@ -1850,6 +1885,32 @@ assets, with a teal left rail and teal total on the winner. Assets carry positio
 `via 2025 R1` tag when they arrived as a traded pick, a `BUST` tag when `por_signed < -25`,
 and an italic `~30 proj` treatment for a pick that has not been drafted yet so nobody reads
 a projection as earned points. Footer gives the margin and the weeks of evidence behind it.
+
+**Filters are multi-select across three independent axes (2026-09-04).** They AND with each
+other and OR within themselves:
+
+- **Status** — `_roiStatus`, buttons in `#roi-filter-bar`, ordered **All Trades > Graded >
+  Lopsided > Too Early**. Empty set means all. `setROIFilter(f)` toggles; `'all'` clears.
+  "Graded + Lopsided" is the case that motivated this and resolves to 33 — lopsided is a subset of
+  graded, so the union is graded, which is exactly the "everything except Too Early" view wanted.
+- **Verdict** — `_roiVerdicts`. The ROBBERY / CLEAR WIN / EDGE / DEAD EVEN chips in the summary
+  are now **buttons**, not labels (`toggleROIVerdict`).
+- **Manager** — `_roiTeams`, unchanged, still keyed on user_id.
+
+`clearROIFilters()` resets all three and is surfaced as a "Clear filters" button that only appears
+when something is filtered.
+
+**Every count in the summary follows the selection.** `roiSummaryHtml(rows)` takes the filtered
+set, so the headline reads `21 of 52 trades / 16 scored / 5 still open` when one manager is
+selected, and `52 trades since 2023` when nothing is. The summary therefore has to redraw with the
+cards — it renders into `#roi-summary-host` from `renderROICards()`, where it used to be injected
+once with `insertAdjacentHTML` and never updated.
+
+**The verdict chips deliberately count a different set from the headline.** `roiVerdictScope()` is
+everything passing the status and manager axes but **not** the verdict axis. Counting them
+post-verdict would zero every chip you had not selected and leave no way to see what else was
+there. A chip with nothing behind it dims to 35% rather than disappearing, so the row does not
+reflow as you filter.
 
 **A summary strip sits above the filters** with the verdict spread and a collapsible
 *"How is this scored?"* explainer. That explainer is not optional decoration: this view
