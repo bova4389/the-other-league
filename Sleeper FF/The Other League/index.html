@@ -2289,6 +2289,93 @@ body.pf-locked { overflow: hidden; }
   #t-lbl { display: none; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOVES TAB — WHO WON THAT TRADE? (Phase 12)
+   Appended layer per the redesign convention. Styles by class + palette
+   variables only; every dark-only rule has a [data-theme="light"] pair below.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.roi-summary { background: var(--card); border: 1px solid var(--border); border-radius: 3px;
+  padding: 14px 16px; margin-bottom: 14px; }
+.roi-sum-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.roi-sum-n { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 22px; letter-spacing: .5px; color: var(--accent); text-transform: uppercase; }
+.roi-sum-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); }
+.roi-sum-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.roi-sum-pill { font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: .4px; padding: 3px 8px; border-radius: 2px; border: 1px solid var(--border);
+  color: var(--text2); }
+.roi-sum-pill.rob { color: var(--accent3); border-color: var(--accent3); }
+.roi-sum-pill.clear { color: var(--accent); border-color: var(--accent); }
+.roi-sum-pill.edge { color: var(--accent2); border-color: var(--accent2); }
+
+.roi-how-btn { margin-top: 12px; background: none; border: none; padding: 0; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--accent);
+  letter-spacing: .3px; }
+.roi-how-btn .roi-chev { display: inline-block; transition: transform .15s ease; }
+.roi-how-btn.open .roi-chev { transform: rotate(180deg); }
+.roi-how { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+.roi-how p { font-family: 'DM Sans', sans-serif; font-size: 12px; line-height: 1.6;
+  color: var(--text2); margin: 0 0 9px; }
+.roi-how p:last-child { margin-bottom: 0; }
+.roi-how b { color: var(--text); }
+.roi-how-fine { font-size: 11px !important; color: var(--muted) !important; }
+
+.roi-filter-bar, .roi-team-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.roi-team-chips { margin-bottom: 16px; }
+
+/* min() so a card can shrink below its ideal width instead of pushing the page
+   sideways — same fix as .match-grid and .roster-grid. */
+.roi-grid { display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); }
+
+.roi-card { background: var(--card); border: 1px solid var(--border); border-radius: 3px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.roi-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.roi-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+  letter-spacing: .3px; }
+.roi-verdict { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 13px; letter-spacing: .6px; text-transform: uppercase; padding: 2px 8px;
+  border-radius: 2px; border: 1px solid; white-space: nowrap; }
+.roi-verdict.rob { color: var(--accent3); border-color: var(--accent3); }
+.roi-verdict.clear { color: var(--accent); border-color: var(--accent); }
+.roi-verdict.edge { color: var(--accent2); border-color: var(--accent2); }
+.roi-verdict.even, .roi-verdict.pend { color: var(--muted); border-color: var(--border); }
+
+.roi-body { display: flex; flex-direction: column; gap: 8px; }
+.roi-side { border-left: 2px solid var(--border); padding-left: 10px; }
+.roi-side.win { border-left-color: var(--accent); }
+.roi-shead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.roi-mgr { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text); }
+.roi-total { font-family: 'Saira Condensed', sans-serif; font-style: italic; font-weight: 700;
+  font-size: 20px; color: var(--text2); line-height: 1; }
+.roi-side.win .roi-total { color: var(--accent); }
+.roi-assets { margin-top: 5px; display: flex; flex-direction: column; gap: 2px; }
+.roi-asset { display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text2); }
+.roi-asset.proj { color: var(--muted); font-style: italic; }
+.roi-asset.bust .ra-n { color: var(--muted); }
+.ra-n { min-width: 0; overflow-wrap: anywhere; }
+.ra-p { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2);
+  white-space: nowrap; flex: 0 0 auto; }
+.ra-pos { font-size: 9px; color: var(--muted); margin-left: 5px; letter-spacing: .3px; }
+.ra-via { font-size: 9px; color: var(--accent2); margin-left: 5px; }
+.ra-bust { font-size: 8px; font-weight: 700; color: var(--accent3); margin-left: 5px;
+  letter-spacing: .5px; }
+.roi-meta { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted);
+  border-top: 1px solid var(--border); padding-top: 8px; }
+
+[data-theme="dark"] .roi-verdict.rob { box-shadow: 0 0 10px rgba(255,61,190,.25); }
+[data-theme="dark"] .roi-verdict.clear { box-shadow: 0 0 10px rgba(33,245,228,.22); }
+[data-theme="dark"] .roi-sum-n { text-shadow: 0 0 12px rgba(33,245,228,.35); }
+
+@media (max-width: 680px) {
+  .roi-summary { padding: 12px 13px; }
+  .roi-sum-n { font-size: 19px; }
+  .roi-card { padding: 11px 12px; }
+  .roi-verdict { font-size: 12px; padding: 2px 6px; }
+  .roi-total { font-size: 18px; }
+}
+
 </style>
 </head>
 <body class="is-home">
@@ -2544,6 +2631,7 @@ body.pf-locked { overflow: hidden; }
       <div class="roster-view-toggle" id="moves-view-toggle" style="display:flex;gap:4px;margin-bottom:16px;">
         <button class="yr-btn active" id="mview-draft-btn" onclick="setMovesView('draft',this)">Draft</button>
         <button class="yr-btn" id="mview-txn-btn" onclick="setMovesView('txn',this)">Trades &amp; Waivers</button>
+        <button class="yr-btn" id="mview-roi-btn" onclick="setMovesView('roi',this)">Who Won That Trade?</button>
       </div>
       <div id="moves-view-draft">
       <div class="yr-toggle">
@@ -2598,6 +2686,18 @@ body.pf-locked { overflow: hidden; }
       </div>
       <div id="txn-player-results" style="display:none"></div>
       <div id="txn-container"><div class="ld"><div class="spin"></div><div class="lt">Loading transactions...</div></div></div>
+      </div>
+      <!-- Phase 12. Renders entirely from the committed trade-roi.json; no live
+           API calls, no KTC. See buildTradeROI(). -->
+      <div id="moves-view-roi" style="display:none">
+        <div class="roi-filter-bar" id="roi-filter-bar">
+          <button class="f-pill active" onclick="setROIFilter('all',this)">All Trades</button>
+          <button class="f-pill" onclick="setROIFilter('graded',this)">Graded</button>
+          <button class="f-pill" onclick="setROIFilter('pending',this)">Too Early</button>
+          <button class="f-pill" onclick="setROIFilter('lopsided',this)">Lopsided</button>
+        </div>
+        <div class="roi-team-chips" id="roi-team-chips"></div>
+        <div id="roi-container"><div class="ld"><div class="spin"></div><div class="lt">Loading trade history...</div></div></div>
       </div>
     </div>
 
@@ -5673,12 +5773,18 @@ function setCareersView(view,el){
 const MOVES_VIEW_META={
   draft:{title:'ROOKIE DRAFT',  sub:'4 Rounds &middot; Linear Format (2026) &middot; Consolation Pick 1.13'},
   txn:  {title:'TRADES & WAIVERS',sub:'All Activity &middot; Adds &middot; Drops &middot; Waivers &middot; Trades'},
+  roi:  {title:'WHO WON THAT TRADE?',sub:'Every Trade Since 2023 &middot; Scored On What The Players Actually Did'},
 };
 
 function setMovesView(view,el){
   document.querySelectorAll('#moves-view-toggle .yr-btn').forEach(b=>b.classList.toggle('active',b===el));
   document.getElementById('moves-view-draft').style.display=view==='draft'?'':'none';
   document.getElementById('moves-view-txn').style.display=view==='txn'?'':'none';
+  document.getElementById('moves-view-roi').style.display=view==='roi'?'':'none';
+  if(view==='roi'&&!document.getElementById('roi-container').dataset.loaded){
+    document.getElementById('roi-container').dataset.loaded='1';
+    buildTradeROI();
+  }
   const meta=MOVES_VIEW_META[view];
   if(meta){
     document.getElementById('moves-title').innerHTML=meta.title;
@@ -5690,6 +5796,195 @@ function setMovesView(view,el){
     document.getElementById('txn-container').dataset.loaded='1';
     buildTransactions('all',2025);
   }
+}
+
+// ── WHO WON THAT TRADE? (Phase 12) ───────────────────────────────────────────
+// Renders entirely from the committed trade-roi.json, built offline by
+// scripts/build_trade_roi.py. No live API calls and no KTC: four seasons of
+// transactions plus four drafts is far too much to pull on page load.
+let _tradeROI=null,_tradeROIPromise=null;
+let _roiFilter='all',_roiTeams=new Set();
+
+async function loadTradeROI(){
+  if(_tradeROIPromise)return _tradeROIPromise;
+  _tradeROIPromise=(async()=>{
+    try{
+      const r=await fetch('trade-roi.json?_='+Math.floor(Date.now()/3600000));
+      if(!r.ok)return null;
+      return await r.json();
+    }catch(e){return null;}
+  })();
+  return _tradeROIPromise;
+}
+
+const ROI_VERDICT_CLASS={'ROBBERY':'rob','CLEAR WIN':'clear','EDGE':'edge','DEAD EVEN':'even'};
+
+function roiFmtDate(d){
+  const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const p=String(d||'').split('-');
+  if(p.length!==3)return esc(d);
+  return M[parseInt(p[1],10)-1]+' '+parseInt(p[2],10)+', '+p[0];
+}
+
+// A side's manager, resolved for the season the trade happened in — never
+// today's owner. Roster 11 changed hands (CCJ 2023-25, Andrew Bova from 2026),
+// so crediting a 2024 trade to the current owner would be wrong. ownerLink
+// falls through to plain escaped text for a uid not in TEAMS, which is exactly
+// what a departed manager needs.
+function roiManager(side){
+  const uid=side.manager_uid;
+  // Real name where we have one, so these cards read like every other surface on
+  // the site rather than dropping into raw Sleeper handles. The handle carried in
+  // trade-roi.json is the fallback for a manager who has since left the league and
+  // is therefore absent from TEAMS.
+  const label=(uid&&TEAMS[uid])?t(uid).name:(side.manager||'Unknown');
+  return ownerLink(uid,label);
+}
+
+function roiAssetHtml(a,isPick){
+  const bust=(a.por_signed!=null&&a.por_signed<-25);
+  if(isPick&&!a.resolved){
+    const exp=a.projected_por;
+    return`<div class="roi-asset proj"><span class="ra-n">${esc(a.season)} Round ${esc(a.round)} pick</span>`
+      +`<span class="ra-p">${exp==null?'&mdash;':'~'+Math.round(exp)+' proj'}</span></div>`;
+  }
+  const name=isPick?(a.player||'Undrafted'):a.name;
+  const pos=a.position||'';
+  const por=a.por==null?null:a.por;
+  return`<div class="roi-asset${bust?' bust':''}">`
+    +`<span class="ra-n">${esc(name)}${pos?`<span class="ra-pos">${esc(pos)}</span>`:''}`
+    +(isPick?`<span class="ra-via">via ${esc(a.season)} R${esc(a.round)}</span>`:'')
+    +(bust?'<span class="ra-bust">BUST</span>':'')+`</span>`
+    +`<span class="ra-p">${por==null?'&mdash;':(por>0?'+':'')+Math.round(por)}</span></div>`;
+}
+
+function roiCardHtml(t,i){
+  const g=t.grade||{};
+  const sides=t.sides.slice();
+  if(sides.length===2&&g.verdict&&g.winner_roster!=null)
+    sides.sort((a,b)=>(b.roster_id===g.winner_roster?1:0)-(a.roster_id===g.winner_roster?1:0));
+  const chip=g.verdict
+    ?`<span class="roi-verdict ${ROI_VERDICT_CLASS[g.verdict]||'even'}">${esc(g.verdict)}</span>`
+    :`<span class="roi-verdict pend">${esc(g.withheld||'PENDING')}</span>`;
+  const body=sides.map(s=>{
+    const isWin=g.verdict&&g.verdict!=='DEAD EVEN'&&s.roster_id===g.winner_roster;
+    const assets=s.players.map(p=>roiAssetHtml(p,false)).join('')
+      +s.picks.map(p=>roiAssetHtml(p,true)).join('')
+      +(s.faab?`<div class="roi-asset"><span class="ra-n">$${esc(s.faab)} FAAB</span><span class="ra-p">&mdash;</span></div>`:'');
+    return`<div class="roi-side${isWin?' win':''}">`
+      +`<div class="roi-shead"><span class="roi-mgr">${roiManager(s)}</span>`
+      +`<span class="roi-total">${Math.round(s.por)}</span></div>`
+      +`<div class="roi-assets">${assets||'<div class="roi-asset"><span class="ra-n">Nothing</span><span class="ra-p">&mdash;</span></div>'}</div>`
+      +`</div>`;
+  }).join('');
+  const meta=g.verdict
+    ?`Margin ${Math.round(g.margin)} &middot; ${t.max_asset_weeks} scored weeks of evidence`
+    :esc(g.note||'');
+  return`<div class="roi-card">`
+    +`<div class="roi-head"><span class="roi-date">${roiFmtDate(t.date)}`
+    +(t.leg>1?` &middot; Week ${esc(t.leg)}`:'')+`</span>${chip}</div>`
+    +`<div class="roi-body">${body}</div>`
+    +`<div class="roi-meta">${meta}</div></div>`;
+}
+
+function roiPassesFilter(t){
+  const g=t.grade||{};
+  if(_roiFilter==='graded'&&!g.verdict)return false;
+  if(_roiFilter==='pending'&&g.verdict)return false;
+  if(_roiFilter==='lopsided'&&!(g.verdict==='ROBBERY'||g.verdict==='CLEAR WIN'))return false;
+  if(_roiTeams.size){
+    if(!t.sides.some(s=>_roiTeams.has(s.manager_uid)))return false;
+  }
+  return true;
+}
+
+function setROIFilter(f,el){
+  _roiFilter=f;
+  document.querySelectorAll('#roi-filter-bar .f-pill').forEach(b=>b.classList.toggle('active',b===el));
+  renderROICards();
+}
+
+function toggleROITeam(uid,el){
+  if(uid==='all')_roiTeams.clear();
+  else{_roiTeams.has(uid)?_roiTeams.delete(uid):_roiTeams.add(uid);}
+  document.querySelectorAll('#roi-team-chips .f-pill').forEach(b=>{
+    const u=b.dataset.uid;
+    b.classList.toggle('active',u==='all'?_roiTeams.size===0:_roiTeams.has(u));
+  });
+  renderROICards();
+}
+
+function buildROITeamChips(){
+  const box=document.getElementById('roi-team-chips');
+  if(!box||box.dataset.built)return;
+  box.dataset.built='1';
+  const idx=(_tradeROI&&_tradeROI.manager_index)||{};
+  // Aggregate on user_id, never display name — roster 9 is one human under two
+  // names (Mblack2889 -> MJBlack) and would otherwise get two chips.
+  const seen=new Set();
+  _tradeROI.trades.forEach(t=>t.sides.forEach(s=>{if(s.manager_uid)seen.add(s.manager_uid);}));
+  let html=`<button class="f-pill active" data-uid="all" onclick="toggleROITeam('all',this)">All Managers</button>`;
+  // Real name via TEAMS/abbrev to match every other chip bar on the site; the
+  // Sleeper handle from trade-roi.json is the fallback for a manager who has
+  // left the league and is therefore not in TEAMS (CCJ, roster 11 to 2025).
+  [...seen].map(u=>({u,n:TEAMS[u]?abbrev(t(u).name):((idx[u]&&idx[u].name)||'Unknown')}))
+    .sort((a,b)=>a.n.localeCompare(b.n))
+    .forEach(m=>{html+=`<button class="f-pill" data-uid="${esc(m.u)}" onclick="toggleROITeam('${esc(m.u)}',this)">${esc(m.n)}</button>`;});
+  box.innerHTML=html;
+}
+
+function renderROICards(){
+  const c=document.getElementById('roi-container');
+  if(!c||!_tradeROI)return;
+  const rows=_tradeROI.trades.filter(roiPassesFilter)
+    .slice().sort((a,b)=>b.created-a.created);
+  if(!rows.length){c.innerHTML='<div class="note">No trades match these filters.</div>';return;}
+  c.innerHTML=`<div class="roi-grid">${rows.map(roiCardHtml).join('')}</div>`;
+}
+
+function roiSummaryHtml(){
+  const ts=_tradeROI.trades,th=_tradeROI.thresholds||{};
+  const counts={};let graded=0;
+  ts.forEach(t=>{const g=t.grade||{};if(g.verdict){graded++;counts[g.verdict]=(counts[g.verdict]||0)+1;}});
+  const order=['ROBBERY','CLEAR WIN','EDGE','DEAD EVEN'];
+  const pills=order.filter(v=>counts[v]).map(v=>
+    `<span class="roi-sum-pill ${ROI_VERDICT_CLASS[v]}">${counts[v]} ${esc(v)}</span>`).join('');
+  return`<div class="roi-summary">`
+    +`<div class="roi-sum-top"><span class="roi-sum-n">${ts.length} trades since 2023</span>`
+    +`<span class="roi-sum-sub">${graded} scored &middot; ${ts.length-graded} still open</span></div>`
+    +`<div class="roi-sum-pills">${pills}</div>`
+    +`<button type="button" class="roi-how-btn" onclick="toggleROIHow(this)">How is this scored? <span class="roi-chev">&#9662;</span></button>`
+    +`<div class="roi-how" id="roi-how" style="display:none">`
+    +`<p><b>Points over replacement.</b> Every player is scored in this league's own rules, then measured against what a replacement-level player at his position produced in the same weeks &mdash; QB23, RB38, WR57, TE18, the ranks this league actually starts. Raw points would hand the win to whoever got the quarterback every single time.</p>`
+    +`<p><b>A bust is worth zero, never negative.</b> You bench a player who is not helping, so the worst an asset can do to you is nothing. Scoring the real negative would have made <i>dumping</i> a bust look like winning the trade.</p>`
+    +`<p><b>Traded picks count as the player taken with them.</b> A pick that has not been drafted yet cannot have produced anything, so those trades stay open rather than being graded early.</p>`
+    +`<p><b>It keeps moving.</b> Scores are recomputed from scratch every time this page loads, so a trade that looks even today can still turn.</p>`
+    +`<p class="roi-how-fine">Verdicts: EDGE at ${esc(th.edge)} points of margin, CLEAR WIN at ${esc(th.clear)}, ROBBERY at ${esc(th.robbery)} <i>and</i> ${esc(th.robbery_ratio)}x the other side. A trade needs ${esc(th.maturity_min_weeks)} scored weeks before it gets a verdict at all.</p>`
+    +`</div></div>`;
+}
+
+function toggleROIHow(el){
+  const b=document.getElementById('roi-how');
+  if(!b)return;
+  const open=b.style.display!=='none';
+  b.style.display=open?'none':'';
+  el.classList.toggle('open',!open);
+}
+
+async function buildTradeROI(){
+  const c=document.getElementById('roi-container');
+  _tradeROI=await loadTradeROI();
+  if(!_tradeROI||!_tradeROI.trades){
+    c.innerHTML='<div class="note">Trade history is not available right now.</div>';
+    return;
+  }
+  buildROITeamChips();
+  const bar=document.getElementById('roi-filter-bar');
+  if(bar&&!bar.dataset.summed){
+    bar.dataset.summed='1';
+    bar.insertAdjacentHTML('beforebegin',roiSummaryHtml());
+  }
+  renderROICards();
 }
 
 // Year selector inside the Seasons view. This is what the four top-level year
@@ -8401,6 +8696,10 @@ const TAB_ALIASES={
   txns:        {tab:'draft', open:()=>setMovesView('txn',  document.getElementById('mview-txn-btn'))},
   trades:      {tab:'draft', open:()=>setMovesView('txn',  document.getElementById('mview-txn-btn'))},
   moves:       {tab:'draft'},
+  // Not retired hashes — deep links, so "who won that trade" can be texted round
+  // the league and land on the view rather than the Moves default.
+  whowon:      {tab:'draft', open:()=>setMovesView('roi',  document.getElementById('mview-roi-btn'))},
+  traderoi:    {tab:'draft', open:()=>setMovesView('roi',  document.getElementById('mview-roi-btn'))},
   // Rules was deleted — its content restated what Sleeper already shows, and
   // the one card that did not (the 2027 flex change) moved to Home. Send both
   // hashes there rather than nowhere.

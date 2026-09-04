@@ -135,7 +135,7 @@ Verified 280-1280px, both themes: zero page overflow on every tab, nav never wra
 | 1 | **History** | `careers` | `panel-careers` | **Managers** (default) - Seasons - All Time - Hall of Fame - Rivalries |
 | 2 | **Teams** | `rosters` | `panel-rosters` | **Outlook** (default) - Rosters - Player Stats |
 | 3 | Scores | `scores` | `panel-scores` | year + week pills (unchanged) |
-| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers |
+| 4 | **Moves** | `draft` | `panel-draft` | **Draft** (default) - Trades & Waivers - Who Won That Trade? |
 | 5 | Trade | `trade` | `panel-trade` | - |
 
 **Panel and `showTab` ids were deliberately NOT renamed** - `rosters`, `draft`, `careers` still
@@ -242,10 +242,14 @@ inside `#careers-view-seasons`, a new entry at the front of `CAREER_YEARS`, plus
 **The 7-pill `.career-status-bar` is gone.** Those stats are the first cards of the Hall of Fame grid, so a superlative lives in exactly one place.
 
 ### Moves Panel (`panel-draft`)
-Two views via `setMovesView('draft'|'txn', el)`, titles from `MOVES_VIEW_META`. Draft is the
-default. `#moves-view-draft` holds the rookie-draft year toggle, team chips and list/board views;
-`#moves-view-txn` holds the transaction log moved from `panel-transactions`. The transactions
-lazy-load flag moved from the `showTab` hook to `setMovesView`.
+Three views via `setMovesView('draft'|'txn'|'roi', el)`, titles from `MOVES_VIEW_META`. Draft is
+the default. `#moves-view-draft` holds the rookie-draft year toggle, team chips and list/board
+views; `#moves-view-txn` holds the transaction log moved from `panel-transactions`;
+`#moves-view-roi` is **Who Won That Trade?** (Phase 12), added 2026-09-04. Both `txn` and `roi`
+lazy-load on first switch via their container's `dataset.loaded` flag, set in `setMovesView`.
+
+`#whowon` and `#traderoi` are `TAB_ALIASES` deep links into the ROI view — not retired hashes,
+but so the page can be texted round the league and land on itself rather than the Moves default.
 
 ---
 
@@ -303,6 +307,13 @@ The `stat-champs` / `stat-earn-*` / `stat-wins-*` / `stat-cons-*` / `stat-picks-
 - `stats-yr-toggle`, `stats-pos-filter`, `stats-wk-filter`, `stats-container`
 - `sg-pass`, `sg-rush`, `sg-rec` — stat group toggle buttons (Passing / Rushing / Receiving); toggling rebuilds the table
 - `stats-team-chips` — multi-select team filter chip bar (includes "All Teams" + "Free Agents" + one chip per team); built once by `buildStatsTeamChips()`; filters rows via `applyStatsFilters()` show/hide (no re-fetch)
+
+### Who Won That Trade? (Moves > `#moves-view-roi`, Phase 12)
+- `mview-roi-btn` — the third Moves view button
+- `roi-filter-bar` — All Trades / Graded / Too Early / Lopsided (`setROIFilter`)
+- `roi-team-chips` — manager multi-select, keyed on **user_id** (`toggleROITeam`)
+- `roi-container` — the card grid, rendered by `renderROICards()`
+- `roi-how` — the collapsible "How is this scored?" explainer (`toggleROIHow`)
 
 ### Transactions (now Moves > Trades & Waivers, `#moves-view-txn`)
 - `moves-title` / `moves-sub` — the Moves panel heading, rewritten per view from `MOVES_VIEW_META`
@@ -887,7 +898,14 @@ Neon glows are scoped to `[data-theme="dark"]` inside the appended blocks. Patte
 Phones are the primary target. Wide tables (`.career-tbl` / `.dtbl` / `.ktc-tbl`) scroll **inside their own container** with a sticky owner column so the page + nav stay put; card grids collapse to one column; stat strips are swipeable; the body background drops `fixed` attachment on mobile (iOS-safe). Each tab block ends with a `@media(max-width:680px)` section — keep new mobile rules there.
 
 ### Team-name shorthand
-`shortName(name)` (defined next to `abbrev()`) returns **first-initial + last name** ("Matt Bova" → "M Bova"). Used on every team filter chip (Rosters, Draft, Transactions, Stats, Trade Eval) because many owners share a first name. Use it for any new team-filter UI.
+**`shortName()` does not exist — use `abbrev(name)`.** This entry described a
+`shortName()` "defined next to `abbrev()`" for years; there are **zero** occurrences of it
+in `index.html`, and calling it threw a live `ReferenceError` the first time Phase 12's chip
+bar trusted this line. `abbrev(name)` is the real function and returns first-initial +
+last name ("Matt Bova" → "M. Bova"). Team filter chips (Rosters, Draft, Transactions, Stats,
+Trade Eval, Trade ROI) label with `abbrev(t(uid).name)` — the **real** name, not the Sleeper
+display handle. Use it for any new team-filter UI, and fall back to the stored handle only
+for a manager who has left the league and is no longer in `TEAMS`.
 
 ### Logo Files (wired in)
 - **`TOL Banner Logo.jpg`** - the sticky header wordmark (84px tall; 56px mobile). 1998x648, ~3.08:1,
@@ -1436,7 +1454,7 @@ Scored off the same PoR engine and the same pick curve.
 1. ~~**Data layer.**~~ **Done 2026-09-03.** See "Step 1 as built" below.
 2. ~~**`scripts/build_trade_roi.py` → `trade-roi.json`.**~~ **Done 2026-09-04.**
    See "Step 2 as built" below.
-3. **Moves > Who Won That Trade?** Renders from `trade-roi.json`.
+3. ~~**Moves > Who Won That Trade?**~~ **Done 2026-09-04.** See "Step 3 as built" below.
 4. **Moves > Rookie Draft ROI** + hot-spot board.
 5. ~~**Tuesday bot extension**~~ **Done 2026-09-03** — pulled forward ahead of items 2-4 because
    the season opens 2026-09-09. See "Step 5 as built" below.
@@ -1638,6 +1656,46 @@ separates a bad landing spot from a bad evaluation — a pick that got 40 touche
 failed is not the same mistake as one that got 200 and failed, and a single PoR number
 cannot tell them apart. Bucky Irving (2024 4.06) is the reference case: expected 2.3,
 actual 176.4, usage percentile 81%, 16 of 16 weeks used.
+
+---
+
+#### Step 3 as built (2026-09-04) — the Who Won That Trade? view
+
+Third sub-view of Moves (`#moves-view-roi`), lazy-loaded, rendering entirely from the
+committed `trade-roi.json`. No live API calls and no KTC on this view at all.
+
+**Functions:** `loadTradeROI()` (hourly cache-buster, memoised in `_tradeROIPromise`),
+`buildTradeROI()`, `renderROICards()`, `roiCardHtml()`, `roiAssetHtml()`, `roiManager()`,
+`roiSummaryHtml()`, `toggleROIHow()`, `setROIFilter()`, `buildROITeamChips()`,
+`toggleROITeam()`. CSS lives in the appended `MOVES TAB — WHO WON THAT TRADE?` layer
+(`.roi-*` / `.ra-*`), per the redesign convention.
+
+**The card:** date + verdict chip, then one block per side — manager, PoR total, and the
+assets, with a teal left rail and teal total on the winner. Assets carry position, a
+`via 2025 R1` tag when they arrived as a traded pick, a `BUST` tag when `por_signed < -25`,
+and an italic `~30 proj` treatment for a pick that has not been drafted yet so nobody reads
+a projection as earned points. Footer gives the margin and the weeks of evidence behind it.
+
+**A summary strip sits above the filters** with the verdict spread and a collapsible
+*"How is this scored?"* explainer. That explainer is not optional decoration: this view
+publishes a number that calls someone's trade a robbery, so the four things that would
+otherwise start an argument — points over replacement, the zero floor on busts, picks
+counting as the player taken, and scores being recomputed live — are stated in plain
+English on the page itself, with the actual thresholds quoted from `trade-roi.json`.
+
+**`shortName()` does not exist** — this view's chip bar called it on the strength of the
+VISUAL THEME note and threw a live `ReferenceError`. That note is now corrected; the real
+function is `abbrev()`. Manager names on both the chips and the cards resolve through
+`TEAMS`/`t(uid)` to the **real** name, falling back to the Sleeper handle stored in
+`trade-roi.json` only for a manager no longer in `TEAMS` (CCJ). Every name goes through
+`ownerLink()`, so all 99 of them open a profile.
+
+**Verified in-browser:** 52 cards on All Trades and 33 on Graded (matching the builder),
+zero console errors on a clean tab, zero page overflow at both 375px and desktop, light mode
+inheriting the palette correctly (teal `#0E9C92`, magenta `#D6258F`) with the neon glows
+present in dark and absent in light. `?v=`-style verification needs a **fresh tab or a
+cache-busted URL** — `python http.server` 304s aggressively and served the pre-fix page three
+times while the file on disk was already correct.
 
 ---
 
