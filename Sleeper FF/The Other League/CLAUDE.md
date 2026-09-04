@@ -704,11 +704,33 @@ Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football
 `stats-history.json` with the live season's played weeks (Phase 12).
 
 - **`scripts/tuesday_update.py`** — fetches `state/nfl` to detect current week, fetches matchups from Sleeper API, parses and rewrites `h2h-records.md`. Flags: `--week N`, `--dry-run`, `--force`. Tracks applied weeks in `scripts/bot_state.json`.
-- **`generate_stats.py --live-only`** — added to the workflow 2026-09-03. Copies completed seasons
-  through from the existing file and rebuilds only the in-progress one. Runs **after** the H2H
-  commit and is `continue-on-error`, so a stats failure can never cost us an H2H update that
-  already succeeded, and it commits separately.
-- **`.github/workflows/tuesday-update.yml`** — GitHub Actions cron (Tuesday 1pm UTC); also has manual trigger with week/dry-run/force inputs. Commits `h2h-records.md` + `bot_state.json`, then `stats-history.json`, each only if changed.
+- **The Phase 12 data chain** — three steps, added 2026-09-03/04, all running **after** the H2H
+  commit and each `continue-on-error`, so a data failure can never cost an H2H update that
+  already succeeded. **The order is load-bearing and each step is gated on the previous one:**
+
+  1. `generate_stats.py --live-only` → `stats-history.json`
+  2. `scripts/build_replacement_levels.py --live-only` → `replacement-levels.json`
+  3. `scripts/build_trade_roi.py` → `trade-roi.json`
+
+  Each reads the one before it. Getting the order wrong is **not** a loud failure:
+  `build_trade_roi.py` skips any week it has no replacement baseline for (`base is None ->
+  continue`), so running it against stale baselines publishes a file in which the whole live
+  season silently scored zero — every 2026 trade frozen at 0-0 all year while the page reports
+  them as scored, with nothing anywhere to trace it back to. `coverage_gaps()` is the backstop:
+  it refuses to build when `stats-history.json` holds a played week that `replacement-levels.json`
+  cannot score. Verified by simulating a 2026 Week 1 stats update against stale baselines.
+
+  All three skip the write entirely when the only thing that would change is the `generated`
+  date (`unchanged_but_for_stamp()`), so the offseason does not produce a weekly commit whose
+  entire content is a one-character date bump on a 1.3 MB file. **That helper must round-trip
+  the payload through JSON before comparing** — an in-memory dict keyed by int
+  (`pick_curve.by_pick`) sorts numerically while the same data read back from disk sorts
+  lexicographically (`"1","10","11",..,"2"`), so without the round-trip the compare reports a
+  change on every run and the skip never fires. That bug was live for one build.
+
+  A final `always()` step prints each link's outcome and raises a `::warning::` if any failed,
+  so a broken chain is visible rather than hidden behind a green tick.
+- **`.github/workflows/tuesday-update.yml`** — GitHub Actions cron (Tuesday 1pm UTC); also has manual trigger with week/dry-run/force inputs. Commits `h2h-records.md` + `bot_state.json`, then the three Phase 12 data files together, each only if changed.
 
 **This workflow had never run once before 2026-09-03 — the file was not valid YAML.** The commit
 message's `WEEK=$(python -c "` was a *multi-line* command whose body sat at column 0 inside a
@@ -1591,11 +1613,9 @@ for **its own season**, and `manager_index` carries the canonical name plus
 Jayden Daniels 219.0, the two best rookie seasons in league history), jblack511 +245,
 CHRISMERKELDUH +179; avobttam −150 and MJBlack −145 at the bottom. Face-valid.
 
-**Not built yet:** items 3 and 4, the two Moves sub-views. `trade-roi.json` is not
-fetched by `index.html` yet, and the Tuesday bot does not rebuild it — it should,
-once the season is running, since every trade's PoR moves each week. Add it next to
-the `generate_stats.py --live-only` step, after `stats-history.json` is refreshed
-(it reads that file, so ordering matters).
+**Bot wiring done 2026-09-04** — the Tuesday workflow now rebuilds all three data files in
+dependency order every week. See "Automation (Tuesday Bot)" for the chain and the silent
+failure mode `coverage_gaps()` exists to prevent.
 
 ---
 

@@ -116,6 +116,53 @@ def write_atomic(path, text):
     os.replace(tmp, path)
 
 
+def unchanged_but_for_stamp(path, payload):
+    """True when the only thing that would change on disk is the `generated` date.
+
+    These builders run unattended every Tuesday, year round. Without this the bot
+    rewrites a 1.3 MB data file and pushes a commit whose entire content is a
+    one-character date bump, every week of the offseason — which buries the weeks
+    where something actually happened. Skipping the write keeps the git log
+    meaningful: a commit here means the numbers moved.
+    """
+    try:
+        with open(path, encoding='utf-8') as f:
+            old = json.load(f)
+    except Exception:
+        return False
+    # Round-trip the payload first so both sides carry JSON's string keys. An
+    # in-memory dict keyed by int (pick_curve.by_pick) sorts numerically while the
+    # same data loaded back from disk sorts lexicographically ("1","10","11",..,"2"),
+    # so without this the compare reports a change on every single run and the
+    # skip never fires.
+    fresh = json.loads(json.dumps(payload))
+    a = {k: v for k, v in old.items() if k != 'generated'}
+    b = {k: v for k, v in fresh.items() if k != 'generated'}
+    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
+
+
+def coverage_gaps(stats, repl):
+    """Every played week in stats-history that replacement-levels.json cannot score.
+
+    THIS GUARD EXISTS BECAUSE THE FAILURE IT CATCHES IS COMPLETELY SILENT.
+    `Engine.por` skips any week with no baseline (`base is None -> continue`), so a
+    stats file that has run ahead of the baselines does not raise, does not warn,
+    and does not produce a visibly wrong number — it produces a plausible-looking
+    trade-roi.json in which those weeks simply never happened. In the live season
+    that means every 2026 trade sits frozen at 0-0 all year while the page cheerfully
+    reports it as scored. The two files must always be rebuilt in step, baselines
+    first; this makes forgetting that a loud failure instead of a quiet one.
+    """
+    gaps = []
+    for y in sorted(k for k in stats if k != 'generated'):
+        weeks = set(stats[y].get('weeks', {}))
+        have = set((repl.get('levels', {}).get(y) or {}))
+        missing = sorted(weeks - have, key=int)
+        if missing:
+            gaps.append(f'{y}: stats has week(s) {missing} with no replacement baseline')
+    return gaps
+
+
 # ── league scaffolding ────────────────────────────────────────────────────────
 
 def get_league_chain():
@@ -769,6 +816,18 @@ def main():
     print(f"  stats-history: {sorted(k for k in stats if k!='generated')}")
     print(f"  replacement:   {sorted(repl['levels'])}  ranks {repl['ranks']}")
 
+    gaps = coverage_gaps(stats, repl)
+    if gaps:
+        print('\nABORTED — replacement-levels.json does not cover every played week:')
+        for g in gaps:
+            print(f'  - {g}')
+        print('\nEvery uncovered week is SILENTLY SKIPPED by Engine.por (base is None ->')
+        print('continue), so this would have published a file where those weeks scored')
+        print('zero for everyone, with no error anywhere. Run')
+        print('  python scripts/build_replacement_levels.py')
+        print('first, then re-run this. Nothing written.')
+        return 1
+
     print('Fetching player database (~5 MB)...')
     pdb = fetch('/players/nfl')
     positions = {str(k): (v.get('position') or '') for k, v in pdb.items()}
@@ -830,6 +889,11 @@ def main():
 
     if args.report:
         report(trade_rows, rookies, curve, out['draft_capital'], factors)
+
+    if unchanged_but_for_stamp(OUT_PATH, out):
+        print('')
+        print('No change beyond the date stamp — leaving the file alone.')
+        return 0
 
     raw = json.dumps(out, separators=(',', ':'))
     if args.dry_run:

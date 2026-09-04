@@ -243,6 +243,31 @@ def write_atomic(path, text):
     os.replace(tmp, path)
 
 
+def unchanged_but_for_stamp(path, payload):
+    """True when the only thing that would change on disk is the `generated` date.
+
+    These builders run unattended every Tuesday, year round. Without this the bot
+    rewrites a 1.3 MB data file and pushes a commit whose entire content is a
+    one-character date bump, every week of the offseason — which buries the weeks
+    where something actually happened. Skipping the write keeps the git log
+    meaningful: a commit here means the numbers moved.
+    """
+    try:
+        with open(path, encoding='utf-8') as f:
+            old = json.load(f)
+    except Exception:
+        return False
+    # Round-trip the payload first so both sides carry JSON's string keys. An
+    # in-memory dict keyed by int (pick_curve.by_pick) sorts numerically while the
+    # same data loaded back from disk sorts lexicographically ("1","10","11",..,"2"),
+    # so without this the compare reports a change on every single run and the
+    # skip never fires.
+    fresh = json.loads(json.dumps(payload))
+    a = {k: v for k, v in old.items() if k != 'generated'}
+    b = {k: v for k, v in fresh.items() if k != 'generated'}
+    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
+
+
 def load_existing():
     try:
         with open(OUT_PATH, encoding='utf-8') as f:
@@ -322,6 +347,11 @@ def main():
     for y in sorted(k for k in existing if k != 'generated'):
         if y not in output:
             print(f'  {y}: dropped (no played weeks)')
+
+    if unchanged_but_for_stamp(OUT_PATH, output):
+        print('')
+        print('No change beyond the date stamp — leaving the file alone.')
+        return 0
 
     raw = json.dumps(output, separators=(',', ':'))
     if args.dry_run:
