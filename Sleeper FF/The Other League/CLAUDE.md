@@ -31,6 +31,7 @@ the-other-league/                      ← outer repo root
     ├── stats-history.json             ← historical player stats cache (2023-2025; the live season
     │                                    is absent until it has played weeks — see generate_stats.py)
     ├── replacement-levels.json        ← Phase 12 weekly points-over-replacement baselines per position
+    ├── trade-roi.json                 ← Phase 12 scored trades + rookie picks + pick curve
     ├── generate_stats.py              ← builds stats-history.json. NOT a one-off any more: the player
     │                                    universe is every player ever rostered, drafted OR traded here,
     │                                    so re-run it after trades and after each rookie draft
@@ -50,6 +51,8 @@ the-other-league/                      ← outer repo root
         ├── build_matchup_facts.py     ← Phase 8 offline fact sheet; writes to a temp dir, never committed
         ├── build_season_facts.py      ← Phase 9 season-level fact sheet; same deal, never committed
         ├── build_replacement_levels.py ← Phase 12; writes replacement-levels.json (committed)
+        ├── build_trade_roi.py         ← Phase 12; writes trade-roi.json (committed).
+        │                                --report prints the distributions the thresholds came from
         ├── measure_starter_mix.py     ← Phase 12; measures the real positional starter mix that
         │                                sets REPLACEMENT_RANKS. Prints only, writes nothing
         └── bot_state.json             ← tracks which weeks have been applied
@@ -1425,11 +1428,8 @@ Scored off the same PoR engine and the same pick curve.
 #### Build order
 
 1. ~~**Data layer.**~~ **Done 2026-09-03.** See "Step 1 as built" below.
-2. **`scripts/build_trade_roi.py` → `trade-roi.json`.** Expands all 52 trades into resolved
-   assets, traces picks to players, computes PoR per asset per trade window, emits the pick
-   curve. Offline, following the existing `fetch_ktc.py` / `build_season_facts.py` pattern —
-   4 seasons × 18 weeks of transactions is far too many calls to make on page load, and the
-   CORS proxy chain is too fragile for it.
+2. ~~**`scripts/build_trade_roi.py` → `trade-roi.json`.**~~ **Done 2026-09-04.**
+   See "Step 2 as built" below.
 3. **Moves > Who Won That Trade?** Renders from `trade-roi.json`.
 4. **Moves > Rookie Draft ROI** + hot-spot board.
 5. ~~**Tuesday bot extension**~~ **Done 2026-09-03** — pulled forward ahead of items 2-4 because
@@ -1491,6 +1491,87 @@ and WR 53.7, because Sleeper serves `starters` for unplayed 2026 weeks that mana
 set lineups for — the same "an unplayed week is not an absent week" trap that once booked phantom
 losses into the median math. Gated on `points > 0` it reproduces 42 league-weeks and
 QB 22.2 / RB 37.0 / WR 55.6 / TE 17.0 exactly.
+
+---
+
+#### Step 2 as built (2026-09-04) — the PoR engine
+
+`scripts/build_trade_roi.py` → `trade-roi.json` (104 KB, committed). All 52 trades
+expanded, all 147 rookie picks scored, the pick curve fitted, verdicts assigned.
+
+**The engine reconciles by hand.** Baker Mayfield from the 2023-10-30 trade:
+PoR 345.6, raw 778.0, 41 weeks — identical to an independent recomputation straight
+off `stats-history.json` + `replacement-levels.json`. Pick tracing spot-checked the
+same way (2025 R2 originally roster 1 → pick 16, slot 4 → Luther Burden).
+
+**PoR is floored at zero per asset, and this is the single most important decision
+in the file.** 31% of traded assets score negative before the floor, some past -60
+(Cade Stover -78 as a 4th-round rookie TE, Mecole Hardman -65). Nobody ever started
+those players. A rostered asset's true floor is zero, because a manager benches a
+bust rather than paying a replacement-level penalty every week — and scoring the raw
+negative made **dumping** a bust register as a +65 win for the team that gave him
+away, which inverts the whole question the page asks. `por_signed` keeps the real
+number for display (a BUST tag reads off it); it never enters a margin.
+
+**A week counts only when the player recorded something scoreable.** A bare `gp`
+line means he dressed and did nothing, which is a benched player, not a cost. Weeks
+he missed contribute nothing — availability is already captured, because PoR is a
+cumulative sum and a player who misses six games simply banks six fewer weeks.
+
+**Four trades are reversals and get no verdict.** Ja'Marr Chase moved roster 10 → 8
+and straight back **17 minutes later**, the same 2025 3rd going the other way each
+time; Jaylen Wright the same across 14 hours. Distinct `transaction_id`s, so nothing
+upstream dedupes them, but scoring both halves publishes two mirror-image ROBBERY
+verdicts and tells the league that two managers each robbed the other on the same
+afternoon. `find_reversals()` matches a later trade whose asset flows are the exact
+inverse of an earlier one between the same rosters inside 48h.
+
+**Thresholds were set from the real distribution, not picked in the abstract.**
+Absolute |margin| percentiles across the 52 trades: p25=0, p50=27, p75=93, p90=166,
+p100=346. Hence `EDGE 25` (just under the median), `CLEAR 75` (~p75),
+`ROBBERY 150` (~p90) — plus a **3× ratio gate** on ROBBERY so a blowout where both
+sides got real value stays a CLEAR WIN. A 390-vs-107 trade is lopsided, but the
+loser still got a starter, and spending the word "robbery" there devalues it for the
+trades where someone genuinely got nothing. Maturity gate is 8 scored weeks (~p25,
+about half a season from the busiest asset).
+
+Result: **33 of 52 graded** — DEAD EVEN 12, EDGE 10, CLEAR WIN 9, ROBBERY 2.
+Withheld: 15 TOO EARLY TO CALL (10 still hold an undrafted pick, 5 too new), 4
+REVERSED. Both robberies are genuinely lopsided (Baker Mayfield for what became
+Javon Baker; Josh Jacobs + a pick that became Tetairoa McMillan for Rome Odunze + a
+pick that became Jaylin Noel).
+
+**The pick curve is fitted, not averaged.** Only 2 classes (98 picks) have played, so
+a raw per-slot average is the mean of two observations. `build_pick_curve()` smooths
+over a ±6-pick window then clamps monotone-decreasing, so a noisy pair at pick 9
+cannot make pick 9 worth more than pick 3. Round averages get the same clamp and it
+matters: raw they were `{1: 96.3, 2: 29.6, 3: 4.6, 4: 14.0, 5: 42.2}` — round 5 is
+**two picks** (Trey Benson, Jaxson Dart) and round 4 is carried by Bucky Irving, so
+untreated a traded 2027 4th would have priced above a 2027 3rd. Clamped:
+`{1: 96.3, 2: 29.6, 3: 4.6, 4: 4.6, 5: 4.6}`.
+
+Rookie-year PoR is the curve's basis rather than career PoR, so a 2024 pick cannot
+out-rank a 2025 pick purely on having had an extra season to accumulate.
+
+**Aggregate every leaderboard on `manager_index` (user_id), never on display name.**
+Roster 9 is one human under two names — Mblack2889 in 2023/24, MJBlack from 2025 —
+and keying on the name split his draft record across two rows and ranked him twice.
+Roster 11 is the opposite trap and must not be merged: CCJ 2023-25, Andrew Bova from
+2026, two people on one roster_id. Every row therefore carries the manager resolved
+for **its own season**, and `manager_index` carries the canonical name plus
+`names_seen` so an old row can be captioned with the name current at the time.
+13 entries for 12 rosters, which is the correct count.
+
+**First look at the output, for reference when the view is built.** Best drafter by
+Σ(actual − expected) over the 2024+2025 classes: cbova1222 +380 (Bo Nix 237.5 and
+Jayden Daniels 219.0, the two best rookie seasons in league history), jblack511 +245,
+CHRISMERKELDUH +179; avobttam −150 and MJBlack −145 at the bottom. Face-valid.
+
+**Not built yet:** items 3 and 4, the two Moves sub-views. `trade-roi.json` is not
+fetched by `index.html` yet, and the Tuesday bot does not rebuild it — it should,
+once the season is running, since every trade's PoR moves each week. Add it next to
+the `generate_stats.py --live-only` step, after `stats-history.json` is refreshed
+(it reads that file, so ordering matters).
 
 ---
 
