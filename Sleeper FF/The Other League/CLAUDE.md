@@ -759,6 +759,29 @@ Two rules that follow from it:
 The same step also read `scripts/bot_state.json`, a path that does not exist from the repo root
 (it is `Sleeper FF/The Other League/scripts/bot_state.json`), so every commit message would have
 said "Week ?" even once the file parsed. Fixed at the same time.
+
+**Every bot script forces UTF-8 on stdout, and must keep doing so (added 2026-09-04).**
+A dress rehearsal of the whole chain on Windows ahead of the Sep 15 live run died immediately:
+`UnicodeEncodeError: 'charmap' codec can't encode character '\u2192'`. The scripts print arrows,
+em dashes and check marks; a Windows console — and any redirected output, which is exactly what
+the Task Scheduler launcher does — defaults to cp1252 and cannot encode them. GitHub Actions runs
+on Ubuntu under UTF-8 and was never affected, which is why this sat unnoticed through the whole of
+Phase 12: the only path anyone had actually exercised was the one immune to it.
+
+It would have taken the Windows scheduled task down on its very first live firing, silently,
+into a log file nobody reads. All six scripts (`generate_stats.py`, `tuesday_update.py`,
+`build_replacement_levels.py`, `build_trade_roi.py`, `fetch_ktc.py`, `fetch_projections.py`) now
+carry a `sys.stdout.reconfigure(encoding='utf-8')` guard above their first `print()`, and
+`run_tuesday_update.bat` sets `PYTHONIOENCODING=utf-8` as a second layer. **A new bot script needs
+the same guard** — write one without it and it works in CI and only ever fails on the user's PC.
+
+**The Windows scheduled task runs the H2H step ONLY — not the Phase 12 chain — and does not push.**
+`run_tuesday_update.bat` calls `tuesday_update.py` and stops there. GitHub Actions is the real bot
+and the only thing that rebuilds and commits the three data files. The local task is a leftover
+belt-and-suspenders path whose one effect is to leave `h2h-records.md` modified in the working copy,
+which will then conflict with whatever the Actions run pushed for the same week. If it fires at all
+after Sep 9, expect that dirty file and discard it rather than committing it.
+
 - **`scripts/run_tuesday_update.bat`** — Windows launcher called by Task Scheduler; logs to `scripts/tuesday_update.log`.
 - **`scripts/setup_scheduled_task.ps1`** — one-time setup to register the Windows Task Scheduler task. Task is **dormant until Sep 9, 2026** (`StartBoundary`); fires on next boot if PC was off at 9am.
 - **`.github/workflows/season-reminder.yml`** — GitHub Actions creates a GitHub Issue on Sep 2, 2026 as a reminder to activate the bot; GitHub emails the repo owner automatically.
@@ -1791,7 +1814,7 @@ chain with a *loop counter* rather than each league's own season, so calling it 
 other than 2026 truncated the chain and dropped the 2023 league's rosters from the player
 universe — 2025 rebuilt to 401 players instead of 441. The gate blocked the write and named the
 number. The walk is now keyed and terminated on `info['season']`. **This is the gate justifying
-itself on day one; do not remove it as belt-and-braces.**
+itself on day one; do not remove it as belt-and-suspenders.**
 
 **`loadStatsHistory()` gained the hourly cache-buster** (`?_=`+hour) that `loadProjectionsFile`,
 `loadCommentary` and the rest already used. This file changed roughly once a year until now; from

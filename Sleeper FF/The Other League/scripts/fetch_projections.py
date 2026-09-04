@@ -36,6 +36,15 @@ import time
 
 import requests
 
+# Windows consoles and redirected output default to cp1252, which cannot encode
+# the arrows and check marks this script prints, so a hand-run or a Task Scheduler
+# run died on its first status line. GitHub Actions is UTF-8 and was unaffected,
+# which is why this went unnoticed. Keep this above any print().
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 API = 'https://api.sleeper.app/v1'
 WEEKS = list(range(1, 18))
 

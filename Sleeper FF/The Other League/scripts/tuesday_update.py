@@ -22,6 +22,15 @@ from collections import defaultdict
 
 import requests
 
+# Windows consoles and redirected output default to cp1252, which cannot encode
+# the arrows and check marks this script prints, so a hand-run or a Task Scheduler
+# run died on its first status line. GitHub Actions is UTF-8 and was unaffected,
+# which is why this went unnoticed. Keep this above any print().
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 # ── CONFIG ─────────────────────────────────────────────────────────────────────
 
 LEAGUE_ID = '1316225642072662016'   # 2026 TOL league on Sleeper
