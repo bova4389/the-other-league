@@ -820,19 +820,19 @@ const RMR = {};  // user_id → roster_id (computed at boot)
 
 ### `RIVALS` — 6 rivalry pairs (started 2025)
 ### `SEASON_HISTORY` — past season results (2023–2025)
-Final placements plus **per-owner payout totals**. The totals are what the career-earnings column and the Highest Career Earnings award sum, so they must always agree with the itemised lines in `SEASON_PAYOUTS`.
-### `SEASON_PAYOUTS` — itemised payout card per season (2023–2026)
+Final placements plus **per-owner payout totals**. The totals are what the career-earnings column and the Highest Career Earnings award sum, so they must always agree with the itemized lines in `SEASON_PAYOUTS`.
+### `SEASON_PAYOUTS` — itemized payout card per season (2023–2026)
 Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Careers year tabs by `payoutCardHtml(year)`. Shape: `{status, note?, rows: [{k, v, tone?}], footnote?}`; `tone` is `'win'` / `'second'` / `'tbd'`, anything else takes the default teal. **Ported verbatim** — these lines are the commissioner's own record, not derived.
 
 **The two objects must reconcile, and now they are shown on the same screen, so a disagreement is visible.** Adding a season means adding it to both. Current state:
-- 2023 — itemised lines sum to the $600 pot exactly. ✅
+- 2023 — itemized lines sum to the $600 pot exactly. ✅
 - 2024 — sum to $1,200 exactly, **after a fix on 2026-08-21**: the card credited Duane Gillenwater $15 for Best QB (Lamar Jackson) and `SEASON_HISTORY` had no line for him at all, so his career earnings ran $15 light and the card summed to $1,185. Line added.
-- 2025 — sum to $1,200 exactly, **after a fix in a parallel session (128dd39)**: the itemised lines accounted for only $1,175, and the missing $25 turned out to be money held back from the pot for the championship trophy rather than paid out as cash. It is now folded into Jake Blackwell's 1st-place line ($455 → $480, per-owner total $490 → $515). That commit also fixed a transposed figure in the Most Improved Points label (1,196 → 1,961).
+- 2025 — sum to $1,200 exactly, **after a fix in a parallel session (128dd39)**: the itemized lines accounted for only $1,175, and the missing $25 turned out to be money held back from the pot for the championship trophy rather than paid out as cash. It is now folded into Jake Blackwell's 1st-place line ($455 → $480, per-owner total $490 → $515). That commit also fixed a transposed figure in the Most Improved Points label (1,196 → 1,961).
 
 - 2026 — **structure set 2026-08-21, before a snap was played** (Matt). Replaces the old
   "Pending / TBD" placeholder. Every line is final; only the names are open, so there is no
   `SEASON_HISTORY[2026]` to reconcile against yet — add one when the season closes out. The
-  itemised lines sum to the $1,200 pot exactly: 465 + 200 + 100 + 170 + 30 + 25 + 25 + 25 + 25 +
+  itemized lines sum to the $1,200 pot exactly: 465 + 200 + 100 + 170 + 30 + 25 + 25 + 25 + 25 +
   25 + 15 + 60 + 35. **If a future edit breaks that sum, the edit is wrong, not the pot.**
   Two lines carry rules that are not obvious from the label: High Points is `$10 × 17 weeks`
   (all 17 on purpose — a manager knocked out of the playoffs still has $10 a week to submit a
@@ -1209,7 +1209,7 @@ is far more than it needs.
 - ✅ **Payouts moved from the League panel to the Careers year tabs**, beside the standings, with the recap dropped underneath. The hardcoded four-card `info-grid` became the `SEASON_PAYOUTS` data object rendered by `payoutCardHtml()`; 2026 carries the existing "Pending" placeholder (pot $1,200, everything else TBD) unchanged.
 - ✅ **Tab 9 relabeled "League" → "Rules".** Label only — ids, hash and `VALID_TABS` untouched. What's left on that panel is rule updates, format and scoring, which is what the name now says.
 - ✅ **Sort defaults confirmed, not changed:** year tables lead with Place ascending, the All Time career table with Career Earnings descending. Both were already correct.
-- 🐛 **Found by putting the two payout records side by side: `SEASON_HISTORY[2024]` was missing Duane Gillenwater's $15** (Best QB, Lamar Jackson). The itemised card had it, this object didn't, so his career earnings read $200 instead of $215 and the 2024 card summed to $1,185 against a $1,200 pot. Fixed. This is exactly the class of error the move was always going to surface — the two numbers now render six inches apart.
+- 🐛 **Found by putting the two payout records side by side: `SEASON_HISTORY[2024]` was missing Duane Gillenwater's $15** (Best QB, Lamar Jackson). The itemized card had it, this object didn't, so his career earnings read $200 instead of $215 and the 2024 card summed to $1,185 against a $1,200 pot. Fixed. This is exactly the class of error the move was always going to surface — the two numbers now render six inches apart.
 - ✅ **2025's $25 gap was closed in a parallel session** (commit 128dd39) while this work was in flight: the money was held back for the championship trophy, so it belongs in Jake Blackwell's 1st-place total. Merged in here — see `SEASON_PAYOUTS` for the reconciled state of all three seasons.
 
 **Merge note (2026-08-21).** This branch deleted the League-panel payout markup at the same time as 128dd39 was editing two lines inside it, so `index.html` conflicted in two places: the deleted payout block (took the deletion, carried both of their corrections into `SEASON_PAYOUTS` by hand) and the end of `<style>`, where both sides had appended a new banner-commented CSS layer (kept both). **That second conflict is structural, not bad luck** — the redesign convention says new CSS goes at the very bottom of `<style>`, so any two branches that add a layer will collide there. Expect it, and resolve by keeping both blocks rather than picking a side.
