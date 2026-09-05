@@ -2443,6 +2443,26 @@ body.pf-locked { overflow: hidden; }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   DRAFT ROI — column glossary (2026-09-04)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.de-defs { margin: 12px 0 0; display: flex; flex-direction: column; gap: 11px; }
+.de-def { display: grid; grid-template-columns: 132px 1fr; gap: 14px; align-items: start; }
+.de-def dt {
+  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 11px;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--accent);
+  padding-top: 1px;
+}
+.de-def dd {
+  margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text2);
+}
+.de-def dd b { color: var(--text); font-weight: 600; }
+.de-defs + .de-note { margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--border); }
+@media (max-width: 560px) {
+  .de-def { grid-template-columns: 1fr; gap: 3px; }
+  .de-def dt { padding-top: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    DRAFT ROI — expandable per-manager pick list (2026-09-04)
    ═══════════════════════════════════════════════════════════════════════════ */
 .de-tbl th.de-twcol, .de-tbl td.de-twcol { width: 26px; padding-right: 0; }
@@ -6519,12 +6539,48 @@ function deBestWorstHtml(){
     +`</div>`;
 }
 
+// Plain-English column glossary. Two of these columns are context and two are
+// the score, and nothing on the page said which was which — "Got a role" in
+// particular reads like it ought to move the ranking, and it does not.
+function deGlossaryHtml(){
+  const hit=_tradeROI.hit_por,role=_tradeROI.role_min_weeks||6;
+  const def=(t,d)=>`<div class="de-def"><dt>${t}</dt><dd>${d}</dd></div>`;
+  return`<div class="de-block"><div class="de-h">What these columns mean</div>`
+    +`<div class="de-sub">Open a manager's row with the arrow on the left to see the individual picks behind their numbers.</div>`
+    +`<dl class="de-defs">`
+    +def('Produced',
+        `The player's <b>rookie-year</b> points over replacement &mdash; what he scored under this league's `
+        +`rules, minus what a replacement-level player at his position managed in the same weeks. `
+        +`Rookie year only, so a 2024 pick cannot out-rank a 2025 pick just for having had an extra season.`)
+    +def('Expected',
+        `What a pick at that slot is worth historically, from this league's own draft record. `
+        +`It is a fitted curve, not a per-slot average &mdash; with two classes played, a raw slot average `
+        +`would be the mean of two picks.`)
+    +def('Vs expected',
+        `Produced minus Expected. <b>This is the only column the ranking uses.</b> Positive means the pick `
+        +`beat what its slot was priced at, which is why a late-round find can outrank a good pick at 1.02.`)
+    +def('Hits',
+        `How many of that manager's picks returned at least <b>${esc(hit)}</b> points over replacement in their `
+        +`rookie year. A count, for context &mdash; it does not feed the score.`)
+    +def('Got a role',
+        `How many of their picks recorded <b>something scoreable in ${esc(role)}+ weeks</b> &mdash; about a third of a `
+        +`season. Not "started six games" and not "was good": a week where a player dressed and did nothing `
+        +`does not count, because that is a benched player. Also a count, and also <b>not part of the score</b>.`)
+    +`</dl>`
+    +`<div class="de-note">Why "Got a role" is on the page at all: it separates a bad landing spot from a bad `
+    +`evaluation, which a single points number cannot do. A pick that played all season and still returned `
+    +`nothing is a different miss from one that never saw the field. It also settles the usual argument &mdash; `
+    +`late picks are not simply starved of chances. In round 2, <b>21 of 24 picks got a real role and the hit `
+    +`rate was still 12%</b>. Smaller chance, and worse with it.</div>`
+    +`</div>`;
+}
+
 function renderDraftEval(){
   const c=document.getElementById('drafteval-container');
   if(!c||!_tradeROI)return;
   const cf=_tradeROI.class_factors||{};
   const classes=Object.keys(cf).sort();
-  c.innerHTML=deDrafterTableHtml()+deCapitalHtml()+deHotspotHtml()+deBestWorstHtml()
+  c.innerHTML=deDrafterTableHtml()+deCapitalHtml()+deHotspotHtml()+deBestWorstHtml()+deGlossaryHtml()
     +`<div class="de-block de-caveat"><div class="de-h">Read this with the sample size in mind</div>`
     +`<div class="de-sub">Only ${dePlayedPicks().length} picks have played a down, across `
     +`${classes.length} classes (${classes.map(esc).join(' and ')}). The 2023 startup was an auction, not a `

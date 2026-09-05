@@ -1847,10 +1847,19 @@ now keeps each pick on `row.picks`, so the expansion cannot drift from the row a
 mechanically: all 12 managers reconcile exactly (actual, expected and vs-expected) under **both**
 expectation bases, and the per-manager pick counts total 98, the full played-pick universe.
 
-**Five blocks:** Best Drafter (ranked by actual minus expected, with a magnitude bar), What A
+**Six blocks:** Best Drafter (ranked by actual minus expected, with a magnitude bar), What A
 Pick Is Actually Worth (the `draft_capital` bands), Where The Value Hides (a round x slot heatmap,
 teal above the slot's price and magenta below, each cell titled with the actual players), Steals
-and Reaches (top and bottom five picks against expectation), and a sample-size caveat block.
+and Reaches (top and bottom five picks against expectation), **What These Columns Mean**
+(`deGlossaryHtml()`), and a sample-size caveat block.
+
+**The glossary exists because two of those columns are context and two are the score, and nothing
+said which was which.** "Got a role" in particular reads like it ought to move the ranking and does
+not: only `rookie_por` and `expected_por` feed Vs expected, while `hits` and `roles` are counters
+that never touch it. It also defines "got a role" precisely — `weeks_used >= 6`, where a *used*
+week means the player recorded something scoreable, so a bare `gp` line (dressed, did nothing)
+does not count. **Its two thresholds are read from `trade-roi.json`** (`hit_por`,
+`role_min_weeks`), never hardcoded, so the prose cannot drift from the builder.
 
 **The basis toggle is the point of the view, not a setting.** "Adjusted for class strength"
 measures a manager against the year he actually drafted in; "Raw" measures what he got. The
