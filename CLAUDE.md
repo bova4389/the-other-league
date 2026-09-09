@@ -31,6 +31,16 @@ browser runs as-is. `Draft Assistant 2026` has offline Python scripts that fold 
 into its single HTML file — that is data prep run by hand, not a toolchain the site depends
 on, and the deployed page still has zero build and zero dependencies.
 
+**`NFL Pickems/` extends that carve-out to Node, in CI only, and it will look alarming if you
+find it cold.** `js/package.json` there is four lines — `{"type": "module"}` and nothing else —
+so that `scripts/log_week_card.mjs` can import `js/weekCardModel.js` *as the browser already
+loads it* and write the survivor log from a GitHub Action. There are no dependencies, nothing is
+installed or compiled, `npm ci` would have nothing to do, the browser never reads that file, and
+`node` is never required to serve the site. It exists to stop the survivor model being
+reimplemented a second time in Python, which would be two models that agree until the day they
+quietly do not. **Do not delete it as stray npm scaffolding, and do not read it as licence to
+add a bundler to anything.**
+
 ## Cache Busting (Required on All DreamHost Projects)
 
 Safari on mobile aggressively caches pages. Users should never need to manually clear their cache to see updates. Every DreamHost project must have both layers of cache busting in place — except that Layer 2 does not apply to `Basic Bros Ryder Cup`, which is a single HTML file with all CSS and JS inline and therefore has no local asset URLs to version.
