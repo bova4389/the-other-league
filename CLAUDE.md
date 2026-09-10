@@ -16,6 +16,7 @@ Independent projects live here. Each has its own detailed CLAUDE.md — read it 
 | Bova's Picks | `NFL Pickems/` | [`NFL Pickems/CLAUDE.md`](NFL%20Pickems/CLAUDE.md) |
 | Draft Assistant 2026 | `Draft Assistant 2026/` | [`Draft Assistant 2026/README.md`](Draft%20Assistant%202026/README.md) |
 | Kings Justice (data pipeline) | `Kings Justice/` | [`Kings Justice/README.md`](Kings%20Justice/README.md) |
+| Commish Hub | `Commish Hub/` | [`Commish Hub/CLAUDE.md`](Commish%20Hub/CLAUDE.md) |
 
 ## Shared Conventions
 
@@ -111,7 +112,7 @@ These layers together ensure users — especially on Safari mobile — always se
 
 ## Git Setup
 
-There are **six separate git repositories** in this workspace. Always check which one you
+There are **seven separate git repositories** in this workspace. Always check which one you
 are in before committing — `git -C "<project>" status` rather than assuming the outer repo.
 
 | Repo root | Remote | Covers |
@@ -121,13 +122,14 @@ are in before committing — `git -C "<project>" status` rather than assuming th
 | `Poker/` | `bova4389/poker-learning-site` (private) | that directory only |
 | `NFL Pickems/` | none yet — local only (see its CLAUDE.md GitHub Setup) | that directory only |
 | `Draft Assistant 2026/` | `bova4389/bovas-draft-assistant` | that directory only |
+| `Commish Hub/` | `bova4389/commish-hub` (not created on GitHub yet — see its CLAUDE.md Deploy) | that directory only |
 | workspace root | `bova4389/the-other-league` | Sleeper FF + root files |
 
-- Commit and push the five project repos **from inside their own directory**.
+- Commit and push the six project repos **from inside their own directory**.
 - All Sleeper FF / The Other League files live under `Sleeper FF/The Other League/` — the repo root `index.html` is only a redirect stub.
 
 **Never `git add` a nested repo from the outer repo** — not `Majors Golf Pool/`, not
-`Basic Bros Ryder Cup/`, not `Poker/`, not `NFL Pickems/`, not `Draft Assistant 2026/`. Git records them as a gitlink (submodule
+`Basic Bros Ryder Cup/`, not `Poker/`, not `NFL Pickems/`, not `Draft Assistant 2026/`, not `Commish Hub/`. Git records them as a gitlink (submodule
 stub) and their files are not tracked. They correctly show as untracked `??` entries in outer-repo
 `git status`; that is expected, not a problem to fix.
 
@@ -170,6 +172,10 @@ one orientation line each; if you need to correct project status, edit the proje
   league, built 2026-08-14 for a draft two days later. Blends three ranking sources, uses
   FantasyPros' per-position tiers, and syncs picks live from the Sleeper API. Deliberately
   applies **no** scoring adjustment — see its README for why. Details in its README.
+- **Commish Hub** — Built 2026-09-09. One page with a screenshot-ready weekly recap card for
+  each of King's Justice, 2 Mitchs 1 Cup, Infinity War and Deadpool, plus the numbers behind
+  it. `scripts/build_week.py` pulls the facts; the prose is written by hand every Tuesday.
+  Own repo, GitHub Pages, not pushed yet. The Other League's recaps stay on its own site.
 - **Travel Map** — Scaffolding only, no features built yet.
 - **Kings Justice** — Offline Python pipeline + a generated dashboard for "The King's
   Justice" chopped-elimination Sleeper league (4 seasons, 2023–2026).
