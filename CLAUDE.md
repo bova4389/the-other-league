@@ -122,7 +122,7 @@ are in before committing — `git -C "<project>" status` rather than assuming th
 | `Poker/` | `bova4389/poker-learning-site` (private) | that directory only |
 | `NFL Pickems/` | none yet — local only (see its CLAUDE.md GitHub Setup) | that directory only |
 | `Draft Assistant 2026/` | `bova4389/bovas-draft-assistant` | that directory only |
-| `Commish Hub/` | `bova4389/commish-hub` (not created on GitHub yet — see its CLAUDE.md Deploy) | that directory only |
+| `Commish Hub/` | `bova4389/commish-hub` | that directory only |
 | workspace root | `bova4389/the-other-league` | Sleeper FF + root files |
 
 - Commit and push the six project repos **from inside their own directory**.
@@ -175,7 +175,8 @@ one orientation line each; if you need to correct project status, edit the proje
 - **Commish Hub** — Built 2026-09-09. One page with a screenshot-ready weekly recap card for
   each of King's Justice, 2 Mitchs 1 Cup, Infinity War and Deadpool, plus the numbers behind
   it. `scripts/build_week.py` pulls the facts; the prose is written by hand every Tuesday.
-  Own repo, GitHub Pages, not pushed yet. The Other League's recaps stay on its own site.
+  Own repo, live on GitHub Pages at https://bova4389.github.io/commish-hub/. The Other
+  League's recaps stay on its own site.
 - **Travel Map** — Scaffolding only, no features built yet.
 - **Kings Justice** — Offline Python pipeline + a generated dashboard for "The King's
   Justice" chopped-elimination Sleeper league (4 seasons, 2023–2026).
