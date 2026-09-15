@@ -826,6 +826,11 @@ Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football
 `stats-history.json` with the live season's played weeks (Phase 12).
 
 - **`scripts/tuesday_update.py`** — fetches `state/nfl` to detect current week, fetches matchups from Sleeper API, parses and rewrites `h2h-records.md`. Flags: `--week N`, `--dry-run`, `--force`. Tracks applied weeks in `scripts/bot_state.json`.
+  **`state.week` is the upcoming week by Tuesday, not the finished one (fixed 2026-09-15).** The
+  first live run read `week=2` the Tuesday after Week 1, fetched an unplayed week, and exited 1 —
+  which also skipped the whole Phase 12 chain behind it. Auto-detect now steps back one week when
+  the reported week has no scores (`week_has_points()`). Don't "simplify" it back to `state.week`:
+  the same bug would also have silently dropped Week 14, since state reads 15 by then.
 - **The Phase 12 data chain** — three steps, added 2026-09-03/04, all running **after** the H2H
   commit and each `continue-on-error`, so a data failure can never cost an H2H update that
   already succeeded. **The order is load-bearing and each step is gated on the previous one:**

@@ -84,7 +84,23 @@ def get_current_nfl_week():
     print(f'Sleeper state → season={season}, week={week}, type={season_type}')
     if season_type != 'regular':
         print(f"WARNING: Season type is '{season_type}'. Script is intended for regular season use.")
+
+    # Sleeper advances `week` to the UPCOMING week before this bot runs: on
+    # 2026-09-15, the Tuesday after Week 1, it already read week=2, so the
+    # script fetched an unplayed week and failed. The week to process is the
+    # latest one with scores. The same step-back is what lets Week 14 get
+    # applied once state has moved on to 15, and it turns a preseason run
+    # (week 1, nothing played) into week 0, which exits cleanly below.
+    if week >= 1 and not week_has_points(week):
+        print(f'Week {week} has no scores yet — using week {week - 1}, the latest completed week.')
+        week -= 1
     return week
+
+
+def week_has_points(week):
+    """True once any team in the league has a score for this week."""
+    data = fetch(f'https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{week}') or []
+    return sum((e.get('points') or 0) for e in data) > 0
 
 
 def fetch_matchups(week):
