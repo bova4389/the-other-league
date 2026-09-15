@@ -87,6 +87,40 @@ def get_current_nfl_week():
     return week
 
 
+def week_points(week):
+    """Total points Sleeper reports for a week. 0 means it has not been played."""
+    url = f'https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{week}'
+    data = fetch(url) or []
+    return sum((e.get('points') or 0) for e in data)
+
+
+def detect_completed_week():
+    """The newest week that has actually been PLAYED, or None if there isn't one.
+
+    Sleeper's state API rolls `week` forward on Tuesday MORNING — before this bot
+    runs — so on the Tuesday after Week N's Monday nighter it already reports
+    N + 1, a week with nothing in it. Reading state.week straight (which is what
+    this did) meant every in-season Tuesday run fetched an empty week, hit the
+    "no points data" guard and exited 1: the 2026 season opened with Week 1 never
+    recorded at all, applied_weeks still [], and a failure email every Tuesday.
+
+    So walk DOWN from the reported week to the first one carrying points. The
+    week we want is always behind Sleeper's, never ahead of it.
+
+    This trusts "has points" to mean "is finished", which is only safe because
+    the cron fires Tuesday, after every game of the week before. A hand-run on a
+    Sunday would pick up the week in progress — pass --week for that.
+    """
+    current = get_current_nfl_week()
+    for week in range(current, 0, -1):
+        if week_points(week) > 0:
+            if week != current:
+                print(f'Sleeper reports week {current}; newest PLAYED week is {week}.')
+            return week
+        print(f'Week {week} has no points yet — looking one week further back.')
+    return None
+
+
 def fetch_matchups(week):
     """Fetch raw matchup list for a given week from the Sleeper league."""
     url = f'https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{week}'
@@ -105,8 +139,12 @@ def parse_matchups(raw_matchups, week):
     # Sanity check — if all points are 0/null the week hasn't been played yet
     total_pts = sum((e.get('points') or 0) for e in raw_matchups)
     if total_pts == 0:
-        print(f'ERROR: Week {week} has no points data — games may not have been played yet.')
-        sys.exit(1)
+        # Exit 0, not 1. Reachable only via --week now that auto-detect walks back
+        # to a played week, and "the week you asked for hasn't happened" is not a
+        # broken bot. Exiting 1 sent a red failure email every pre-season Tuesday,
+        # which is how the real breakage above went unread.
+        print(f'Week {week} has no points data — games have not been played yet. Nothing to do.')
+        sys.exit(0)
 
     # Group entries by matchup_id (each id = one game, exactly 2 teams)
     groups = defaultdict(list)
@@ -315,7 +353,10 @@ def main():
         week = args.week
         print(f'Forced week: {week}')
     else:
-        week = get_current_nfl_week()
+        week = detect_completed_week()
+        if week is None:
+            print('\nNo completed week yet — nothing to update.')
+            sys.exit(0)
         print(f'Auto-detected week: {week}')
 
     if week not in REGULAR_SEASON_WEEKS:
