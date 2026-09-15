@@ -84,41 +84,23 @@ def get_current_nfl_week():
     print(f'Sleeper state → season={season}, week={week}, type={season_type}')
     if season_type != 'regular':
         print(f"WARNING: Season type is '{season_type}'. Script is intended for regular season use.")
+
+    # Sleeper advances `week` to the UPCOMING week before this bot runs: on
+    # 2026-09-15, the Tuesday after Week 1, it already read week=2, so the
+    # script fetched an unplayed week and failed. The week to process is the
+    # latest one with scores. The same step-back is what lets Week 14 get
+    # applied once state has moved on to 15, and it turns a preseason run
+    # (week 1, nothing played) into week 0, which exits cleanly below.
+    if week >= 1 and not week_has_points(week):
+        print(f'Week {week} has no scores yet — using week {week - 1}, the latest completed week.')
+        week -= 1
     return week
 
 
-def week_points(week):
-    """Total points Sleeper reports for a week. 0 means it has not been played."""
-    url = f'https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{week}'
-    data = fetch(url) or []
-    return sum((e.get('points') or 0) for e in data)
-
-
-def detect_completed_week():
-    """The newest week that has actually been PLAYED, or None if there isn't one.
-
-    Sleeper's state API rolls `week` forward on Tuesday MORNING — before this bot
-    runs — so on the Tuesday after Week N's Monday nighter it already reports
-    N + 1, a week with nothing in it. Reading state.week straight (which is what
-    this did) meant every in-season Tuesday run fetched an empty week, hit the
-    "no points data" guard and exited 1: the 2026 season opened with Week 1 never
-    recorded at all, applied_weeks still [], and a failure email every Tuesday.
-
-    So walk DOWN from the reported week to the first one carrying points. The
-    week we want is always behind Sleeper's, never ahead of it.
-
-    This trusts "has points" to mean "is finished", which is only safe because
-    the cron fires Tuesday, after every game of the week before. A hand-run on a
-    Sunday would pick up the week in progress — pass --week for that.
-    """
-    current = get_current_nfl_week()
-    for week in range(current, 0, -1):
-        if week_points(week) > 0:
-            if week != current:
-                print(f'Sleeper reports week {current}; newest PLAYED week is {week}.')
-            return week
-        print(f'Week {week} has no points yet — looking one week further back.')
-    return None
+def week_has_points(week):
+    """True once any team in the league has a score for this week."""
+    data = fetch(f'https://api.sleeper.app/v1/league/{LEAGUE_ID}/matchups/{week}') or []
+    return sum((e.get('points') or 0) for e in data) > 0
 
 
 def fetch_matchups(week):
@@ -139,10 +121,11 @@ def parse_matchups(raw_matchups, week):
     # Sanity check — if all points are 0/null the week hasn't been played yet
     total_pts = sum((e.get('points') or 0) for e in raw_matchups)
     if total_pts == 0:
-        # Exit 0, not 1. Reachable only via --week now that auto-detect walks back
-        # to a played week, and "the week you asked for hasn't happened" is not a
-        # broken bot. Exiting 1 sent a red failure email every pre-season Tuesday,
-        # which is how the real breakage above went unread.
+        # Exit 0, not 1. Reachable only via --week now that get_current_nfl_week()
+        # steps back to a played week, and "the week you asked for hasn't happened
+        # yet" is not a broken bot. Exiting 1 sent a red failure email every
+        # pre-season Tuesday, which is how the real week-detection bug it now
+        # documents went unread for two weeks.
         print(f'Week {week} has no points data — games have not been played yet. Nothing to do.')
         sys.exit(0)
 
@@ -353,10 +336,7 @@ def main():
         week = args.week
         print(f'Forced week: {week}')
     else:
-        week = detect_completed_week()
-        if week is None:
-            print('\nNo completed week yet — nothing to update.')
-            sys.exit(0)
+        week = get_current_nfl_week()
         print(f'Auto-detected week: {week}')
 
     if week not in REGULAR_SEASON_WEEKS:

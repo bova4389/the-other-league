@@ -7,5 +7,36 @@
     "paragraphs": "array of strings, one per paragraph. 2-3 paragraphs / ~200-250 words is the target: longer than a matchup write-up, shorter than a season recap."
   },
   "survivor_note": "Do NOT write the survivor eliminations in here. The tracker under each recap is computed live from the scoreboard by computeSurvivor() in index.html -- a hand-typed elimination list would only drift from the scores rendered directly beneath it.",
-  "weeks": {}
+  "weeks": {
+    "1": {
+      "headline": "The worst record in league history opens with the best Week 1 score the league has ever seen",
+      "facts": [
+        {
+          "k": "High Score",
+          "v": "Jared Hayes, 214.46"
+        },
+        {
+          "k": "Low Score",
+          "v": "Matt Bova, 85.77"
+        },
+        {
+          "k": "Biggest Win",
+          "v": "Jake Bogardus, by 108.46"
+        },
+        {
+          "k": "Week Median",
+          "v": "151.57"
+        },
+        {
+          "k": "Most Left on Bench",
+          "v": "Nick Bova, 39.37"
+        }
+      ],
+      "paragraphs": [
+        "Jared Hayes came into 2026 with an 11-31 head-to-head record, the worst in the league, and opened it with 214.46 — the highest Week 1 score The Other League has ever produced and the fifth-highest regular-season total of all time. It came with Colston Loveland posting 0.00 and Jaylen Waddle 0.70 in the starting lineup, which is either a warning to the rest of the league or proof that none of this is sustainable. Caleb Williams and Trevor Lawrence combined for 63.36 at quarterback, and the defending champion was the one standing in front of it.",
+        "Jake Bogardus beat Mitch Blackwell by 108.46, the second-widest margin in league history, behind only a 125.88 beating in 2023. Mitch's entire bench combined for 33.52, so there was no rescue sitting on it either. Matt Bova finished even lower at 85.77, starting Sam Darnold for 0.52 and Romeo Doubs for a flat zero, and the best possible lineup would still have lost to Chris Bova by 33.",
+        "Elsewhere the median game did its usual work. Erin Jacobs scored 158.23, more than the winners of two other games, and lost to Chris Merkel anyway. Nick Bova went the other way: 131.79, the most points left on any bench, and a first win over Duane Gillenwater in six regular-season tries. Five teams leave Week 1 at 2-0 — Hayes, Bogardus, both Merkels, and Chris Bova — while Andrew Bova, who entered the week as the all-time head-to-head leader, got 37.66 from Josh Allen and sits at 0-2."
+      ]
+    }
+  }
 }

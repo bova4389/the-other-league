@@ -825,27 +825,17 @@ Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football
 **two** jobs: update `h2h-records.md` with the prior week's H2H results, and extend
 `stats-history.json` with the live season's played weeks (Phase 12).
 
-- **`scripts/tuesday_update.py`** — detects the newest **completed** week, fetches matchups from Sleeper API, parses and rewrites `h2h-records.md`. Flags: `--week N`, `--dry-run`, `--force`. Tracks applied weeks in `scripts/bot_state.json`.
+- **`scripts/tuesday_update.py`** — fetches `state/nfl` to detect current week, fetches matchups from Sleeper API, parses and rewrites `h2h-records.md`. Flags: `--week N`, `--dry-run`, `--force`. Tracks applied weeks in `scripts/bot_state.json`.
+  **`state.week` is the upcoming week by Tuesday, not the finished one (fixed 2026-09-15).** The
+  first live run read `week=2` the Tuesday after Week 1, fetched an unplayed week, and exited 1 —
+  which also skipped the whole Phase 12 chain behind it. Auto-detect now steps back one week when
+  the reported week has no scores (`week_has_points()`). Don't "simplify" it back to `state.week`:
+  the same bug would also have silently dropped Week 14, since state reads 15 by then.
 
-**Auto-detect walks BACK to a played week — do not simplify it to `state.week` again (fixed 2026-09-15).**
-Sleeper's `state/nfl` rolls `week` forward on Tuesday *morning*, before this bot runs, so on the
-Tuesday after Week N's Monday nighter it already reports **N + 1** — a week with no points in it.
-Reading it straight is what the script did, and the result was not subtle: every in-season Tuesday
-run fetched an empty week, hit the "no points data" guard and exited 1. The 2026 season opened with
-**Week 1 never recorded at all**, `applied_weeks` still `[]`, and a red failure email every Tuesday.
-`detect_completed_week()` now walks down from the reported week to the first one carrying points
-(1–2 requests in practice). The week we want is always *behind* Sleeper's, never ahead of it.
-
-It trusts "has points" to mean "is finished", which is only safe because the cron fires Tuesday,
-after every game of the week before. A hand-run on a Sunday would pick up the week in progress —
-pass `--week` for that.
-
-**A week that has not been played exits 0, not 1.** Reachable only via `--week` now, and "the week
-you asked for hasn't happened yet" is not a broken bot. Exiting 1 sent a failure email every
-pre-season Tuesday, which is exactly how the real breakage above went unread for two weeks.
-
-**Week 1 2026 needs one catch-up run** — `workflow_dispatch` with `week: 1` — since the scheduled
-run for it never completed.
+  **A week with no scores exits 0, not 1 (2026-09-15).** Only `--week` reaches that guard now that
+  auto-detect steps back, and "the week you asked for hasn't happened yet" is not a broken bot.
+  Exiting 1 sent a red failure email every pre-season Tuesday — which is exactly how the real
+  week-detection bug above went unread for two weeks.
 - **The Phase 12 data chain** — three steps, added 2026-09-03/04, all running **after** the H2H
   commit and each `continue-on-error`, so a data failure can never cost an H2H update that
   already succeeded. **The order is load-bearing and each step is gated on the previous one:**
@@ -2033,8 +2023,8 @@ the `WEEK=` one-liner resolves `?` on an empty state and `3` on `[1,2,3]`; and i
 requests `stats-history.json?_=496799`, renders 441 rows, and logs no new errors.
 
 **Checked on 2026-09-15** (the first Tuesday with real 2026 data) — **the run failed before it
-reached any of that**, on week detection rather than on the Phase 12 chain. See "Auto-detect walks
-BACK to a played week" below. The three things still to confirm on the next run: that it adds a
+reached any of that**, on week detection rather than on the Phase 12 chain. See "`state.week` is
+the upcoming week by Tuesday" under Automation (Tuesday Bot). The three things still to confirm on the next run: that it adds a
 `"2026"` block with week 1 only, that the deploy chain fires, and that the Player Stats tab is
 unaffected — the live season renders through `build2026Stats()` off the live API and never reads
 `stats-history.json`, so it should be untouched either way.
