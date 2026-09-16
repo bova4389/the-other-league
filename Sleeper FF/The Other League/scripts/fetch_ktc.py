@@ -46,6 +46,11 @@ LEAGUE_ID = "1316225642072662016"  # must match LID in index.html
 MAX_DEEP_LOOKUPS = 40
 DEEP_LOOKUP_DELAY = 0.6
 
+# How far past a marker bracket_extract will look for the opening bracket. Wide
+# enough for any plausible wrapper (`JSON.parse('`), narrow enough that a marker
+# KTC has repurposed entirely fails rather than latching onto unrelated markup.
+WRAPPER_SCAN = 200
+
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(_SCRIPT_DIR, "..", "ktc-values.json")
 
@@ -68,20 +73,38 @@ ALIASES = {
 
 
 def bracket_extract(text, marker):
-    """Extract a JSON array/object starting after `marker` using bracket counting."""
+    """Extract a JSON array/object that follows `marker`, using bracket counting.
+
+    The opening bracket is SEARCHED FOR, not assumed to sit immediately after the
+    marker. This version returned `text[idx:...]` — everything from the end of the
+    marker — so the moment KTC wrapped the embed (`var playersArray = JSON.parse(
+    '[...]')` and the like) the wrapper text came back glued to the front of the
+    JSON and json.loads died at char 0. Both KTC passes go through here, so the
+    scan is the one place to fix it.
+
+    Bracket counting is string-unaware, as it always has been: a `]` inside a
+    player name would end the slice early. No KTC value has ever contained one.
+    """
     start = text.find(marker)
     if start == -1:
         return None
     idx = start + len(marker)
+    open_at = None
+    for i in range(idx, min(idx + WRAPPER_SCAN, len(text))):
+        if text[i] in "[{":
+            open_at = i
+            break
+    if open_at is None:
+        return None
     depth = 0
-    for i in range(idx, len(text)):
+    for i in range(open_at, len(text)):
         c = text[i]
         if c in "[{":
             depth += 1
         elif c in "]}":
             depth -= 1
             if depth == 0:
-                return text[idx : i + 1]
+                return text[open_at : i + 1]
     return None
 
 
@@ -123,8 +146,19 @@ def fetch_top_500():
     raw = bracket_extract(r.text, "var playersArray = ")
     if not raw:
         print("ERROR: playersArray not found in KTC HTML", file=sys.stderr)
+        print("        page was %d bytes; KTC may have renamed the embed or "
+              "served a challenge page." % len(r.text), file=sys.stderr)
         sys.exit(1)
-    players = json.loads(raw)
+    try:
+        players = json.loads(raw)
+    except json.JSONDecodeError as e:
+        # Print what we actually extracted. Without this the run ends in a bare
+        # traceback saying "Expecting value: line 1 column 1", which says nothing
+        # about WHAT KTC changed and costs a whole round trip to diagnose.
+        print("ERROR: playersArray did not parse as JSON: %s" % e, file=sys.stderr)
+        print("        extracted %d chars starting: %r" % (len(raw), raw[:200]),
+              file=sys.stderr)
+        sys.exit(1)
 
     values = {}
     for p in players:

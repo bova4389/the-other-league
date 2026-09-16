@@ -831,6 +831,11 @@ Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football
   which also skipped the whole Phase 12 chain behind it. Auto-detect now steps back one week when
   the reported week has no scores (`week_has_points()`). Don't "simplify" it back to `state.week`:
   the same bug would also have silently dropped Week 14, since state reads 15 by then.
+
+  **A week with no scores exits 0, not 1 (2026-09-15).** Only `--week` reaches that guard now that
+  auto-detect steps back, and "the week you asked for hasn't happened yet" is not a broken bot.
+  Exiting 1 sent a red failure email every pre-season Tuesday — which is exactly how the real
+  week-detection bug above went unread for two weeks.
 - **The Phase 12 data chain** — three steps, added 2026-09-03/04, all running **after** the H2H
   commit and each `continue-on-error`, so a data failure can never cost an H2H update that
   already succeeded. **The order is load-bearing and each step is gated on the previous one:**
@@ -914,6 +919,24 @@ Two guardrails: `MAX_DEEP_LOOKUPS` (40) aborts rather than mass-requesting KTC i
 **Slug matching needs a different normalizer than name matching.** `squash()` strips everything non-alphanumeric, because slugs flatten punctuation differently: De'Von Achane is `de-von-achane-1398`, which normalizes to "de von achane" while his name normalizes to "devon achane". Only squashing both to `devonachane` lines them up.
 
 `ALIASES` in the script mirrors `KTC_NAME_ALIASES` in `index.html` — **keep the two in sync.**
+
+**`bracket_extract()` searches for the opening bracket; it does not assume one follows the marker
+(fixed 2026-09-15).** It used to return everything from the end of the marker onward, which was
+indistinguishable from correct for as long as KTC wrote `var playersArray = [...]` bare. The bot
+succeeded on 2026-09-07 and failed on 2026-09-14 with `JSONDecodeError: Expecting value: line 1
+column 1` — the marker was still found, so the "not found" guard never fired; what followed it was
+no longer bare JSON. Any wrapper (`JSON.parse('[...]')` being the obvious one) came back glued to
+the front of the array. The scan now skips up to `WRAPPER_SCAN` (200) chars to the first `[`/`{`,
+which both shapes satisfy, and both passes go through the one function.
+
+**A decode failure now prints what was actually extracted** — the first 200 chars — instead of a
+bare traceback. "Expecting value: line 1 column 1" says nothing about *what KTC changed* and cost a
+whole round trip to diagnose. This is the diagnostic, not a confirmed root cause: the fix was
+written from the traceback, with no live KTC page available to read. **If the next scheduled run
+still fails, the log now carries the answer** — read the `extracted ... starting:` line.
+
+Note that a failure here leaves `ktc-values.json` untouched rather than half-written, so the site
+keeps serving the last good values (2026-09-07's, at the time of writing).
 
 ### Automation (Projections Bot — added 2026-08-20)
 - **`scripts/fetch_projections.py`** — pulls all 17 weeks of `/projections/nfl/regular/{year}/{week}`, keeps only QB/RB/WR/TE with a real projection and only the ~30 keys this league scores, writes `projections-<year>.json`. Flags: `--year N`, `--dry-run`. Aborts rather than overwriting a good file if a pull comes back gutted (<200 players in week 1).
@@ -1999,7 +2022,9 @@ the repo root and writes nothing; a simulated live season *with* data (2025) reb
 the `WEEK=` one-liner resolves `?` on an empty state and `3` on `[1,2,3]`; and in-browser the site
 requests `stats-history.json?_=496799`, renders 441 rows, and logs no new errors.
 
-**Still to check on 2026-09-15** (the first Tuesday with real 2026 data): that the run adds a
+**Checked on 2026-09-15** (the first Tuesday with real 2026 data) — **the run failed before it
+reached any of that**, on week detection rather than on the Phase 12 chain. See "`state.week` is
+the upcoming week by Tuesday" under Automation (Tuesday Bot). The three things still to confirm on the next run: that it adds a
 `"2026"` block with week 1 only, that the deploy chain fires, and that the Player Stats tab is
 unaffected — the live season renders through `build2026Stats()` off the live API and never reads
 `stats-history.json`, so it should be untouched either way.

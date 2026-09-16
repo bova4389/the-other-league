@@ -121,8 +121,13 @@ def parse_matchups(raw_matchups, week):
     # Sanity check — if all points are 0/null the week hasn't been played yet
     total_pts = sum((e.get('points') or 0) for e in raw_matchups)
     if total_pts == 0:
-        print(f'ERROR: Week {week} has no points data — games may not have been played yet.')
-        sys.exit(1)
+        # Exit 0, not 1. Reachable only via --week now that get_current_nfl_week()
+        # steps back to a played week, and "the week you asked for hasn't happened
+        # yet" is not a broken bot. Exiting 1 sent a red failure email every
+        # pre-season Tuesday, which is how the real week-detection bug it now
+        # documents went unread for two weeks.
+        print(f'Week {week} has no points data — games have not been played yet. Nothing to do.')
+        sys.exit(0)
 
     # Group entries by matchup_id (each id = one game, exactly 2 teams)
     groups = defaultdict(list)
