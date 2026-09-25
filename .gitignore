@@ -1,9 +1,10 @@
 Sleeper FF/The Other League/scripts/tuesday_update.log
 __pycache__/
 *.pyc
-# Track .claude/settings.json and .claude/hooks/ so shared config and hook scripts
-# are versioned and backed up. Only the machine-local overrides stay ignored.
+# Shared hooks and settings moved to the private `workspace` repo and user-level
+# settings on 2026-09-25. Anything under .claude/ here is machine-local.
 .claude/settings.local.json
+.claude/worktrees/
 # launch.json is written by Claude Code's preview tooling, not by hand — every
 # session that starts a dev server appends an entry, so it accreted six stale
 # duplicate-port configs in a few days. Machine-local like settings.local.json.
