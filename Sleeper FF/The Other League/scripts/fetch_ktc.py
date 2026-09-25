@@ -84,6 +84,11 @@ def bracket_extract(text, marker):
 
     Bracket counting is string-unaware, as it always has been: a `]` inside a
     player name would end the slice early. No KTC value has ever contained one.
+
+    The scan stops at the end of the marker's own statement (`;` or newline).
+    Without that stop, it ran straight past `JSON.parse(document.getElementById(
+    'ktc-players').textContent);` on 2026-09-21 and returned the NEXT line's
+    `var oneQBPlayers = [...]`, three featured players, as if it were the rankings.
     """
     start = text.find(marker)
     if start == -1:
@@ -91,6 +96,8 @@ def bracket_extract(text, marker):
     idx = start + len(marker)
     open_at = None
     for i in range(idx, min(idx + WRAPPER_SCAN, len(text))):
+        if text[i] in ";\n":
+            return None
         if text[i] in "[{":
             open_at = i
             break
@@ -106,6 +113,20 @@ def bracket_extract(text, marker):
             if depth == 0:
                 return text[open_at : i + 1]
     return None
+
+
+def script_json(text, element_id):
+    """Raw body of `<script type="application/json" id="element_id">`, or None.
+
+    KTC moved the rankings out of an inline `var playersArray = [...]` and into
+    one of these blocks in mid-September 2026; the var now just reads it back
+    with JSON.parse(document.getElementById('ktc-players').textContent).
+    """
+    m = re.search(r'<script[^>]*\bid=["\']%s["\'][^>]*>' % re.escape(element_id), text)
+    if not m:
+        return None
+    end = text.find("</script>", m.end())
+    return text[m.end():end].strip() if end != -1 else None
 
 
 def norm(n):
@@ -143,9 +164,12 @@ def fetch_top_500():
     print("[1/2] Fetching %s ..." % RANKINGS_URL)
     r = requests.get(RANKINGS_URL, headers=HEADERS, timeout=20)
     r.raise_for_status()
-    raw = bracket_extract(r.text, "var playersArray = ")
+    # Current layout first; the inline var is the pre-September 2026 layout,
+    # kept as a fallback in case KTC reverts.
+    raw = script_json(r.text, "ktc-players") or bracket_extract(r.text, "var playersArray = ")
     if not raw:
-        print("ERROR: playersArray not found in KTC HTML", file=sys.stderr)
+        print("ERROR: neither #ktc-players nor an inline playersArray found in KTC HTML",
+              file=sys.stderr)
         print("        page was %d bytes; KTC may have renamed the embed or "
               "served a challenge page." % len(r.text), file=sys.stderr)
         sys.exit(1)
