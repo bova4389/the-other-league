@@ -2719,6 +2719,9 @@ body.pf-locked { overflow: hidden; }
 .wr-ov-btns { display: flex; gap: 8px; flex: none; }
 .wr-ov .wr-btn.ghost { color: #e2e8f0; border-color: #475569; }
 .wr-ov img { width: 100%; height: auto; display: block; border-radius: 6px; }
+.wr-ov img[hidden] { display: none; }
+/* Where the off-screen copy is drawn from. Never on screen, so the page never moves. */
+.wr-export-host { position: fixed; left: -10000px; top: 0; pointer-events: none; }
 
 </style>
 <!-- html2canvas powers "Save image" on the Scores weekly recap. Same library
@@ -4064,46 +4067,68 @@ function renderWeekTopBlock(recaps,sv,week){
 }
 
 // \u2500\u2500 WEEKLY RECAP \u2192 PNG \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-// Ported from Commish Hub's exportEl(). html2canvas draws #wr-card while it
-// carries .exporting (720px, larger type, logo header). windowWidth keeps the
-// phone @media rules out of the drawing so a phone saves the same image a
-// desktop does.
+// Ported from Commish Hub's exportEl(), with two changes the Hub does not need
+// and this page does (found on an iPhone, 2026-09-30):
+//  1. It draws a COPY of the card, parked off-screen, never the card on the
+//     page. Drawing the live card meant widening it to 720px in place, and on
+//     a 375px phone the recap blew up across the screen while html2canvas ran.
+//  2. ignoreElements leaves the rest of the page out of html2canvas's clone.
+//     This file is ~500 KB of DOM; the Hub's page is tiny. Cloning all of it
+//     is what made the render slow enough on a phone to outlast the tap, at
+//     which point Safari refuses the share sheet.
+// The overlay opens the moment the button is tapped, reading "Making the
+// image", so the tap always gets an answer. On a phone the image then waits
+// there with a Share button, which is a fresh tap Safari always honors.
+// windowWidth keeps the phone @media rules out of the drawing, so a phone
+// saves the same image a desktop does.
+const RECAP_RENDER_TIMEOUT_MS=30000;
+let _recapBusy=false;
 async function saveWeeklyRecap(mode){
   const card=document.getElementById('wr-card');
-  if(!card)return;
+  if(!card||_recapBusy)return;
   if(!window.html2canvas){alert('The image library is still loading. Try again in a moment.');return;}
-  const btns=[...card.querySelectorAll('.wr-btn')];
-  btns.forEach(b=>{b.disabled=true;});
+  _recapBusy=true;
   const name=`tol-${currentScoresYear}-week-${card.dataset.week}-recap.png`;
-  card.classList.add('exporting');
+  openRecapOverlay('Making the image\u2026');
+  const host=document.createElement('div');
+  host.className='wr-export-host';
+  const copy=card.cloneNode(true);
+  copy.removeAttribute('id');
+  copy.classList.add('exporting');
+  host.appendChild(copy);
+  document.body.appendChild(host);
   try{
     const bg=getComputedStyle(card).backgroundColor;
-    const canvas=await html2canvas(card,{scale:2,backgroundColor:bg,useCORS:true,logging:false,windowWidth:900});
-    card.classList.remove('exporting');
+    const render=html2canvas(copy,{
+      scale:2,backgroundColor:bg,useCORS:true,logging:false,
+      windowWidth:900,scrollX:0,scrollY:0,
+      // Keep the <head> (fonts, styles) and the path down to the copy; drop the rest.
+      ignoreElements:el=>!(el.contains(host)||host.contains(el)||document.head.contains(el))
+    });
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('it took too long')),RECAP_RENDER_TIMEOUT_MS));
+    const canvas=await Promise.race([render,timeout]);
     const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    if(!blob)throw new Error('the browser could not encode the PNG');
     const file=new File([blob],name,{type:'image/png'});
-    if(mode==='preview')return showRecapOverlay(blob,file);
+    showRecapImage(blob,file);
+    if(mode==='preview')return;
     // A phone gets the share sheet: Save Image is one tap, and so is sending
-    // it straight to Sleeper. A download on a phone lands in Files instead.
+    // it straight to Sleeper. If the browser refuses (the render outlasted
+    // the tap), the image is already on screen with its own Share button.
     if(canShareRecapFile(file)){
-      try{await navigator.share({files:[file]});}
-      catch(err){
-        // Drawing can outlast the tap that asked for it, and the browser then
-        // refuses the share. The overlay's Share button is a fresh tap.
-        // AbortError is just the sheet being closed.
-        if(err.name!=='AbortError')showRecapOverlay(blob,file);
-      }
+      try{await navigator.share({files:[file]});closeRecapOverlay();}catch(err){}
       return;
     }
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),5000);
+    closeRecapOverlay();
   }catch(e){
-    alert('Could not render the image: '+e.message);
+    document.getElementById('wr-ov-msg').textContent='Could not make the image ('+e.message+'). Close this and try again.';
   }finally{
-    card.classList.remove('exporting');
-    btns.forEach(b=>{b.disabled=false;});
+    host.remove();
+    _recapBusy=false;
   }
 }
 // Coarse pointer only: a desktop browser that can share files should still
@@ -4112,18 +4137,27 @@ function canShareRecapFile(file){
   return !!(navigator.canShare&&matchMedia('(pointer: coarse)').matches&&navigator.canShare({files:[file]}));
 }
 let _recapOverlayUrl=null;
-function showRecapOverlay(blob,file){
+function openRecapOverlay(msg){
+  const img=document.getElementById('wr-ov-img');
+  img.hidden=true;
+  img.removeAttribute('src');
+  document.getElementById('wr-ov-share').hidden=true;
+  document.getElementById('wr-ov-msg').textContent=msg;
+  document.getElementById('wr-ov').hidden=false;
+}
+function showRecapImage(blob,file){
   if(_recapOverlayUrl)URL.revokeObjectURL(_recapOverlayUrl);
   _recapOverlayUrl=URL.createObjectURL(blob);
-  document.getElementById('wr-ov-img').src=_recapOverlayUrl;
+  const img=document.getElementById('wr-ov-img');
+  img.src=_recapOverlayUrl;
+  img.hidden=false;
   const share=canShareRecapFile(file);
   const btn=document.getElementById('wr-ov-share');
   btn.hidden=!share;
-  btn.onclick=()=>navigator.share({files:[file]}).catch(()=>{});
+  btn.onclick=()=>navigator.share({files:[file]}).then(closeRecapOverlay).catch(()=>{});
   document.getElementById('wr-ov-msg').textContent=share
-    ?'Tap Share, then Save Image, or send it straight to Sleeper'
+    ?'Tap Share, then Save Image, or send it straight to Sleeper. Or press and hold the image.'
     :'Right-click or long-press the image to save it';
-  document.getElementById('wr-ov').hidden=false;
 }
 function closeRecapOverlay(){document.getElementById('wr-ov').hidden=true;}
 
