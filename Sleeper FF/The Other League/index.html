@@ -2664,7 +2664,66 @@ body.pf-locked { overflow: hidden; }
   .cm-tiles { grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   WEEKLY RECAP — SAVE AS IMAGE
+   Same feature as Commish Hub's recap card: html2canvas draws .wr-card to a
+   PNG. `.exporting` is on the card only while it is being drawn. It fixes the
+   width at 720px and scales the type up, because the site's 9-12px type is
+   sized for a scrolling page, not a picture in a group chat. The logo header
+   and URL footer (.wr-ex) show only in the image; the buttons only on the page.
+   ══════════════════════════════════════════════════════════════════════════ */
+.wr-ex { display: none; }
+.wr-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.wr-btn {
+  font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+  padding: 7px 13px; min-height: 32px; cursor: pointer; border-radius: 2px; transition: all .15s;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+}
+.wr-btn.ghost { background: none; color: var(--muted); border-color: var(--border); }
+.wr-btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.wr-btn:disabled { opacity: .5; cursor: default; }
+.wr-hint { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); flex: 1 1 100%; }
+
+.wr-card.exporting { width: 720px; max-width: none; margin: 0; padding: 24px 28px 20px; border-top: 4px solid var(--accent3); }
+.wr-card.exporting .wr-actions { display: none; }
+.wr-card.exporting .wr-ex { display: flex; }
+.wr-card.exporting .wr-kicker { font-size: 11px; margin-bottom: 8px; }
+.wr-card.exporting .wr-head { font-size: 36px; margin-bottom: 16px; }
+.wr-card.exporting .wr-facts { gap: 10px 18px; padding: 14px 0 16px; margin-bottom: 16px; }
+.wr-card.exporting .wr-fk { font-size: 10.5px; }
+.wr-card.exporting .wr-fv { font-size: 14.5px; }
+.wr-card.exporting .wr-body p { font-size: 15.5px; line-height: 1.6; margin-bottom: 13px; }
+.wr-card.exporting .sv-block { margin-top: 18px; padding: 14px 16px 15px; }
+.wr-card.exporting .sv-kicker,
+.wr-card.exporting .sv-flag { font-size: 10.5px; }
+.wr-card.exporting .sv-pot { font-size: 13px; }
+.wr-card.exporting .sv-rule { font-size: 12.5px; }
+.wr-card.exporting .sv-line { font-size: 14px; }
+.wr-card.exporting .sv-tm { font-size: 12.5px; }
+.wr-card.exporting .sv-al,
+.wr-card.exporting .sv-chip,
+.wr-card.exporting .sv-out { font-size: 10.5px; }
+
+.wr-ex-top { align-items: center; gap: 12px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.wr-ex-top img { width: 40px; height: 40px; object-fit: contain; flex: none; }
+.wr-ex-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: .06em; color: var(--text); line-height: 1; }
+.wr-ex-yr { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
+.wr-ex-foot { justify-content: space-between; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--border);
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .06em; color: var(--muted); }
+
+.wr-ov { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 1000; overflow: auto; padding: 14px; }
+.wr-ov[hidden] { display: none; }
+.wr-ov-inner { max-width: 760px; margin: 0 auto; }
+.wr-ov-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: #cbd5e1; }
+.wr-ov-btns { display: flex; gap: 8px; flex: none; }
+.wr-ov .wr-btn.ghost { color: #e2e8f0; border-color: #475569; }
+.wr-ov img { width: 100%; height: auto; display: block; border-radius: 6px; }
+
 </style>
+<!-- html2canvas powers "Save image" on the Scores weekly recap. Same library
+     and version as Commish Hub. -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="is-home">
 
@@ -3988,14 +4047,85 @@ function renderWeekTopBlock(recaps,sv,week){
   const facts=(r.facts||[]).map(f=>
     `<div class="wr-fact"><span class="wr-fk">${esc(f.k)}</span><span class="wr-fv">${esc(f.v)}</span></div>`).join('');
   const body=(r.paragraphs||[]).map(p=>`<p>${esc(p)}</p>`).join('');
-  return `<div class="wr-card">`
+  // .wr-ex rows show only in the saved image; .wr-actions only on the page.
+  return `<div class="wr-card" id="wr-card" data-week="${esc(week)}">`
+    +`<div class="wr-ex wr-ex-top"><img src="TOL%20Abbreviated%20Icon.png" alt="">`
+    +`<span class="wr-ex-name">The Other League</span><span class="wr-ex-yr">${esc(currentScoresYear)} Season</span></div>`
     +`<div class="wr-kicker">Week ${esc(week)} \u00B7 League Recap</div>`
     +(r.headline?`<div class="wr-head">${esc(r.headline)}</div>`:'')
     +(facts?`<div class="wr-facts">${facts}</div>`:'')
     +(body?`<div class="wr-body">${body}</div>`:'')
     +surv
+    +`<div class="wr-ex wr-ex-foot"><span>bova4389.github.io/the-other-league</span><span>Dynasty \u00B7 Superflex \u00B7 TEP</span></div>`
+    +`<div class="wr-actions"><button type="button" class="wr-btn" onclick="saveWeeklyRecap('save')">Save image</button>`
+    +`<button type="button" class="wr-btn ghost" onclick="saveWeeklyRecap('preview')">Preview image</button>`
+    +`<span class="wr-hint">On a phone, Save image opens the share sheet. Tap Save Image, or send it straight to Sleeper.</span></div>`
     +`</div>`;
 }
+
+// \u2500\u2500 WEEKLY RECAP \u2192 PNG \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Ported from Commish Hub's exportEl(). html2canvas draws #wr-card while it
+// carries .exporting (720px, larger type, logo header). windowWidth keeps the
+// phone @media rules out of the drawing so a phone saves the same image a
+// desktop does.
+async function saveWeeklyRecap(mode){
+  const card=document.getElementById('wr-card');
+  if(!card)return;
+  if(!window.html2canvas){alert('The image library is still loading. Try again in a moment.');return;}
+  const btns=[...card.querySelectorAll('.wr-btn')];
+  btns.forEach(b=>{b.disabled=true;});
+  const name=`tol-${currentScoresYear}-week-${card.dataset.week}-recap.png`;
+  card.classList.add('exporting');
+  try{
+    const bg=getComputedStyle(card).backgroundColor;
+    const canvas=await html2canvas(card,{scale:2,backgroundColor:bg,useCORS:true,logging:false,windowWidth:900});
+    card.classList.remove('exporting');
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    const file=new File([blob],name,{type:'image/png'});
+    if(mode==='preview')return showRecapOverlay(blob,file);
+    // A phone gets the share sheet: Save Image is one tap, and so is sending
+    // it straight to Sleeper. A download on a phone lands in Files instead.
+    if(canShareRecapFile(file)){
+      try{await navigator.share({files:[file]});}
+      catch(err){
+        // Drawing can outlast the tap that asked for it, and the browser then
+        // refuses the share. The overlay's Share button is a fresh tap.
+        // AbortError is just the sheet being closed.
+        if(err.name!=='AbortError')showRecapOverlay(blob,file);
+      }
+      return;
+    }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }catch(e){
+    alert('Could not render the image: '+e.message);
+  }finally{
+    card.classList.remove('exporting');
+    btns.forEach(b=>{b.disabled=false;});
+  }
+}
+// Coarse pointer only: a desktop browser that can share files should still
+// just download.
+function canShareRecapFile(file){
+  return !!(navigator.canShare&&matchMedia('(pointer: coarse)').matches&&navigator.canShare({files:[file]}));
+}
+let _recapOverlayUrl=null;
+function showRecapOverlay(blob,file){
+  if(_recapOverlayUrl)URL.revokeObjectURL(_recapOverlayUrl);
+  _recapOverlayUrl=URL.createObjectURL(blob);
+  document.getElementById('wr-ov-img').src=_recapOverlayUrl;
+  const share=canShareRecapFile(file);
+  const btn=document.getElementById('wr-ov-share');
+  btn.hidden=!share;
+  btn.onclick=()=>navigator.share({files:[file]}).catch(()=>{});
+  document.getElementById('wr-ov-msg').textContent=share
+    ?'Tap Share, then Save Image, or send it straight to Sleeper'
+    :'Right-click or long-press the image to save it';
+  document.getElementById('wr-ov').hidden=false;
+}
+function closeRecapOverlay(){document.getElementById('wr-ov').hidden=true;}
 
 // ── SCORES TAB ──
 function updateRivalryPills(year){
@@ -9854,6 +9984,19 @@ routeFromHash();
      from any tab without disturbing that tab's scroll position. -->
 <div class="pf-overlay" id="pf-overlay" onclick="closeProfile(event)">
   <div class="pf-modal" id="pf-modal" role="dialog" aria-modal="true" aria-labelledby="pf-modal-name"></div>
+</div>
+<!-- Weekly recap image preview (Scores tab "Preview image"). -->
+<div class="wr-ov" id="wr-ov" hidden onclick="if(event.target===this)closeRecapOverlay()">
+  <div class="wr-ov-inner">
+    <div class="wr-ov-bar">
+      <span id="wr-ov-msg">Right-click or long-press the image to save it</span>
+      <span class="wr-ov-btns">
+        <button type="button" class="wr-btn" id="wr-ov-share" hidden>Share</button>
+        <button type="button" class="wr-btn ghost" onclick="closeRecapOverlay()">Close</button>
+      </span>
+    </div>
+    <img id="wr-ov-img" alt="Weekly recap image">
+  </div>
 </div>
 </body>
 </html>
