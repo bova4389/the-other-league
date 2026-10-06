@@ -819,6 +819,13 @@ name anywhere on the site is a link into it** — 936 of them as of build day.
 - `startCountdown()` — countdown timer to **Sep 9, 2026 8:20 PM ET**; ticks every 1s
 - `routeFromHash()` — reads `location.hash` on boot and navigates to matching tab
 - `init()` — boot sequence: loads/caches rosters, builds leader stats, prefetches historical data in background
+  **It also refreshes the live season's matchups and transactions (2026-10-06).** Before that only
+  the Scores tab ever fetched `tol_matchups_<live year>`, so Rivalries, the H2H explorer, the
+  nemesis board, the Hall of Fame and the career table showed whatever a browser cached on its
+  last Scores visit — all six Week 4 rivalry games read "TBD" the day after they were played.
+  **None of those views is fed by a weekly job, and none needs one:** they are computed in the
+  browser from live Sleeper data on every load. The Tuesday bot's `h2h-records.md` is not read by
+  the site at all. A stale History page is a caching bug, never a missed bot run.
 
 ### Automation (Tuesday Bot)
 Weekly automation that runs every Tuesday at 9am ET (after Monday Night Football). It now does
@@ -1023,7 +1030,8 @@ Moved out of the League/Rules panel markup on 2026-08-21 and rendered on the Car
 | `tol_matchups_{year}` | permanent for completed seasons; **1h TTL for the current season** (+ cleared on Refresh) | All 17 weeks of matchup data. The current season needs a TTL because `starters` changes whenever a manager sets a lineup, and the Scores tab projects off those starters — a permanent cache pinned the whole year to whatever lineups happened to be set on first load. |
 | `tol_matchups_ts_{year}` | permanent | Fetch stamp for the TTL above. Kept in a *separate* key because eight other call sites read `tol_matchups_{year}` directly and expect the bare `{week: [...]}` shape. |
 | `tol_scoring_v1` | permanent (refreshed each boot) | The league's live `scoring_settings`, overlaid onto `SDATA` at parse time |
-| `tol_txn_{year}` | permanent (2023–2025); **cleared on Refresh for 2026** | All completed transactions |
+| `tol_txn_{year}` | permanent (2023–2025); **1h TTL for the current season** (+ cleared on Refresh) | All completed transactions. The live season was permanent until 2026-10-06, which froze the 2026 trade log and the Hall of Fame Trades / Waiver Wire Warrior cards at each browser's first visit. A refresh with any failed week keeps the old copy rather than saving a log with a hole in it. |
+| `tol_txn_ts_{year}` | permanent | Fetch stamp for the TTL above, same pattern as `tol_matchups_ts_{year}`. |
 | `tol_drafts_{year}` | permanent | All draft picks |
 | `tol_stats_v2_{year}` | permanent | Season stats aggregated from 17 weeks (2023–2025 only) |
 | `tol_stats_wk_v2_{year}_{week}` | permanent | Single-week stats (2023–2025 only) |

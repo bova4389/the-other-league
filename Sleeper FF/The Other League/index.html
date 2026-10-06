@@ -5013,16 +5013,30 @@ function buildRivalries(){
 }
 
 // ── FETCH TRANSACTIONS FOR A SEASON ──
+// Completed seasons are cached forever. The live season gets the same 1h TTL
+// as fetchAllMatchups (fixed 2026-10-06): it used to be cached forever too,
+// so every browser froze the 2026 trade log, and the Hall of Fame's Trades
+// and Waiver Wire Warrior cards, at its first visit until someone hit Refresh.
 async function fetchTransactions(leagueId,year){
   const key=`tol_txn_${year}`;
+  const tsKey=`tol_txn_ts_${year}`;
   const cached=loadPerm(key);
-  if(cached)return cached;
+  if(cached){
+    const st=await getNflState().catch(()=>null);
+    const isCurrentSeason=st?Number(st.season)===Number(year):false;
+    if(!isCurrentSeason)return cached;
+    if(Date.now()-(loadPerm(tsKey)||0)<MATCHUP_CACHE_TTL)return cached;
+  }
   const weeks=Array.from({length:17},(_,i)=>i+1);
-  const results=await Promise.all(weeks.map(w=>api(`/league/${leagueId}/transactions/${w}`).catch(()=>[])));
+  let failed=false;
+  const results=await Promise.all(weeks.map(w=>api(`/league/${leagueId}/transactions/${w}`).catch(()=>{failed=true;return[];})));
+  // A refresh with a failed week would publish a log with a hole in it. Keep
+  // the copy we already have and try again on the next load.
+  if(failed&&cached)return cached;
   const all=results.flat().filter(tx=>tx&&tx.status==='complete');
   // Sort newest first
   all.sort((a,b)=>(b.created||0)-(a.created||0));
-  savePerm(key,all);buildHallOfFame(); // cache and update the trades card (2026 cleared on Refresh)
+  savePerm(key,all);savePerm(tsKey,Date.now());buildHallOfFame(); // cache and update the trades card
   return all;
 }
 
@@ -9467,10 +9481,9 @@ async function init(){
         fetchTransactions(ids[year],year).then(()=>buildHallOfFame()).catch(()=>{});
       }
     });
-    // Prefetch 2026 transactions (cleared on Refresh so count stays current)
-    if(!loadPerm('tol_txn_2026')){
-      fetchTransactions(LID,2026).catch(()=>{});
-    }
+    // 2026 transactions: always called now. fetchTransactions returns the
+    // cached copy inside its 1h TTL and only re-pulls once it has gone stale.
+    fetchTransactions(LID,2026).catch(()=>{});
   }).catch(()=>{});
   // Prefetch 2025 player stats in background after rosters are ready
   if(cachedRosters&&!loadPerm('tol_stats_v2_2025')){
