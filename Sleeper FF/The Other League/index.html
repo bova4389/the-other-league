@@ -9432,6 +9432,23 @@ async function init(){
     // Rebuild BOTH sub-tabs — the record book and career table are built from
     // this data too, and on a cold browser they render empty until it lands.
     if(matchupFetches.length)Promise.all(matchupFetches).then(()=>{invalidateAllTimeStats();buildCareers();buildHallOfFame();}).catch(()=>{});
+    // The live season too (fixed 2026-10-06). Rivalries, the H2H explorer, the
+    // nemesis board, the Hall of Fame and the career table all read
+    // tol_matchups_<live year>, and until now only the Scores tab ever wrote
+    // it. Opening History first showed whatever this browser had cached on its
+    // last Scores visit, so all six Week 4 rivalry games still read "TBD" the
+    // day after they were played. fetchAllMatchups keeps its 1h live-season
+    // TTL, and the views only rebuild when a fresh pull actually landed.
+    getNflState().then(st=>{
+      const yr=st&&Number(st.season);
+      if(!yr)return;
+      const tsKey=`tol_matchups_ts_${yr}`;
+      const before=loadPerm(tsKey);
+      return fetchAllMatchups(ids[yr]||LID,yr).then(()=>{
+        if(loadPerm(tsKey)===before)return;
+        buildRivalries();buildCareers();buildHallOfFame();
+      });
+    }).catch(()=>{});
     // Prefetch draft picks for 2024 and 2025 to populate the most draft picks stat
     [2024,2025].forEach(year=>{
       if(ids[year]&&!loadPerm(`tol_drafts_${year}`)){
