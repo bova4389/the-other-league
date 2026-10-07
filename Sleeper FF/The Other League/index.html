@@ -2723,6 +2723,17 @@ body.pf-locked { overflow: hidden; }
 /* Where the off-screen copy is drawn from. Never on screen, so the page never moves. */
 .wr-export-host { position: fixed; left: -10000px; top: 0; pointer-events: none; }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   RIVALRIES — PRE-RIVALRY YEARS (2026-10-07)
+   2023 and 2024 meetings count toward each card's all-time record, but the
+   rivalries were not official until 2025. The tag says so on those rows.
+   ══════════════════════════════════════════════════════════════════════════ */
+.riv-pre {
+  font-family: 'DM Mono', monospace; font-size: 8.5px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 1px 5px;
+  margin-left: 4px; white-space: nowrap; vertical-align: 1px;
+}
+
 </style>
 <!-- html2canvas powers "Save image" on the Scores weekly recap. Same library
      and version as Commish Hub. -->
@@ -3292,6 +3303,7 @@ const RMR = {};
 Object.entries(RM).forEach(([rid,uid]) => { RMR[uid] = parseInt(rid); });
 
 // Rivalry pairs by user_id
+const RIVALRY_START_YEAR = 2025; // rivalries made official; earlier meetings still count, tagged pre-rivalry
 const RIVALS = [
   {a:'721908735856967680',b:'728292202471604224'},
   {a:'470747640758267904',b:'722920890647515136'},
@@ -4942,8 +4954,10 @@ function buildNemesisBoard(){
 function buildRivalries(){
   const g=document.getElementById('rivalry-grid');
   g.innerHTML='';
-  // Rivalries started in 2025 — compute H2H from that year forward
-  const rivalYears=[2026,2025];
+  // The rivalries became official in 2025, but every season since 2023 counts
+  // toward the record (Matt, 2026-10-07). Years before RIVALRY_START_YEAR are
+  // tagged "pre-rivalry" in the history rows so nobody reads them as rivalry games.
+  const rivalYears=[2026,2025,2024,2023];
   const h2hByYear={};
   for(const year of rivalYears){
     const h=buildH2HForYear(year,14);
@@ -4968,7 +4982,8 @@ function buildRivalries(){
         // Week links back to Scores tab
         const wks=findRivalWeeks(year,ridA,ridB);
         const wkLinks=wks.map(w=>`<a href="#" onclick="goToScoresWeek(${year},${w});return false;" class="riv-wk-link">W${w}</a>`).join(' ');
-        yearRows.push(`<div class="riv-rec-yr">${year}: <strong>${yrWinner}</strong> (W) ${wrW}&ndash;${wrL} ${wkLinks?'&middot; '+wkLinks:''}</div>`);
+        const preTag=year<RIVALRY_START_YEAR?' <span class="riv-pre">pre-rivalry</span>':'';
+        yearRows.push(`<div class="riv-rec-yr">${year}: <strong>${yrWinner}</strong> (W) ${wrW}&ndash;${wrL} ${wkLinks?'&middot; '+wkLinks:''}${preTag}</div>`);
       } else if(year===2026){
         // Pre-season placeholder — links to rivalry weeks in Scores tab
         const w4=`<a href="#" onclick="goToScoresWeek(2026,4);return false;" class="riv-wk-link">W4</a>`;
@@ -9445,7 +9460,7 @@ async function init(){
     });
     // Rebuild BOTH sub-tabs — the record book and career table are built from
     // this data too, and on a cold browser they render empty until it lands.
-    if(matchupFetches.length)Promise.all(matchupFetches).then(()=>{invalidateAllTimeStats();buildCareers();buildHallOfFame();}).catch(()=>{});
+    if(matchupFetches.length)Promise.all(matchupFetches).then(()=>{invalidateAllTimeStats();buildCareers();buildHallOfFame();buildRivalries();}).catch(()=>{});
     // The live season too (fixed 2026-10-06). Rivalries, the H2H explorer, the
     // nemesis board, the Hall of Fame and the career table all read
     // tol_matchups_<live year>, and until now only the Scores tab ever wrote
