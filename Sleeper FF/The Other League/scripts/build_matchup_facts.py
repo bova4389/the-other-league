@@ -66,17 +66,10 @@ ROSTER_OWNER = {
     9: 'Mitch Blackwell', 10: 'Nick Merkel', 11: 'Andrew Bova',
     12: 'Duane Gillenwater',
 }
-OWNER_TEAM = {
-    'Matt Bova': 'Show Me Your Penix', 'Jake Bogardus': 'BoKnows723',
-    'Jared Hayes': 'SirWinsAlot', 'Chris Bova': 'Titsburg Feelers',
-    'Nick Bova': 'Nabers in Paris', 'Erin Jacobs': 'eejacobs',
-    'Jake Blackwell': 'Nacua Matata',
-    'Chris Merkel': 'Your Team is the PITTsMAN',
-    'Mitch Blackwell': 'i LOVE mendoza',
-    'Nick Merkel': 'Breeces Peanut ButterCups',
-    'Andrew Bova': 'Joshin Around',
-    'Duane Gillenwater': 'Enter the Maye-Trix',
-}
+# Team names are NOT hardcoded here. Managers rename freely mid-season, and a
+# table that lived here went seven names stale by Week 7 of 2026 -- every
+# write-up built from it quoted the August names. load_team_names() reads them
+# from that season's own /league/{lid}/users on every run instead.
 
 RIVALRY_WEEKS = {2025: [4, 13], 2026: [4, 13]}
 
@@ -135,6 +128,87 @@ def fetch(url):
     r = requests.get(url, timeout=30)
     r.raise_for_status()
     return r.json()
+
+
+def load_team_names(lid):
+    """roster_id -> team name, live from that season's league.
+
+    Sleeper keeps user metadata per league, so a past season's league still
+    returns that season's names; the current one returns today's. A manager
+    who never set a team name shows as their display name, which is also what
+    the Sleeper app shows.
+    """
+    users = {u['user_id']: u for u in fetch(f'{API}/league/{lid}/users') or []}
+    out = {}
+    for r in fetch(f'{API}/league/{lid}/rosters') or []:
+        u = users.get(r.get('owner_id')) or {}
+        name = ((u.get('metadata') or {}).get('team_name') or
+                u.get('display_name') or '').strip()
+        # Sleeper allows runs of spaces ("U.S.zAy.!  U.S.A.!"); a browser
+        # collapses them, so the prose should too.
+        out[r['roster_id']] = ' '.join(name.split()) or ROSTER_OWNER[r['roster_id']]
+    missing = set(ROSTER_OWNER) - set(out)
+    if missing:
+        raise SystemExit(f'ERROR: no roster/team name for roster_ids {sorted(missing)}')
+    return out
+
+
+def _quoted_names(src, const):
+    """Every name:'...' / team:'...' string inside `const X = {...};` in index.html."""
+    import re
+    i = src.find(f'const {const} = {{')
+    if i < 0:
+        return []
+    block = src[i:src.find('\n};', i)]
+    return re.findall(r"(?:name|team):'((?:[^'\\]|\\.)*)'", block)
+
+
+def check_stale_names(year, team_names):
+    """Warn about old team names in this season's prose, and in index.html TEAMS.
+
+    Run for the live season only. Old names come from TEAM_NAME_HISTORY in
+    index.html. A hit is a warning, not an error: a sentence about the past
+    ("inherited the Joshin Around roster") can be right to use one.
+    """
+    import re
+    idx = os.path.join(TOL_ROOT, 'index.html')
+    try:
+        src = open(idx, encoding='utf-8').read()
+    except OSError:
+        return
+    norm = lambda n: ' '.join(n.replace('’', "'").split())
+    current = {norm(n) for n in team_names.values()}
+    owners = set(ROSTER_OWNER.values())
+    old = {norm(n) for n in _quoted_names(src, 'TEAM_NAME_HISTORY')}
+    old -= current | owners
+
+    warned = False
+    for fname in (f'matchup-commentary-{year}.json', f'weekly-recaps-{year}.json'):
+        path = os.path.join(TOL_ROOT, fname)
+        if not os.path.exists(path):
+            continue
+        text = norm(open(path, encoding='utf-8').read())
+        for n in sorted(old):
+            hits = len(re.findall(re.escape(n), text))
+            if hits:
+                warned = True
+                print(f'  WARNING: {fname} uses old team name "{n}" '
+                      f'({hits}x) - check it is meant as history', file=sys.stderr)
+
+    # TEAMS in index.html is what the match cards print beside the prose.
+    m = re.search(r"const TEAMS = \{(.*?)\n\};", src, re.S)
+    rm = re.search(r"const RM = \{(.*?)\};", src, re.S)
+    if m and rm:
+        uid_team = dict(re.findall(r"'(\d+)':\{name:'[^']*',team:'((?:[^'\\]|\\.)*)'", m.group(1)))
+        rid_uid = {int(a): b for a, b in re.findall(r"(\d+):'(\d+)'", rm.group(1))}
+        for rid, name in sorted(team_names.items()):
+            site = uid_team.get(rid_uid.get(rid))
+            if site is not None and norm(site) != norm(name):
+                warned = True
+                print(f'  WARNING: index.html TEAMS has {ROSTER_OWNER[rid]} as '
+                      f'"{site}", Sleeper says "{name}"', file=sys.stderr)
+    if not warned:
+        print('  team names: prose and index.html TEAMS match Sleeper')
 
 
 def find_league_id(year):
@@ -294,6 +368,13 @@ def build(year, weeks_filter, out_path, cache_dir):
     print(f'  scoring: rec={scoring.get("rec")} '
           f'bonus_rec_te={scoring.get("bonus_rec_te")}  slots={len(slots)}')
 
+    team_names = load_team_names(lid)
+    print('  team names (live from Sleeper):')
+    for rid in sorted(team_names):
+        print(f'    {ROSTER_OWNER[rid]:<18} {team_names[rid]}')
+    if lid == CURRENT_LID:
+        check_stale_names(year, team_names)
+
     players = load_players(cache_dir)
 
     weeks = weeks_filter or list(range(1, 18))
@@ -306,7 +387,9 @@ def build(year, weeks_filter, out_path, cache_dir):
     h2h = {}
     season_scores = {rid: [] for rid in ROSTER_OWNER}
 
-    out = {'season': year, 'league_id': lid, 'matchups': {}}
+    out = {'season': year, 'league_id': lid,
+           'team_names': {ROSTER_OWNER[r]: n for r, n in sorted(team_names.items())},
+           'matchups': {}}
     skipped = 0
 
     for wk in range(1, 18):
@@ -424,7 +507,7 @@ def build(year, weeks_filter, out_path, cache_dir):
                 sides.append({
                     'roster_id': rid,
                     'owner': ROSTER_OWNER[rid],
-                    'team': OWNER_TEAM[ROSTER_OWNER[rid]],
+                    'team': team_names[rid],
                     'points': pts,
                     'proj_total': proj_total,
                     'proj_delta': round(pts - proj_total, 2),
@@ -520,7 +603,7 @@ def build(year, weeks_filter, out_path, cache_dir):
         print(f'  week {wk:>2}: {len(pairs)} matchups, {wrote} written, '
               f'median {median:.2f}')
 
-    with open(out_path, 'w') as f:
+    with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(out, f, indent=1)
     print(f'\nOK - wrote {out_path}')
     print(f'   {len(out["matchups"])} matchups with facts, '
@@ -528,6 +611,9 @@ def build(year, weeks_filter, out_path, cache_dir):
 
 
 def main():
+    # Team names carry curly apostrophes; a Windows console is cp1252.
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
     ap = argparse.ArgumentParser()
     ap.add_argument('--year', type=int, required=True)
     ap.add_argument('--weeks', default=None,

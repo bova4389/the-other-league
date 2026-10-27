@@ -3243,15 +3243,15 @@ const CACHE_TTL = 6 * 60 * 60 * 1000;
 
 // All 12 teams: user_id → info
 const TEAMS = {
-  '721908735856967680':{name:'Matt Bova',team:'Tee Baggin Swift’s Tate',you:true,tier:'mid',photo:'img/profiles/matt-bova.jpg'},
-  '722615938792382464':{name:'Jake Bogardus',team:'Public Enemy No. 1',co:'Katie',tier:'contender',photo:'img/profiles/jake-bogardus.jpg'},
+  '721908735856967680':{name:'Matt Bova',team:'Love’s Shack',you:true,tier:'mid',photo:'img/profiles/matt-bova.jpg'},
+  '722615938792382464':{name:'Jake Bogardus',team:'BoKnows723',co:'Katie',tier:'contender',photo:'img/profiles/jake-bogardus.jpg'},
   '722927129620197376':{name:'Jared Hayes',team:'SirWinsAlot',tier:'mid',photo:'img/profiles/jared-hayes.jpg'},
   '728290759668797440':{name:'Chris Bova',team:'Titsburg Feelers',tier:'contender',photo:'img/profiles/chris-bova.jpg'},
   '722827711751487488':{name:'Nick Bova',team:'Nabers in Paris',tier:'mid',photo:'img/profiles/nick-bova.jpg'},
   '728292169563099136':{name:'Erin Jacobs',team:'eejacobs',tier:'mid',photo:'img/profiles/erin-jacobs.jpg'},
   '470747640758267904':{name:'Jake Blackwell',team:'Nacua Matata',tier:'champion',note:'2025 Champ 🏆',photo:'img/profiles/jake-blackwell.jpg'},
   '722612742522994688':{name:'Chris Merkel',team:'U.S.zAy.! U.S.A.!',tier:'trader',photo:'img/profiles/chris-merkel.jpg'},
-  '722920890647515136':{name:'Mitch Blackwell',team:'i LOVE mendoza',co:'Andrew Evans',tier:'mid',photo:'img/profiles/mitch-blackwell.jpg'},
+  '722920890647515136':{name:'Mitch Blackwell',team:'Medical Tent Mafia',co:'Andrew Evans',tier:'mid',photo:'img/profiles/mitch-blackwell.jpg'},
   '723731618132504576':{name:'Nick Merkel',team:'McConkey Kong',tier:'trader',note:'Consolation 🥈',photo:'img/profiles/nick-merkel.jpg'},
   // ★ Andrew took over roster 11 in 2026. Verified against the API: that roster
   // was owned by user 728293730280427520 ("CCJ" — Chris Jacobs) in 2023/24/25 and
@@ -3260,7 +3260,7 @@ const TEAMS = {
   // renders the star and the footnote rather than quietly passing it off.
   '467166827215056896':{name:'Andrew Bova',team:'TurtleNeckTie',tier:'mid',photo:'img/profiles/andrew-bova.jpg',
     succeeded:{predecessor:'Chris Jacobs',from:2026,years:'2023–2025'}},
-  '728292202471604224':{name:'Duane Gillenwater',team:'Enter the Maye-Trix',tier:'mid',photo:'img/profiles/duane-gillenwater.jpg'},
+  '728292202471604224':{name:'Duane Gillenwater',team:'Trade Block Maye!',tier:'mid',photo:'img/profiles/duane-gillenwater.jpg'},
 };
 
 // Every team name each franchise has carried, oldest first. Pulled from
@@ -3274,20 +3274,21 @@ const TEAMS = {
 //     as it stands right now, so a rename is only detectable by comparing
 //     against what we last recorded. The doubled 2026 rows are exactly that:
 //     first what the site had hardcoded through the August preseason, second
-//     what Sleeper returned on 2026-08-21.
+//     what Sleeper returned on 2026-08-21. A third 2026 row is a later
+//     rename, picked up 2026-10-27 when build_matchup_facts.py flagged it.
 const TEAM_NAME_HISTORY = {
-  '721908735856967680':[{yr:2023,name:'Brady’s Kids'},{yr:2024,name:'House of Darnold'},{yr:2025,name:'Show Me Your Penix'},{yr:2026,name:'Show Me Your Penix'},{yr:2026,name:'Tee Baggin Swift’s Tate',current:true}],
-  '722615938792382464':[{yr:2023,name:'BoKnows723'},{yr:2024,name:'BoKnows723'},{yr:2025,name:'BoKnows723'},{yr:2026,name:'Public Enemy No. 1',current:true}],
+  '721908735856967680':[{yr:2023,name:'Brady’s Kids'},{yr:2024,name:'House of Darnold'},{yr:2025,name:'Show Me Your Penix'},{yr:2026,name:'Show Me Your Penix'},{yr:2026,name:'Tee Baggin Swift’s Tate'},{yr:2026,name:'Love’s Shack',current:true}],
+  '722615938792382464':[{yr:2023,name:'BoKnows723'},{yr:2024,name:'BoKnows723'},{yr:2025,name:'BoKnows723'},{yr:2026,name:'Public Enemy No. 1'},{yr:2026,name:'BoKnows723',current:true}],
   '722927129620197376':[{yr:2023,name:'SirWinsAlot'},{yr:2024,name:'SirWinsAlot'},{yr:2025,name:'SirWinsAlot'},{yr:2026,name:'SirWinsAlot',current:true}],
   '728290759668797440':[{yr:2023,name:'Titsburg Feelers'},{yr:2024,name:'Titsburg Feelers'},{yr:2025,name:'Titsburg Feelers'},{yr:2026,name:'Titsburg Feelers',current:true}],
   '722827711751487488':[{yr:2023,name:'Too many Cooks'},{yr:2024,name:'Too many Cooks'},{yr:2025,name:'Nabers in Paris'},{yr:2026,name:'Nabers in Paris',current:true}],
   '728292169563099136':[{yr:2023,name:'eejacobs'},{yr:2024,name:'eejacobs'},{yr:2025,name:'eejacobs'},{yr:2026,name:'eejacobs',current:true}],
   '470747640758267904':[{yr:2023,name:'Nacua Matata'},{yr:2024,name:'Nacua Matata'},{yr:2025,name:'Nacua Matata'},{yr:2026,name:'Nacua Matata',current:true}],
   '722612742522994688':[{yr:2023,name:'The Merkel Dynasty'},{yr:2024,name:'Do the TANKy Leg'},{yr:2025,name:'Your Team is the PITTsMAN'},{yr:2026,name:'Your Team is the PITTsMAN'},{yr:2026,name:'U.S.zAy.! U.S.A.!',current:true}],
-  '722920890647515136':[{yr:2023,name:'Blackwell #2'},{yr:2024,name:'Slightly used belt 4 sale'},{yr:2025,name:'Ewers? Barely know her'},{yr:2026,name:'i LOVE mendoza',current:true}],
+  '722920890647515136':[{yr:2023,name:'Blackwell #2'},{yr:2024,name:'Slightly used belt 4 sale'},{yr:2025,name:'Ewers? Barely know her'},{yr:2026,name:'i LOVE mendoza'},{yr:2026,name:'Medical Tent Mafia',current:true}],
   '723731618132504576':[{yr:2023,name:'Merk ‘N’ Twerk'},{yr:2024,name:'The Red Riflers'},{yr:2025,name:'Breeces Peanut ButterCups'},{yr:2026,name:'Breeces Peanut ButterCups'},{yr:2026,name:'McConkey Kong',current:true}],
   '467166827215056896':[{yr:2023,name:'Team Bustersx9',who:'Chris Jacobs'},{yr:2024,name:'Joshin Around',who:'Chris Jacobs'},{yr:2025,name:'Joshin Around',who:'Chris Jacobs'},{yr:2026,name:'Joshin Around'},{yr:2026,name:'TurtleNeckTie',current:true}],
-  '728292202471604224':[{yr:2023,name:'ChubbLess'},{yr:2024,name:'Team_IR'},{yr:2025,name:'Enter the Maye-Trix'},{yr:2026,name:'Enter the Maye-Trix',current:true}],
+  '728292202471604224':[{yr:2023,name:'ChubbLess'},{yr:2024,name:'Team_IR'},{yr:2025,name:'Enter the Maye-Trix'},{yr:2026,name:'Enter the Maye-Trix'},{yr:2026,name:'Trade Block Maye!',current:true}],
 };
 
 // roster_id (1-12) → user_id

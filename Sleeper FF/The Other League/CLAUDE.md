@@ -1404,6 +1404,14 @@ week-in-review for the league, twelve write-ups for the individual games. Don't 
 **THE WEEKLY WORKFLOW (2026, weeks 1–17).** Every week is a two-file edit, both hand-written:
 1. `scripts/build_matchup_facts.py` for that week — **every number in both files comes from here.**
    Never write a figure from memory or from the API by eye.
+   **Team names come from here too, and only from here.** The script reads them live from that
+   season's `/league/{lid}/users` on every run and prints them at the top; it used to carry a
+   hardcoded `OWNER_TEAM` table that was seven names stale by Week 7 of 2026, so every write-up
+   quoted the August names. For the live season it also warns about any old name (from
+   `TEAM_NAME_HISTORY`) found in either JSON file, and about any `TEAMS` entry in `index.html`
+   that no longer matches Sleeper. **Clear every warning before committing a week.** When `TEAMS`
+   is stale, update it and append a new 2026 row to `TEAM_NAME_HISTORY`, never overwrite one.
+   The one expected warning is "Joshin Around" in Week 4, which is history on purpose.
 2. `weekly-recaps-<year>.json` — one entry keyed by week number:
    `{headline, facts: [{k,v}], paragraphs: []}`. 2–3 paragraphs / ~200–250 words: longer than a
    matchup write-up, shorter than a season recap. 3–5 `facts` reads best; past 6 the strip wraps
