@@ -2671,10 +2671,12 @@ body.pf-locked { overflow: hidden; }
 /* ══════════════════════════════════════════════════════════════════════════
    WEEKLY RECAP — SAVE AS IMAGE
    Same feature as Commish Hub's recap card: html2canvas draws .wr-card to a
-   PNG. `.exporting` is on the card only while it is being drawn. It fixes the
-   width at 720px and scales the type up, because the site's 9-12px type is
-   sized for a scrolling page, not a picture in a group chat. The logo header
-   and URL footer (.wr-ex) show only in the image; the buttons only on the page.
+   PNG. `.exporting.phone` is on an off-screen copy only while it is being
+   drawn, and shapes it like an iPhone screen with auto-fit text (below),
+   because the site's 9-12px type is sized for a scrolling page, not a picture
+   in a group chat. Until 2026-10-21 it saved 720px wide, which a phone shrinks
+   to about 55%, so the body text read at about 8.5pt. The logo header and URL
+   footer (.wr-ex) show only in the image; the buttons only on the page.
    ══════════════════════════════════════════════════════════════════════════ */
 .wr-ex { display: none; }
 .wr-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
@@ -2688,25 +2690,47 @@ body.pf-locked { overflow: hidden; }
 .wr-btn:disabled { opacity: .5; cursor: default; }
 .wr-hint { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); flex: 1 1 100%; }
 
-.wr-card.exporting { width: 720px; max-width: none; margin: 0; padding: 24px 28px 20px; border-top: 4px solid var(--accent3); }
 .wr-card.exporting .wr-actions { display: none; }
 .wr-card.exporting .wr-ex { display: flex; }
-.wr-card.exporting .wr-kicker { font-size: 11px; margin-bottom: 8px; }
-.wr-card.exporting .wr-head { font-size: 36px; margin-bottom: 16px; }
-.wr-card.exporting .wr-facts { gap: 10px 18px; padding: 14px 0 16px; margin-bottom: 16px; }
-.wr-card.exporting .wr-fk { font-size: 10.5px; }
-.wr-card.exporting .wr-fv { font-size: 14.5px; }
-.wr-card.exporting .wr-body p { font-size: 15.5px; line-height: 1.6; margin-bottom: 13px; }
-.wr-card.exporting .sv-block { margin-top: 18px; padding: 14px 16px 15px; }
-.wr-card.exporting .sv-kicker,
-.wr-card.exporting .sv-flag { font-size: 10.5px; }
-.wr-card.exporting .sv-pot { font-size: 13px; }
-.wr-card.exporting .sv-rule { font-size: 12.5px; }
-.wr-card.exporting .sv-line { font-size: 14px; }
-.wr-card.exporting .sv-tm { font-size: 12.5px; }
-.wr-card.exporting .sv-al,
-.wr-card.exporting .sv-chip,
-.wr-card.exporting .sv-out { font-size: 10.5px; }
+
+/* The saved image is shaped like an iPhone screen: 393 x 852 points, drawn at
+   3x (1179 x 2556), so it fills the phone top to bottom with no scrolling.
+   Every text size is a multiple of --fs, which fitRecapPhone() sets to the
+   largest size where the whole card fits 852px tall: a short week comes out
+   big, a long one smaller. Below 11px it stops shrinking and the image runs
+   taller instead (Matt, 2026-10-21). Sizes are calc(var(--fs) * k), not em,
+   because .sv-tm and .sv-flag sit inside .sv-line and em would compound.
+   These rules also have to beat the max-width:680px block above, which
+   applies to the off-screen copy when the page is open on a phone, or the
+   fit loop would measure a different card from the one that gets drawn. */
+.wr-card.exporting.phone {
+  width: 393px; min-height: 852px; max-width: none; margin: 0; box-sizing: border-box;
+  border-width: 0; border-top: 6px solid var(--accent3); padding: 26px 20px 18px;
+  display: flex; flex-direction: column; font-size: var(--fs, 15px);
+}
+.wr-card.phone .wr-ex-top { gap: .7em; padding-bottom: .75em; margin-bottom: .8em; }
+.wr-card.phone .wr-ex-top img { width: calc(var(--fs) * 2.2); height: calc(var(--fs) * 2.2); }
+.wr-card.phone .wr-ex-name { font-size: calc(var(--fs) * 1.55); }
+.wr-card.phone .wr-ex-yr { font-size: calc(var(--fs) * .66); }
+.wr-card.phone .wr-kicker { font-size: calc(var(--fs) * .68); margin-bottom: .6em; }
+.wr-card.phone .wr-head { font-size: calc(var(--fs) * 1.6); margin-bottom: .5em; }
+.wr-card.phone .wr-facts { grid-template-columns: 1fr 1fr; gap: .55em 1em; padding: .8em 0 .85em; margin-bottom: .9em; }
+.wr-card.phone .wr-fk { font-size: calc(var(--fs) * .64); }
+.wr-card.phone .wr-fv { font-size: calc(var(--fs) * .9); }
+.wr-card.phone .wr-body p { font-size: var(--fs); line-height: 1.5; margin-bottom: .75em; }
+.wr-card.phone .wr-body p:last-child { margin-bottom: 0; }
+.wr-card.phone .sv-block { margin-top: calc(var(--fs) * 1.1); padding: calc(var(--fs) * .85) calc(var(--fs) * .95); }
+.wr-card.phone .sv-kicker,
+.wr-card.phone .sv-flag { font-size: calc(var(--fs) * .66); }
+.wr-card.phone .sv-pot { font-size: calc(var(--fs) * .8); }
+.wr-card.phone .sv-rule { font-size: calc(var(--fs) * .76); }
+.wr-card.phone .sv-line { font-size: calc(var(--fs) * .88); }
+.wr-card.phone .sv-tm { font-size: calc(var(--fs) * .76); }
+.wr-card.phone .sv-al,
+.wr-card.phone .sv-chip,
+.wr-card.phone .sv-out { font-size: calc(var(--fs) * .64); }
+/* margin-top: auto pins the URL footer to the bottom of the frame on a short week. */
+.wr-card.phone .wr-ex-foot { font-size: calc(var(--fs) * .62); margin-top: auto; padding-top: .8em; }
 
 .wr-ex-top { align-items: center; gap: 12px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
 .wr-ex-top img { width: 40px; height: 40px; object-fit: contain; flex: none; }
@@ -4099,6 +4123,20 @@ function renderWeekTopBlock(recaps,sv,week){
 // windowWidth keeps the phone @media rules out of the drawing, so a phone
 // saves the same image a desktop does.
 const RECAP_RENDER_TIMEOUT_MS=30000;
+// The saved image is an iPhone screen, 393 x 852 points (see the .phone CSS).
+// Try text sizes from the largest down and keep the first one where the whole
+// card fits the frame. Below RECAP_FS_MIN the text is too small to read on a
+// phone, so a recap that still doesn't fit runs taller instead (Matt,
+// 2026-10-21). The soft word budget on the recap keeps that rare.
+const RECAP_PHONE_H=852,RECAP_FS_MAX=21,RECAP_FS_MIN=11;
+function fitRecapPhone(card){
+  card.classList.add('phone');
+  for(let fs=RECAP_FS_MAX;fs>=RECAP_FS_MIN;fs-=0.25){
+    card.style.setProperty('--fs',fs+'px');
+    if(card.scrollHeight<=RECAP_PHONE_H)return fs;
+  }
+  return RECAP_FS_MIN;
+}
 let _recapBusy=false;
 async function saveWeeklyRecap(mode){
   const card=document.getElementById('wr-card');
@@ -4115,9 +4153,14 @@ async function saveWeeklyRecap(mode){
   host.appendChild(copy);
   document.body.appendChild(host);
   try{
+    // Measure with the real fonts. Fitting against the fallback fonts picks a
+    // size that overflows once Bebas Neue / DM Sans finish loading.
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    fitRecapPhone(copy);
     const bg=getComputedStyle(card).backgroundColor;
     const render=html2canvas(copy,{
-      scale:2,backgroundColor:bg,useCORS:true,logging:false,
+      // 3x is the iPhone's own resolution: 393pt wide saves 1179px wide.
+      scale:3,backgroundColor:bg,useCORS:true,logging:false,
       windowWidth:900,scrollX:0,scrollY:0,
       // Keep the <head> (fonts, styles) and the path down to the copy; drop the rest.
       ignoreElements:el=>!(el.contains(host)||host.contains(el)||document.head.contains(el))

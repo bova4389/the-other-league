@@ -1413,13 +1413,32 @@ week-in-review for the league, twelve write-ups for the individual games. Don't 
    is stale, update it and append a new 2026 row to `TEAM_NAME_HISTORY`, never overwrite one.
    The one expected warning is "Joshin Around" in Week 4, which is history on purpose.
 2. `weekly-recaps-<year>.json` — one entry keyed by week number:
-   `{headline, facts: [{k,v}], paragraphs: []}`. 2–3 paragraphs / ~200–250 words: longer than a
-   matchup write-up, shorter than a season recap. 3–5 `facts` reads best; past 6 the strip wraps
-   badly on mobile.
+   `{headline, facts: [{k,v}], paragraphs: []}`. 2–3 paragraphs, **about 200 words in all, 250 at
+   most** (see "The saved recap image" below for why): longer than a matchup write-up, shorter
+   than a season recap. 3–5 `facts` reads best; past 6 the strip wraps badly on mobile.
 3. `matchup-commentary-<year>.json` — one entry per game keyed `"week|matchup_id"`, unchanged
    Phase 8 shape and voice.
 4. **Do NOT write survivor eliminations into either file.** The tracker computes them. The only
    thing to check is that the week's scores are final on Sleeper before pointing anyone at it.
+
+**The saved recap image is shaped like an iPhone screen** (Matt, 2026-10-21, same change as
+Commish Hub's `778d727`). **Save image** / **Preview image** on the recap card draw an off-screen
+copy at 393 × 852 points and save it at 3×, so 1179 × 2556, which fills a phone with no
+scrolling. It used to save 720px wide, which a phone shrinks to about 55%, so body text read at
+about 8.5pt. `fitRecapPhone()` tries text sizes from 21px down and keeps the largest one where
+the whole card fits, so a short week comes out big and a long one smaller. **Below 11px it stops
+shrinking** and the image runs taller instead (Matt's call over "fit at any size"). Every size in
+the `.wr-card.exporting.phone` CSS is `calc(var(--fs) * k)`, not `em`, because `.sv-tm` and
+`.sv-flag` sit inside `.sv-line` and `em` would compound. The fit waits for
+`document.fonts.ready`, or it measures fallback fonts and overflows once the real ones load.
+
+**Why the word budget is 200, not the hub's 300.** TOL's image also carries the logo header, URL
+footer and the survivor block, and in mid-season the survivor block is about a quarter of the
+screen. Measured 2026-10-23 at the 11px floor with the Week 3–4 survivor block: Week 3 (211 words)
+ran 858px tall, 6px over; Week 1 (252) ran 908; Week 4 (329) ran 973, about 14% taller than the
+screen. A 96-word test fit at 13.25px. So about 200 words fits one screen and 250 runs about 6%
+over. The block shrinks as teams are eliminated and disappears after Week 12, so late-season
+weeks have more room.
 
 **Voice:** matches Phase 8/9 — Hall of Fame & Shame roast level, punch at the decision not the
 person. Real point figures stay in the prose.

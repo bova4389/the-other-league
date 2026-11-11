@@ -4,7 +4,7 @@
   "shape": {
     "headline": "one line, the week in a sentence",
     "facts": "optional array of {k, v} -- the at-a-glance strip. 3-5 entries reads best; more than 6 wraps badly on mobile.",
-    "paragraphs": "array of strings, one per paragraph. 2-3 paragraphs / ~200-250 words is the target: longer than a matchup write-up, shorter than a season recap."
+    "paragraphs": "array of strings, one per paragraph. 2-3 paragraphs, about 200 words in all and 250 at most: longer than a matchup write-up, shorter than a season recap. The budget is set by the saved image, which is one iPhone screen and shrinks the text to fit; at its 11px floor about 200 words fit beside a mid-season survivor block, and past that the image runs taller than the screen."
   },
   "survivor_note": "Do NOT write the survivor eliminations in here. The tracker under each recap is computed live from the scoreboard by computeSurvivor() in index.html -- a hand-typed elimination list would only drift from the scores rendered directly beneath it.",
   "weeks": {
