@@ -3445,7 +3445,7 @@ const SEASON_PAYOUTS = {
   // that sum, the edit is wrong, not the pot.
   2026: {
     status: 'Structure Set',
-    note: 'Every prize below is locked in; the names are not. Weekly High Points runs all 17 weeks on purpose, so a manager knocked out of the playoffs still has $10 a week to submit a lineup for.',
+    note: 'Every prize below is locked in. The Survivor Pool is settled (Andrew Bova, Week 11); the other names are still open. Weekly High Points runs all 17 weeks on purpose, so a manager knocked out of the playoffs still has $10 a week to submit a lineup for.',
     rows: [
       {k:'Buy-in', v:'$100/team'},
       {k:'Total Pot', v:'$1,200'},
@@ -3461,7 +3461,9 @@ const SEASON_PAYOUTS = {
       {k:'Worst Beat (closest margin)', v:'$25'},
       {k:'Top Performing 2026 Drafted Player', v:'$15'},
       {k:'Rivalry Winners ($10 ea)', v:'$60 total'},
-      {k:'Survivor Pool', v:'$35'},
+      // Settled after Week 11 (2026-11-24): roster 11 was the last team left.
+      // computeSurvivor() derives the same result from the scoreboard.
+      {k:'Survivor Pool — Andrew Bova', v:'$35', tone:'win'},
     ],
     footnote: '465 + 200 + 100 + 170 + 30 + 25 + 25 + 25 + 25 + 25 + 15 + 60 + 35 = $1,200.',
   },
